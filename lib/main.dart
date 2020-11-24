@@ -7,6 +7,8 @@ void main() {
   runApp(MyApp());
 }
 
+var diligenceTheme = DiligenceTheme.createThemeData();
+
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../components/app_bar.dart';
+import '../components/data/single_number.dart';
 
 class ReviewPage extends StatefulWidget {
   ReviewPage({Key key, this.title}) : super(key: key);
@@ -23,49 +24,51 @@ class ReviewPage extends StatefulWidget {
 class _ReviewPageState extends State<ReviewPage> {
   int _counter = 0;
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     var theme = Theme.of(context);
     return Scaffold(
       appBar: appBar(context, 'Review'),
       backgroundColor: theme.backgroundColor,
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
-              style: Theme.of(context).textTheme.bodyText1,
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Text(
+                'Today’s Summary',
+                style: theme.textTheme.headline2,
+              ),
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
+            ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: 640.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  SingleNumberDataPoint(
+                    title: 'Completed Tasks',
+                    number: 23,
+                  ),
+                  SingleNumberDataPoint(
+                    title: 'Overdues',
+                    number: 2,
+                  ),
+                  SingleNumberDataPoint(
+                    title: 'New Tasks',
+                    number: 15,
+                  ),
+                ],
+              ),
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
+      /*floatingActionButton: FloatingActionButton(
         onPressed: _incrementCounter,
         tooltip: 'Increment',
         child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      ), // This trailing comma makes auto-formatting nicer for build methods.*/
     );
   }
 }

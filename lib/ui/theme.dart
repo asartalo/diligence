@@ -1,26 +1,57 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
-import './colors.dart' as DiligenceColors;
+import './colors.dart';
 
-var diligenceTheme = ThemeData(
-  // This is the theme of your application.
-  //
-  // Try running your application with "flutter run". You'll see the
-  // application has a blue toolbar. Then, without quitting the app, try
-  // changing the primarySwatch below to Colors.green and then invoke
-  // "hot reload" (press "r" in the console where you ran "flutter run",
-  // or simply save your changes to "hot reload" in a Flutter IDE).
-  // Notice that the counter didn't reset back to zero; the application
-  // is not restarted.
-  primarySwatch: DiligenceColors.blue,
-  accentColor: DiligenceColors.orangeDawn,
-  backgroundColor: DiligenceColors.paperGray,
-  cardColor: Colors.white,
-  fontFamily: 'Roboto',
-  textTheme: TextTheme(
-    bodyText1: TextStyle(
-      fontWeight: FontWeight.w300,
-      fontSize: 16.0,
-    ),
-  ),
-);
+var diligenceColors = DiligenceColors();
+
+class DiligenceTextTheme {
+  final TextTheme textTheme;
+
+  DiligenceTextTheme({this.textTheme});
+
+  TextStyle get dataTitle {
+    return textTheme.headline6;
+  }
+}
+
+class DiligenceTheme {
+  final ThemeData themeData;
+  final colors = DiligenceColors;
+  final DiligenceTextTheme text;
+
+  DiligenceTheme({this.themeData, this.text});
+
+  static DiligenceTheme fromTheme(ThemeData themeData) {
+    return DiligenceTheme(
+      themeData: themeData,
+      text: DiligenceTextTheme(textTheme: themeData.textTheme),
+    );
+  }
+
+  TextTheme get textTheme {
+    return themeData.textTheme;
+  }
+
+  static ThemeData createThemeData() {
+    return ThemeData(
+      primarySwatch: DiligenceColors.blue,
+      accentColor: DiligenceColors.orangeDawn,
+      backgroundColor: DiligenceColors.paperGray,
+      cardColor: Colors.white,
+      fontFamily: 'Roboto',
+      textTheme: TextTheme(
+        bodyText1: TextStyle(
+          fontWeight: FontWeight.w300,
+          fontSize: 16.0,
+        ),
+        headline2: TextStyle(
+          fontWeight: FontWeight.w300,
+        ),
+      ).apply(
+        displayColor: DiligenceColors.black,
+      ),
+    );
+  }
+}
