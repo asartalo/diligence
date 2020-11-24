@@ -1,7 +1,7 @@
 import 'package:diligence/ui/theme.dart';
 import 'package:flutter/material.dart';
 
-import 'ui/pages/home.dart';
+import 'ui/pages/review.dart';
 
 void main() {
   runApp(MyApp());
@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Diligence',
       theme: diligenceTheme,
-      home: MyHomePage(title: 'Diligence'),
+      home: ReviewPage(title: 'Diligence'),
     );
   }
 }
