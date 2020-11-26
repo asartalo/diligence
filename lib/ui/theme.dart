@@ -16,9 +16,14 @@ class DiligenceTextTheme {
   }
 }
 
+class DiligenceLengths {
+  final double space = 20;
+}
+
 class DiligenceTheme {
   final ThemeData themeData;
   final colors = DiligenceColors;
+  final DiligenceLengths lengths = DiligenceLengths();
   final DiligenceTextTheme text;
 
   DiligenceTheme({this.themeData, this.text});
