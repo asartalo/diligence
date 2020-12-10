@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class EasyCard extends StatelessWidget {
   final List<Widget> children;
 
-  EasyCard({this.children});
+  EasyCard({@required this.children});
 
   @override
   Widget build(BuildContext context) {

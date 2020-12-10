@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:meta/meta.dart';
 
 import '../../theme.dart';
 
 class SingleNumberDataPoint extends StatelessWidget {
   final String title;
-  final dynamic number;
-  SingleNumberDataPoint({this.title, this.number});
+  final num number;
+  SingleNumberDataPoint({
+    @required this.title,
+    @required this.number,
+  });
 
   @override
   Widget build(BuildContext context) {

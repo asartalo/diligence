@@ -9,7 +9,7 @@ var diligenceColors = DiligenceColors();
 class DiligenceTextTheme {
   final TextTheme textTheme;
 
-  DiligenceTextTheme({this.textTheme});
+  DiligenceTextTheme({@required this.textTheme});
 
   TextStyle get dataTitle {
     return textTheme.headline6;
@@ -25,14 +25,24 @@ class DiligenceTheme {
   final colors = DiligenceColors;
   final DiligenceLengths lengths = DiligenceLengths();
   final DiligenceTextTheme text;
+  static Map<ThemeData, DiligenceTheme> themeCache = {};
 
-  DiligenceTheme({this.themeData, this.text});
+  DiligenceTheme({
+    @required this.themeData,
+    @required this.text,
+  });
 
   static DiligenceTheme fromTheme(ThemeData themeData) {
-    return DiligenceTheme(
-      themeData: themeData,
-      text: DiligenceTextTheme(textTheme: themeData.textTheme),
-    );
+    DiligenceTheme theTheme = themeCache[themeData];
+    if (theTheme == null) {
+      themeCache.clear();
+      theTheme = DiligenceTheme(
+        themeData: themeData,
+        text: DiligenceTextTheme(textTheme: themeData.textTheme),
+      );
+      themeCache[themeData] = theTheme;
+    }
+    return theTheme;
   }
 
   TextTheme get textTheme {

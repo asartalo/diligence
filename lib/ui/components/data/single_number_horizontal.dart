@@ -5,9 +5,13 @@ import '../../theme.dart';
 class SingleNumberDataPointHorizontal extends StatelessWidget {
   final String title;
   final String caption;
-  final dynamic number;
+  final num number;
 
-  SingleNumberDataPointHorizontal({this.title, this.caption, this.number});
+  SingleNumberDataPointHorizontal({
+    @required this.title,
+    @required this.caption,
+    @required this.number,
+  });
 
   @override
   Widget build(BuildContext context) {

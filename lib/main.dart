@@ -1,7 +1,7 @@
 import 'package:diligence/ui/theme.dart';
 import 'package:flutter/material.dart';
 
-import 'ui/pages/review.dart';
+import './ui/screens/review.dart';
 
 void main() {
   runApp(MyApp());
