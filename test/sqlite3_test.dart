@@ -23,7 +23,7 @@ void main() async {
   group('Testing with own file database', () {
     setUp(() async {
       db = await openDatabase(dbPath);
-      final file = File('test/fixtures/test.sql');
+      final file = File('./fixtures/test.sql');
       final contents = await file.readAsString();
       // Load data:
       await db.execute(contents);
