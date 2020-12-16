@@ -10,10 +10,10 @@ class SqliteSchema {
   /// Loads an sql file to the database
   Future<void> loadSqlFile(String filePath) async {
     final file = File(filePath);
-    await db.rawQuery(await file.readAsString());
+    await db.execute(await file.readAsString());
   }
 
-  Future<void> dumpToPath(String filePath) async {
+  Future<void> dumpSchemaToFile(String filePath) async {
     final file = File(filePath);
     final schemas =
         await db.rawQuery('SELECT sql FROM sqlite_master ORDER BY name;');

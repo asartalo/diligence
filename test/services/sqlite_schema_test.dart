@@ -1,20 +1,16 @@
 import 'dart:io';
 
 import 'package:diligence/services/sqlite_schema.dart';
+import 'package:diligence/utils/sqflite_prepare.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as path;
 import 'package:sqflite/sqflite.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 main() async {
   Database db;
   SqliteSchema helper;
 
-  TestWidgetsFlutterBinding.ensureInitialized();
-  if (Platform.isWindows || Platform.isLinux) {
-    sqfliteFfiInit();
-    databaseFactory = databaseFactoryFfi;
-  }
+  sqflitePrepare();
 
   final sqlCreateString =
       'CREATE TABLE IF NOT EXISTS "settings" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "start_of_day" varchar);';
@@ -53,11 +49,11 @@ main() async {
     });
   });
 
-  group('SqliteSchema#loadSqlFile', () {
+  group('SqliteSchema#dumpSchemaToFile', () {
     String sqlDumpPath = path.join(Directory.systemTemp.path, 'dump.sql');
     setUp(() async {
       await db.rawQuery(sqlCreateString);
-      await helper.dumpToPath(sqlDumpPath);
+      await helper.dumpSchemaToFile(sqlDumpPath);
     });
 
     test('writes to dump file', () async {

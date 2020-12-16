@@ -1,31 +1,34 @@
 import 'dart:io';
 
+import 'package:diligence/constants.dart';
+import 'package:diligence/utils/sqflite_prepare.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as path;
 import 'package:sqflite/sqflite.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+
+import 'helpers/common_helpers.dart';
 
 void main() async {
   Database db;
-  if (Platform.isWindows || Platform.isLinux) {
-    sqfliteFfiInit();
-    databaseFactory = databaseFactoryFfi;
-  }
-  String dbPath = path.join(await getDatabasesPath(), 'test_database.db');
+  ProjectPaths paths = ProjectPaths.instance;
+
+  sqflitePrepare();
+
+  TestDbFile dbFile = TestDbFile('test_database.db');
 
   tearDownAll(() async {
     if (db != null) {
       await db.close();
-      await deleteDatabase(dbPath);
+      await deleteDatabase(dbFile.path);
     }
   });
 
   group('Testing with own file database', () {
     setUp(() async {
-      db = await openDatabase(dbPath);
-      final file = File('./fixtures/test.sql');
+      dbFile.setUp();
+      db = await openDatabase(dbFile.path);
+      final file = File(path.join(paths.testPath, 'fixtures/test.sql'));
       final contents = await file.readAsString();
-      // Load data:
       await db.execute(contents);
     });
 
