@@ -41,6 +41,10 @@ class TestDbFile {
   }
 }
 
-Future<void> createTask(Database db, TaskRow row) async {
-  await db.insert('tasks', row.toSqliteMap());
+Future<int> createTask(Database db, TaskRow row) {
+  return db.insert('tasks', row.toSqliteMap());
+}
+
+Future<int> createTaskDefers(Database db, TaskDeferRow row) {
+  return db.insert('task_defers', row.toSqliteMap());
 }
