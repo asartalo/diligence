@@ -3,23 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
 import 'package:sqflite/sqflite.dart';
 
-class ReviewSummaryData extends Equatable {
-  final int completed;
-  final int overdue;
-  final int newlyCreated;
-
-  // TODO: these should be calculated
-  // final double dailyNetTasks;
-  // final double dailyTaskCompletionRate; // tasks completed per hour within working hours
-  const ReviewSummaryData({
-    @required this.completed,
-    @required this.overdue,
-    @required this.newlyCreated,
-  });
-
-  @override
-  List<Object> get props => [completed, overdue, newlyCreated];
-}
+part 'review_data_service/summary_data.dart';
 
 DateTimeRange getDayRange(DateTime now) {
   var start = DateTime(now.year, now.month, now.day);

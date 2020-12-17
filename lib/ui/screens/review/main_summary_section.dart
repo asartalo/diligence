@@ -35,12 +35,12 @@ class MainSummarySection extends StatelessWidget {
             SingleNumberDataPointHorizontal(
               title: 'Daily net tasks',
               caption: 'completed + destroyed - added',
-              number: 40,
+              number: summaryData.dailyNetTasks,
             ),
             SingleNumberDataPointHorizontal(
               title: 'Task Completion Rate',
-              caption: 'daily',
-              number: 1.3,
+              caption: 'completed / 16 hours (TEMPORARY)',
+              number: summaryData.hourlyTaskCompletionRate,
             ),
           ],
         ),
