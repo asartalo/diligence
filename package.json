@@ -1,0 +1,37 @@
+{
+  "name": "diligence",
+  "version": "1.0.0",
+  "description": "This is package for development tools. When non-npm specific tools are available, we'll use them instead.",
+  "main": "N/A",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "private": true,
+  "scripts": {
+    "postinstall": "husky install"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/asartalo/diligence.git"
+  },
+  "keywords": [
+    "productivity"
+  ],
+  "author": "Wayne Duran",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/asartalo/diligence/issues"
+  },
+  "homepage": "https://github.com/asartalo/diligence#readme",
+  "devDependencies": {
+    "@commitlint/cli": "^11.0.0",
+    "@commitlint/config-conventional": "^11.0.0",
+    "husky": "^5.0.6"
+  },
+  "husky": {
+    "hooks": {
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+    }
+  }
+}
