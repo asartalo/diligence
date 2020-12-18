@@ -4,4 +4,5 @@ Productivity for the unproductive.
 
 # Development
 
-Uses commitlint and husky
+Uses [commitlint](https://commitlint.js.org/#/) and [husky](https://github.com/typicode/husky)
+
