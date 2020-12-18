@@ -1,6 +1,6 @@
 import 'package:flutter_driver/driver_extension.dart';
 
-void main() async {
+Future<void> main() async {
   // This line enables the extension
   enableFlutterDriverExtension();
 

@@ -5,12 +5,12 @@ import 'package:provider/provider.dart';
 
 import 'container.dart';
 
-var diligenceTheme = DiligenceTheme.createThemeData();
+final diligenceTheme = DiligenceTheme.createThemeData();
 
 class DiligenceApp extends StatelessWidget {
   final DiligenceContainer container;
 
-  DiligenceApp(this.container);
+  const DiligenceApp(this.container);
 
   // This widget is the root of your application.
   @override
@@ -20,7 +20,7 @@ class DiligenceApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Diligence',
         theme: diligenceTheme,
-        home: ReviewPage(title: 'Diligence'),
+        home: const ReviewPage(title: 'Diligence'),
       ),
     );
   }

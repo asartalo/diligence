@@ -2,7 +2,9 @@ part of 'review_data_bloc.dart';
 
 abstract class ReviewDataState extends Equatable {
   final Option<ReviewSummaryData> maybeSummaryData;
-  ReviewDataState(this.maybeSummaryData);
+  const ReviewDataState(this.maybeSummaryData);
+
+  @override
   List<Object> get props => [maybeSummaryData];
 
   bool hasData() => false;

@@ -24,18 +24,6 @@ class TaskRow extends Equatable {
         primaryFocusedAt,
       ];
 
-  TaskRow._({
-    this.id,
-    this.parentId, // null means no parent or root task
-    @required this.sortOrder,
-    @required this.done,
-    @required this.name,
-    @required this.createdAt,
-    @required this.updatedAt,
-    this.doneAt,
-    this.primaryFocusedAt,
-  });
-
   factory TaskRow({
     int id,
     int parentId,
@@ -54,12 +42,24 @@ class TaskRow extends Equatable {
       done: done,
       name: name,
       sortOrder: sortOrder,
-      createdAt: createdAt == null ? now : createdAt,
-      updatedAt: updatedAt == null ? now : updatedAt,
+      createdAt: createdAt ?? now,
+      updatedAt: updatedAt ?? now,
       doneAt: doneAt,
       primaryFocusedAt: primaryFocusedAt,
     );
   }
+
+  const TaskRow._({
+    this.id,
+    this.parentId, // null means no parent or root task
+    @required this.sortOrder,
+    @required this.done,
+    @required this.name,
+    @required this.createdAt,
+    @required this.updatedAt,
+    this.doneAt,
+    this.primaryFocusedAt,
+  });
 
   Map<String, dynamic> toSqliteMap() {
     return {

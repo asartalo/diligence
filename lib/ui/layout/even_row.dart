@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 class EvenRow extends StatelessWidget {
   final List<Widget> children;
 
-  EvenRow({@required this.children});
+  const EvenRow({@required this.children});
 
   @override
   Widget build(BuildContext context) {

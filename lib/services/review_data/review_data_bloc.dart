@@ -21,8 +21,8 @@ class ReviewDataBloc extends Bloc<ReviewDataEvent, ReviewDataState> {
     }
   }
 
-  requestData() {
-    add(ReviewDataRequested());
+  void requestData() {
+    add(const ReviewDataRequested());
   }
 
   Stream<ReviewDataState> _dataRequested() async* {

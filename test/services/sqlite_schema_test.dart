@@ -6,13 +6,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as path;
 import 'package:sqflite/sqflite.dart';
 
-main() async {
+Future<void> main() async {
   Database db;
   SqliteSchema helper;
 
   sqflitePrepare();
 
-  final sqlCreateString =
+  const sqlCreateString =
       'CREATE TABLE IF NOT EXISTS "settings" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "start_of_day" varchar);';
   setUp(() async {
     db = await openDatabase(inMemoryDatabasePath);
@@ -42,7 +42,7 @@ main() async {
     });
 
     test('it loads schema', () async {
-      var result = await db.rawQuery(
+      final result = await db.rawQuery(
         "SELECT name FROM sqlite_master WHERE type='table' AND name='settings'",
       );
       expect(result.length, 1);
@@ -50,7 +50,7 @@ main() async {
   });
 
   group('SqliteSchema#dumpSchemaToFile', () {
-    String sqlDumpPath = path.join(Directory.systemTemp.path, 'dump.sql');
+    final sqlDumpPath = path.join(Directory.systemTemp.path, 'dump.sql');
     setUp(() async {
       await db.rawQuery(sqlCreateString);
       await helper.dumpSchemaToFile(sqlDumpPath);

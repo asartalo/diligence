@@ -7,7 +7,7 @@ class SingleNumberDataPointHorizontal extends StatelessWidget {
   final String caption;
   final num number;
 
-  SingleNumberDataPointHorizontal({
+  const SingleNumberDataPointHorizontal({
     @required this.title,
     @required this.caption,
     @required this.number,
@@ -15,26 +15,24 @@ class SingleNumberDataPointHorizontal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var diligenceTheme = DiligenceTheme.fromTheme(Theme.of(context));
-    var textTheme = diligenceTheme.textTheme;
-    return Container(
-      child: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Row(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: diligenceTheme.text.dataTitle),
-                  Text(caption, style: textTheme.caption),
-                ],
-              ),
+    final diligenceTheme = DiligenceTheme.fromTheme(Theme.of(context));
+    final textTheme = diligenceTheme.textTheme;
+    return Padding(
+      padding: const EdgeInsets.all(10.0),
+      child: Row(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: diligenceTheme.text.dataTitle),
+                Text(caption, style: textTheme.caption),
+              ],
             ),
-            Text("$number", style: textTheme.headline4),
-          ],
-        ),
+          ),
+          Text("$number", style: textTheme.headline4),
+        ],
       ),
     );
   }

@@ -1,11 +1,11 @@
 import 'package:diligence/services/review_data_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-void main() async {
+Future<void> main() async {
   ReviewSummaryData summaryData;
 
   setUp(() {
-    summaryData = ReviewSummaryData(
+    summaryData = const ReviewSummaryData(
       completed: 8,
       overdue: 6,
       newlyCreated: 4,

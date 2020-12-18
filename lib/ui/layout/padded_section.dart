@@ -5,12 +5,12 @@ import '../theme.dart';
 class PaddedSection extends StatelessWidget {
   final Widget child;
 
-  PaddedSection({@required this.child});
+  const PaddedSection({@required this.child});
 
   @override
   Widget build(BuildContext context) {
-    var diligenceTheme = DiligenceTheme.fromTheme(Theme.of(context));
-    var space = diligenceTheme.lengths.space;
+    final diligenceTheme = DiligenceTheme.fromTheme(Theme.of(context));
+    final space = diligenceTheme.lengths.space;
     return Padding(
       padding: EdgeInsets.all(space),
       child: child,

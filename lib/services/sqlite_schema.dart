@@ -17,7 +17,7 @@ class SqliteSchema {
     final file = File(filePath);
     final schemas =
         await db.rawQuery('SELECT sql FROM sqlite_master ORDER BY name;');
-    for (var row in schemas) {
+    for (final row in schemas) {
       await file.writeAsString("\n${row['sql']}", mode: FileMode.append);
     }
   }

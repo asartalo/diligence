@@ -2,9 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
-import './colors.dart';
-
-var diligenceColors = DiligenceColors();
+import './colors.dart' as colors;
 
 class DiligenceTextTheme {
   final TextTheme textTheme;
@@ -22,7 +20,6 @@ class DiligenceLengths {
 
 class DiligenceTheme {
   final ThemeData themeData;
-  final colors = DiligenceColors;
   final DiligenceLengths lengths = DiligenceLengths();
   final DiligenceTextTheme text;
   static Map<ThemeData, DiligenceTheme> themeCache = {};
@@ -32,7 +29,7 @@ class DiligenceTheme {
     @required this.text,
   });
 
-  static DiligenceTheme fromTheme(ThemeData themeData) {
+  factory DiligenceTheme.fromTheme(ThemeData themeData) {
     DiligenceTheme theTheme = themeCache[themeData];
     if (theTheme == null) {
       themeCache.clear();
@@ -51,12 +48,12 @@ class DiligenceTheme {
 
   static ThemeData createThemeData() {
     return ThemeData(
-      primarySwatch: DiligenceColors.blue,
-      accentColor: DiligenceColors.orangeDawn,
-      backgroundColor: DiligenceColors.paperGray,
+      primarySwatch: colors.blue,
+      accentColor: colors.orangeDawn,
+      backgroundColor: colors.paperGray,
       cardColor: Colors.white,
       fontFamily: 'Roboto',
-      textTheme: TextTheme(
+      textTheme: const TextTheme(
         bodyText1: TextStyle(
           fontWeight: FontWeight.w300,
           fontSize: 16.0,
@@ -65,7 +62,7 @@ class DiligenceTheme {
           fontWeight: FontWeight.w300,
         ),
       ).apply(
-        displayColor: DiligenceColors.black,
+        displayColor: colors.black,
       ),
     );
   }

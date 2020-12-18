@@ -2,6 +2,7 @@ import 'package:diligence/constants.dart';
 import 'package:diligence/model/task.dart';
 import 'package:diligence/services/review_data_service.dart';
 import 'package:diligence/services/sqlite_schema.dart';
+import 'package:diligence/utils/cast.dart';
 import 'package:diligence/utils/sqflite_prepare.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as path;
@@ -9,12 +10,12 @@ import 'package:sqflite/sqflite.dart';
 
 import '../helpers/common_helpers.dart';
 
-main() async {
+Future<void> main() async {
   Database db;
-  ProjectPaths paths = ProjectPaths.instance;
+  final paths = ProjectPaths.instance;
   ReviewDataService service;
   sqflitePrepare();
-  TestDbFile dbFile = TestDbFile('test_database.db');
+  final dbFile = TestDbFile('test_database.db');
 
   setUp(() async {
     await dbFile.setUp();
@@ -33,7 +34,7 @@ main() async {
   });
 
   test('it loads data', () async {
-    var result =
+    final result =
         await db.rawQuery('SELECT * FROM tasks WHERE old_id = "0" LIMIT 1;');
     expect(result.first['name'], 'Root');
   });
@@ -43,7 +44,7 @@ main() async {
 
     group('newlyCreated', () {
       setUp(() async {
-        var now = DateTime.parse('2020-12-12 09:00:00');
+        final now = DateTime.parse('2020-12-12 09:00:00');
         await createTask(
             db,
             TaskRow(
@@ -63,16 +64,16 @@ main() async {
 
     group('overdue and completed', () {
       setUp(() async {
-        var now = DateTime.parse('2020-12-12 09:00:00');
+        final now = DateTime.parse('2020-12-12 09:00:00');
         // Create Tasks...
-        var parentId = taskIds['Life Goals'];
-        var result = await db.rawQuery('''
+        final parentId = taskIds['Life Goals'];
+        final result = await db.rawQuery('''
             SELECT COUNT("tasks"."id") AS task_count 
             FROM tasks 
             WHERE parent_id = ?;
             ''', [parentId]);
-        var childCount = result.first['task_count'];
-        List<TaskRow> tasks = [
+        final childCount = castOrDefault<int>(result.first['task_count'], null);
+        final tasks = [
           TaskRow(
             name: 'Foo',
             parentId: parentId,
@@ -80,7 +81,7 @@ main() async {
             createdAt: now,
             updatedAt: now,
             done: true,
-            doneAt: now.subtract(Duration(days: 1)),
+            doneAt: now.subtract(const Duration(days: 1)),
           ),
           TaskRow(
             name: 'Bar',
@@ -101,19 +102,19 @@ main() async {
             doneAt: now,
           ),
         ];
-        List<int> createdTaskIds = [];
-        for (TaskRow row in tasks) {
+        final List<int> createdTaskIds = [];
+        for (final row in tasks) {
           createdTaskIds.add(await createTask(db, row));
         }
 
         // Create Task Defers...
-        final List<TaskDeferRow> taskDefers = [
+        final taskDefers = [
           TaskDeferRow(taskId: createdTaskIds[1], duration: 60.0 * 10.0),
           TaskDeferRow(taskId: createdTaskIds[2], duration: 60.0 * 21.0),
           TaskDeferRow(taskId: createdTaskIds[2], duration: 60.0 * 11.0),
           TaskDeferRow(taskId: createdTaskIds[2], duration: 60.0 * 14.0),
         ];
-        for (TaskDeferRow row in taskDefers) {
+        for (final row in taskDefers) {
           await createTaskDefers(db, row);
         }
         summary = await service.getSummaryData(now);

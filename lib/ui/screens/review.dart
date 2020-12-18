@@ -12,7 +12,7 @@ import '../components/typography/section_title.dart';
 import '../layout/padded_section.dart';
 
 class ReviewPage extends StatelessWidget {
-  ReviewPage({@required this.title});
+  const ReviewPage({@required this.title});
 
   final String title;
 
@@ -41,7 +41,7 @@ class ReviewPage extends StatelessWidget {
   Widget renderSpinner() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [
+      children: const [
         Center(
           child: CircularProgressIndicator.adaptive(),
         ),
@@ -50,20 +50,19 @@ class ReviewPage extends StatelessWidget {
   }
 
   Widget renderContents(BuildContext context, ReviewSummaryData summaryData) {
-    var theme = Theme.of(context);
+    final theme = Theme.of(context);
     return SingleChildScrollView(
       child: Center(
         child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: 1000.0),
+          constraints: const BoxConstraints(maxWidth: 1000.0),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
             children: <Widget>[
-              PageTitle('Today’s Summary'),
+              const PageTitle('Today’s Summary'),
               MainSummarySection(summaryData: summaryData),
               EasyCard(
                 children: [
-                  SectionTitle('What Happened Today'),
-                  PaddedSection(
+                  const SectionTitle('What Happened Today'),
+                  const PaddedSection(
                     child: TextField(
                       minLines: 1,
                       maxLines: null,
@@ -71,10 +70,10 @@ class ReviewPage extends StatelessWidget {
                   ),
                   PaddedSection(
                     child: FlatButton(
-                      child: Text('Save Log'),
                       color: theme.primaryColor,
                       textColor: Colors.white,
                       onPressed: () {},
+                      child: const Text('Save Log'),
                     ),
                   ),
                 ],

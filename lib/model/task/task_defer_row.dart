@@ -10,14 +10,6 @@ class TaskDeferRow extends Equatable {
   @override
   List<Object> get props => [id, taskId, duration];
 
-  TaskDeferRow._({
-    this.id,
-    @required this.taskId,
-    @required this.duration,
-    @required this.createdAt,
-    @required this.updatedAt,
-  });
-
   factory TaskDeferRow({
     int id,
     @required int taskId,
@@ -30,10 +22,18 @@ class TaskDeferRow extends Equatable {
       id: id,
       taskId: taskId,
       duration: duration,
-      createdAt: createdAt == null ? now : createdAt,
-      updatedAt: updatedAt == null ? now : updatedAt,
+      createdAt: createdAt ?? now,
+      updatedAt: updatedAt ?? now,
     );
   }
+
+  const TaskDeferRow._({
+    this.id,
+    @required this.taskId,
+    @required this.duration,
+    @required this.createdAt,
+    @required this.updatedAt,
+  });
 
   Map<String, dynamic> toSqliteMap() {
     return {

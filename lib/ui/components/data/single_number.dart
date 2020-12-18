@@ -6,16 +6,16 @@ import '../../theme.dart';
 class SingleNumberDataPoint extends StatelessWidget {
   final String title;
   final num number;
-  SingleNumberDataPoint({
+  const SingleNumberDataPoint({
     @required this.title,
     @required this.number,
   });
 
   @override
   Widget build(BuildContext context) {
-    var diligenceTheme = DiligenceTheme.fromTheme(Theme.of(context));
-    var space = diligenceTheme.lengths.space;
-    var textTheme = diligenceTheme.textTheme;
+    final diligenceTheme = DiligenceTheme.fromTheme(Theme.of(context));
+    final space = diligenceTheme.lengths.space;
+    final textTheme = diligenceTheme.textTheme;
     return Padding(
       padding: EdgeInsets.fromLTRB(space, space * 2, space, space * 2),
       child: Column(

@@ -1,3 +1,4 @@
+import 'package:diligence/utils/cast.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
@@ -6,10 +7,10 @@ import 'package:sqflite/sqflite.dart';
 part 'review_data_service/summary_data.dart';
 
 DateTimeRange getDayRange(DateTime now) {
-  var start = DateTime(now.year, now.month, now.day);
+  final start = DateTime(now.year, now.month, now.day);
   return DateTimeRange(
     start: start,
-    end: start.add(Duration(days: 1)),
+    end: start.add(const Duration(days: 1)),
   );
 }
 
@@ -56,28 +57,28 @@ class ReviewDataService {
 
   Future<int> _calculateCreated(DateTimeRange range) async {
     // TODO: Add conditional handling if there's no result
-    var result = await db.rawQuery(
+    final result = await db.rawQuery(
       summarySql,
       [range.start.toString(), range.end.toString()],
     );
-    return result.first['created'];
+    return castOrDefault<int>(result.first['created'], 0);
   }
 
   Future<int> _calculateCompleted(DateTimeRange range) async {
-    var result = await db.rawQuery(
+    final result = await db.rawQuery(
       completedSql,
       [range.start.toString(), range.end.toString()],
     );
-    return result.first['completed'];
+    return castOrDefault<int>(result.first['completed'], 0);
   }
 
   Future<int> _calculateOverdue(DateTimeRange range) async {
-    var settingsResult = await db.rawQuery('''
+    final settingsResult = await db.rawQuery('''
       SELECT max_idle_minutes
       FROM "settings"
       LIMIT 1;
     ''');
-    var result = await db.rawQuery(
+    final result = await db.rawQuery(
       overdueSql,
       [
         range.start.toString(),

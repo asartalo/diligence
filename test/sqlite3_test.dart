@@ -8,13 +8,13 @@ import 'package:sqflite/sqflite.dart';
 
 import 'helpers/common_helpers.dart';
 
-void main() async {
+Future<void> main() async {
   Database db;
-  ProjectPaths paths = ProjectPaths.instance;
+  final paths = ProjectPaths.instance;
 
   sqflitePrepare();
 
-  TestDbFile dbFile = TestDbFile('test_database.db');
+  final dbFile = TestDbFile('test_database.db');
 
   tearDownAll(() async {
     if (db != null) {
@@ -33,7 +33,7 @@ void main() async {
     });
 
     test('it loads data', () async {
-      var result =
+      final result =
           await db.rawQuery('SELECT * FROM tasks WHERE old_id = "0" LIMIT 1;');
       expect(result.first['name'], 'Root');
     });

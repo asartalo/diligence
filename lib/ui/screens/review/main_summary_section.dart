@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 class MainSummarySection extends StatelessWidget {
   final ReviewSummaryData summaryData;
 
-  MainSummarySection({@required this.summaryData});
+  const MainSummarySection({@required this.summaryData});
 
   @override
   Widget build(BuildContext context) {

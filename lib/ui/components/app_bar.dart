@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 AppBar appBar(BuildContext context, String title) {
-  var theme = Theme.of(context);
-  var titleStyle = theme.textTheme.headline6.merge(TextStyle(
+  final theme = Theme.of(context);
+  final titleStyle = theme.textTheme.headline6.merge(TextStyle(
     color: theme.textTheme.bodyText1.color,
   ));
   return AppBar(

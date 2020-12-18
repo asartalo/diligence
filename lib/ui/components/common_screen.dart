@@ -6,18 +6,18 @@ class CommonScreen extends StatelessWidget {
   final Widget child;
   final String title;
 
-  CommonScreen({
+  const CommonScreen({
     @required this.title,
     @required this.child,
   });
 
   @override
   Widget build(BuildContext context) {
-    var theme = Theme.of(context);
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: appBar(context, title),
       backgroundColor: theme.backgroundColor,
-      body: this.child,
+      body: child,
     );
   }
 }

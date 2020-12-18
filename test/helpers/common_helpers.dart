@@ -24,16 +24,13 @@ class TestDbFile {
   TestDbFile(this.name);
 
   String get path {
-    if (_path == null) {
-      _path = join(
-        Directory.systemTemp.path,
-        name,
-      );
-    }
-    return _path;
+    return _path ??= join(
+      Directory.systemTemp.path,
+      name,
+    );
   }
 
-  setUp() async {
+  Future<void> setUp() async {
     final dbFile = File(path);
     if (await dbFile.exists()) {
       await dbFile.delete();
