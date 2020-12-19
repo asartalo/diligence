@@ -1,0 +1,22 @@
+branch:
+  - +([0-9])?(.{+([0-9]),x}).x
+  - main
+  - next
+  - next-major
+  - name: beta
+    prerelease: true
+  - name: alpha
+    prerelease: true
+plugins:
+  - @semantic-release/commit-analyzer
+  - @semantic-release/release-notes-generator
+  - @semantic-release/changelog
+  - - @semantic-release/git
+    - assets:
+        - CHANGELOG.md
+        - package.json
+        - pubspec.yaml
+      message: "chore(release): version ${nextRelease.version}\n\n${nextRelease.notes}"
+  - - @semantic-release/exec
+    - prepareCmd: |
+        flutter pub run diligence bumpVersion ${nextRelease.version}
