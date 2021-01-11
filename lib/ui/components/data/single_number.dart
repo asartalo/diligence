@@ -1,14 +1,20 @@
+import 'package:diligence/ui/components/typography/data_title.dart';
 import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
 
 import '../../theme.dart';
+import '../easy_card.dart';
 
 class SingleNumberDataPoint extends StatelessWidget {
   final String title;
   final num number;
+  final IconData icon;
+  final Color color;
   const SingleNumberDataPoint({
     @required this.title,
     @required this.number,
+    this.icon = Icons.check,
+    this.color = Colors.green,
   });
 
   @override
@@ -16,21 +22,28 @@ class SingleNumberDataPoint extends StatelessWidget {
     final diligenceTheme = DiligenceTheme.fromTheme(Theme.of(context));
     final space = diligenceTheme.lengths.space;
     final textTheme = diligenceTheme.textTheme;
-    return Padding(
-      padding: EdgeInsets.fromLTRB(space, space * 2, space, space * 2),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Text(
-            title,
-            style: diligenceTheme.text.dataTitle,
+    return EasyCard(
+      children: [
+        Padding(
+          padding: EdgeInsets.fromLTRB(0, space * .5, 0, space * 1.5),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Icon(
+                icon,
+                size: 48.0,
+                color: color,
+              ),
+              Text(
+                "$number",
+                style: textTheme.headline2,
+              ),
+              const SizedBox(height: 5.0),
+              DataTitle(title),
+            ],
           ),
-          Text(
-            "$number",
-            style: textTheme.headline2,
-          ),
-        ],
-      ),
+        )
+      ],
     );
   }
 }

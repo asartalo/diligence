@@ -1,4 +1,3 @@
-BEGIN TRANSACTION;
 CREATE TABLE IF NOT EXISTS "task_defers" (
 	"id"	integer NOT NULL PRIMARY KEY AUTOINCREMENT,
 	"task_id"	integer NOT NULL,
@@ -85,4 +84,3 @@ CREATE UNIQUE INDEX IF NOT EXISTS "task_anc_desc_idx" ON "task_hierarchies" (
 	"descendant_id",
 	"generations"
 );
-COMMIT;

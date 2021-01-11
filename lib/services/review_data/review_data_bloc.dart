@@ -3,14 +3,18 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:dartz/dartz.dart';
 import 'package:diligence/services/review_data_service.dart';
+import 'package:diligence/services/side_effects.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 
 part 'review_data_event.dart';
 part 'review_data_state.dart';
 
 class ReviewDataBloc extends Bloc<ReviewDataEvent, ReviewDataState> {
   final ReviewDataService dataService;
-  ReviewDataBloc(this.dataService) : super(ReviewDataInitial());
+  final SideEffects sideEffects;
+  ReviewDataBloc(this.dataService, {@required this.sideEffects})
+      : super(ReviewDataInitial());
 
   @override
   Stream<ReviewDataState> mapEventToState(
@@ -26,7 +30,7 @@ class ReviewDataBloc extends Bloc<ReviewDataEvent, ReviewDataState> {
   }
 
   Stream<ReviewDataState> _dataRequested() async* {
-    final summaryData = await dataService.getSummaryData(DateTime.now());
+    final summaryData = await dataService.getSummaryData(sideEffects.now());
     yield ReviewDataAvailable(summaryData);
   }
 }

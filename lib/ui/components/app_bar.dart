@@ -31,7 +31,9 @@ AppBar appBar(BuildContext context, String title) {
       title,
       style: titleStyle,
     ),
-    backgroundColor: theme.backgroundColor,
+    // backgroundColor: theme.backgroundColor.withOpacity(0.5),
+    backgroundColor: theme.accentColor,
+    // backgroundColor: Colors.deepOrange,
     shadowColor: Colors.transparent,
   );
 }

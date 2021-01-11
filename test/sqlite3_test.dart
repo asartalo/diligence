@@ -27,7 +27,7 @@ Future<void> main() async {
     setUp(() async {
       dbFile.setUp();
       db = await openDatabase(dbFile.path);
-      final file = File(path.join(paths.testPath, 'fixtures/test.sql'));
+      final file = File(path.join(paths.test, 'fixtures/test.sql'));
       final contents = await file.readAsString();
       await db.execute(contents);
     });

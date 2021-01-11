@@ -1,19 +1,26 @@
+import 'package:diligence/ui/layout/gutter.dart';
 import 'package:flutter/material.dart';
 
 /// Row with evenly spaced items
 class EvenRow extends StatelessWidget {
   final List<Widget> children;
+  final double gutter;
 
-  const EvenRow({@required this.children});
+  const EvenRow({
+    @required this.children,
+    this.gutter = 0.0,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Row(
-      children: children
-          .map(
-            (child) => Expanded(child: child),
-          )
-          .toList(),
+      children: gutter == 0.0
+          ? _expandedChildren()
+          : withGutter(_expandedChildren(), gutter),
     );
+  }
+
+  List<Widget> _expandedChildren() {
+    return children.map((child) => Expanded(child: child)).toList();
   }
 }

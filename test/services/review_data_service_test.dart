@@ -21,7 +21,7 @@ Future<void> main() async {
     await dbFile.setUp();
     db = await openDatabase(dbFile.path);
     await SqliteSchema(db).loadSqlFile(path.join(
-      paths.testPath,
+      paths.test,
       'fixtures/test.sql',
     ));
     service = ReviewDataService(db);

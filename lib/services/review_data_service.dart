@@ -1,3 +1,4 @@
+import 'package:diligence/constants.dart';
 import 'package:diligence/utils/cast.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
@@ -78,13 +79,12 @@ class ReviewDataService {
       FROM "settings"
       LIMIT 1;
     ''');
+    final maxIdleMinutes = settingsResult.isNotEmpty
+        ? settingsResult.first['max_idle_minutes']
+        : kDefaultMaxIdleMinutes;
     final result = await db.rawQuery(
       overdueSql,
-      [
-        range.start.toString(),
-        range.end.toString(),
-        settingsResult.first['max_idle_minutes'] * 60
-      ],
+      [range.start.toString(), range.end.toString(), maxIdleMinutes * 60],
     );
     return result.length;
   }

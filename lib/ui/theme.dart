@@ -10,7 +10,10 @@ class DiligenceTextTheme {
   DiligenceTextTheme({@required this.textTheme});
 
   TextStyle get dataTitle {
-    return textTheme.headline6;
+    return textTheme.bodyText2.copyWith(
+      color: colors.grayText,
+      letterSpacing: 1,
+    );
   }
 }
 
@@ -47,10 +50,12 @@ class DiligenceTheme {
   }
 
   static ThemeData createThemeData() {
+    final backgroundColor = colors.paperGray;
     return ThemeData(
-      primarySwatch: colors.blue,
-      accentColor: colors.orangeDawn,
-      backgroundColor: colors.paperGray,
+      primarySwatch: colors.twilightBlue,
+      primaryColor: colors.primaryColor,
+      accentColor: colors.secondaryColor,
+      backgroundColor: backgroundColor,
       cardColor: Colors.white,
       fontFamily: 'Roboto',
       textTheme: const TextTheme(
@@ -61,9 +66,20 @@ class DiligenceTheme {
         headline2: TextStyle(
           fontWeight: FontWeight.w300,
         ),
+        headline3: TextStyle(
+          fontWeight: FontWeight.w400,
+          color: Colors.black,
+        ),
       ).apply(
         displayColor: colors.black,
       ),
+      cardTheme: const CardTheme(
+        elevation: 0,
+      ),
+      // appBarTheme: AppBarTheme(
+      //   // backgroundColor: backgroundColor.withOpacity(0.9),
+      //   shadowColor: Colors.transparent,
+      // ),
     );
   }
 }

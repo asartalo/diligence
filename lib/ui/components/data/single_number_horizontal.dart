@@ -1,6 +1,8 @@
+import 'package:diligence/ui/components/typography/data_title.dart';
 import 'package:flutter/material.dart';
 
 import '../../theme.dart';
+import '../easy_card.dart';
 
 class SingleNumberDataPointHorizontal extends StatelessWidget {
   final String title;
@@ -17,23 +19,23 @@ class SingleNumberDataPointHorizontal extends StatelessWidget {
   Widget build(BuildContext context) {
     final diligenceTheme = DiligenceTheme.fromTheme(Theme.of(context));
     final textTheme = diligenceTheme.textTheme;
-    return Padding(
-      padding: const EdgeInsets.all(10.0),
-      child: Row(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: Column(
+    return EasyCard(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: diligenceTheme.text.dataTitle),
+                DataTitle(title),
+                const SizedBox(height: 10.0),
                 Text(caption, style: textTheme.caption),
               ],
             ),
-          ),
-          Text("$number", style: textTheme.headline4),
-        ],
-      ),
+            Text("$number", style: textTheme.headline3),
+          ],
+        ),
+      ],
     );
   }
 }
