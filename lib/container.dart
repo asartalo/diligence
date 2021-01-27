@@ -53,20 +53,6 @@ class DiligenceContainer {
     final dotEnv = DotEnv();
     await dotEnv.load(envFile);
     final config = DiligenceConfig.fromEnv(dotEnv.env, test: test);
-    // We must do this so we can
-    sqflitePrepare();
-    final database = await _setupDatabase(config.dbPath);
-    return DiligenceContainer(
-      config: config,
-      database: database,
-    );
-  }
-
-  static Future<DiligenceContainer> startTest([String envFile = '.env']) async {
-    final dotEnv = DotEnv();
-    await dotEnv.load(envFile);
-    final config = DiligenceConfig.fromEnv(dotEnv.env, test: true);
-    // We must do this so we can
     sqflitePrepare();
     final database = await _setupDatabase(config.dbPath);
     return DiligenceContainer(

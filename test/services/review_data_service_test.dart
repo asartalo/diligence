@@ -4,6 +4,7 @@ import 'package:diligence/services/review_data_service.dart';
 import 'package:diligence/services/sqlite_schema.dart';
 import 'package:diligence/utils/cast.dart';
 import 'package:diligence/utils/sqflite_prepare.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as path;
 import 'package:sqflite/sqflite.dart';
@@ -60,23 +61,36 @@ Future<void> main() async {
       test('contains completed count', () {
         expect(summary.newlyCreated, 1);
       });
+
+      // group('completed breakdown', () {
+      //   SummaryBreakdown breakdown;
+      //   setUp(() {
+      //     breakdown = summary.breakdown('newlyCreated');
+      //   });
+
+      //   test('contains completed item', () {
+      //     final List<int> l = [];
+      //     expect(breakdown.length, equals(1));
+      //   });
+      // });
     });
 
     group('overdue and completed', () {
       setUp(() async {
         final now = DateTime.parse('2020-12-12 09:00:00');
         // Create Tasks...
-        final parentId = taskIds['Life Goals'];
+        final lifeGoalsParentId = taskIds['Life Goals'];
+        final workParentId = taskIds['Work'];
         final result = await db.rawQuery('''
             SELECT COUNT("tasks"."id") AS task_count 
             FROM tasks 
             WHERE parent_id = ?;
-            ''', [parentId]);
+            ''', [lifeGoalsParentId]);
         final childCount = castOrDefault<int>(result.first['task_count'], null);
         final tasks = [
           TaskRow(
             name: 'Foo',
-            parentId: parentId,
+            parentId: lifeGoalsParentId,
             sortOrder: childCount,
             createdAt: now,
             updatedAt: now,
@@ -85,7 +99,7 @@ Future<void> main() async {
           ),
           TaskRow(
             name: 'Bar',
-            parentId: parentId,
+            parentId: workParentId,
             sortOrder: childCount + 1,
             createdAt: now,
             updatedAt: now,
@@ -94,7 +108,7 @@ Future<void> main() async {
           ),
           TaskRow(
             name: 'Car',
-            parentId: parentId,
+            parentId: lifeGoalsParentId,
             sortOrder: childCount + 1,
             createdAt: now,
             updatedAt: now,

@@ -4,43 +4,56 @@ class TaskRow extends Equatable {
   final int id;
   final int parentId;
   final int sortOrder;
-  final String name;
   final bool done;
-  final DateTime createdAt;
-  final DateTime updatedAt;
+  final bool expanded;
+  final String name;
+  final String oldId;
+  final String oldParentId;
   final DateTime doneAt;
   final DateTime primaryFocusedAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
 
   @override
   List<Object> get props => [
         id,
         parentId,
         sortOrder,
+        done,
+        expanded,
         name,
         done,
-        createdAt,
-        updatedAt,
+        oldId,
+        oldParentId,
         doneAt,
         primaryFocusedAt,
+        createdAt,
+        updatedAt,
       ];
 
   factory TaskRow({
     int id,
     int parentId,
     int sortOrder = 0,
+    bool expanded = false,
     @required String name,
     bool done = false,
-    DateTime createdAt,
-    DateTime updatedAt,
+    String oldId,
+    String oldParentId,
     DateTime doneAt,
     DateTime primaryFocusedAt,
+    DateTime createdAt,
+    DateTime updatedAt,
   }) {
     final now = DateTime.now();
     return TaskRow._(
       id: id,
       parentId: parentId,
       done: done,
+      expanded: expanded,
       name: name,
+      oldId: oldId,
+      oldParentId: oldParentId,
       sortOrder: sortOrder,
       createdAt: createdAt ?? now,
       updatedAt: updatedAt ?? now,
@@ -53,13 +66,32 @@ class TaskRow extends Equatable {
     this.id,
     this.parentId, // null means no parent or root task
     @required this.sortOrder,
-    @required this.done,
+    @required this.expanded,
     @required this.name,
-    @required this.createdAt,
-    @required this.updatedAt,
+    @required this.done,
+    this.oldId,
+    this.oldParentId,
     this.doneAt,
     this.primaryFocusedAt,
+    @required this.createdAt,
+    @required this.updatedAt,
   });
+
+  Task toTask() {
+    return Task(
+      id: id,
+      parentId: parentId,
+      sortOrder: sortOrder,
+      done: done,
+      expanded: expanded,
+      name: name,
+      oldId: oldParentId,
+      doneAt: doneAt,
+      primaryFocusedAt: primaryFocusedAt,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+    );
+  }
 
   Map<String, dynamic> toSqliteMap() {
     return {

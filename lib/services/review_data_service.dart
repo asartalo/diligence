@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:diligence/constants.dart';
 import 'package:diligence/utils/cast.dart';
 import 'package:equatable/equatable.dart';
@@ -5,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
 import 'package:sqflite/sqflite.dart';
 
+part 'review_data_service/summary_breakdown.dart';
 part 'review_data_service/summary_data.dart';
 
 DateTimeRange getDayRange(DateTime now) {

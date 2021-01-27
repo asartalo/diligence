@@ -20,7 +20,10 @@ class DiligenceApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Diligence',
         theme: diligenceTheme,
-        home: const ReviewPage(title: 'Diligence'),
+        initialRoute: '/review',
+        routes: {
+          '/review': (context) => const ReviewPage(title: 'Diligence'),
+        },
       ),
     );
   }

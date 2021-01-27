@@ -1,3 +1,5 @@
+import 'package:flutter_test/flutter_test.dart';
+
 final List<Function> integrationTests = [];
 
 void addIntegrationTest(Function fn) {
@@ -12,4 +14,9 @@ Future<void> callIntegrationTests() async {
       fn();
     }
   }
+}
+
+Future<void> navigateToReminderPage(WidgetTester tester) async {
+  await tester.pumpAndSettle();
+  expect(find.text('Review'), findsOneWidget);
 }

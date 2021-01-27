@@ -5,11 +5,10 @@ import './../app.dart' as app;
 
 Future<void> main() async {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-  group('smoke test', () {
-    testWidgets('failing test example', (WidgetTester tester) async {
+  group('Smoke test', () {
+    testWidgets('launching app has no errors', (WidgetTester tester) async {
       await app.main();
       await tester.pumpAndSettle();
-
       expect(find.text('Review'), findsOneWidget);
     });
   });
