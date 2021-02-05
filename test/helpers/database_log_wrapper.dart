@@ -65,7 +65,7 @@ class DatabaseLogWrapper implements Database {
   }
 
   @override
-  Future<T> devInvokeMethod<T>(String method, [arguments]) {
+  Future<T> devInvokeMethod<T>(String method, [dynamic arguments]) {
     // TODO: implement devInvokeMethod
     throw UnimplementedError();
   }
