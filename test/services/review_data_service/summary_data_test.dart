@@ -2,13 +2,14 @@ import 'package:diligence/services/review_data_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 Future<void> main() async {
-  ReviewSummaryData summaryData;
+  late ReviewSummaryData summaryData;
 
   setUp(() {
     summaryData = const ReviewSummaryData(
       completed: 8,
       overdue: 6,
       newlyCreated: 4,
+      notes: 'Hello',
     );
   });
 

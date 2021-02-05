@@ -1,6 +1,5 @@
 import 'package:diligence/ui/components/typography/data_title.dart';
 import 'package:flutter/material.dart';
-import 'package:meta/meta.dart';
 
 import '../../theme.dart';
 import '../easy_card.dart';
@@ -11,8 +10,8 @@ class SingleNumberDataPoint extends StatelessWidget {
   final IconData icon;
   final Color color;
   const SingleNumberDataPoint({
-    @required this.title,
-    @required this.number,
+    required this.title,
+    required this.number,
     this.icon = Icons.check,
     this.color = Colors.green,
   });

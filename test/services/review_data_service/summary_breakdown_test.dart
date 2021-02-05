@@ -2,7 +2,7 @@ import 'package:diligence/services/review_data_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  SummaryBreakdown summaryBreakdown;
+  late SummaryBreakdown summaryBreakdown;
 
   // The Structure Structure:
   // Life Goals 1
@@ -19,7 +19,7 @@ void main() {
   // - The Social Network 7
 
   setUp(() {
-    summaryBreakdown = SummaryBreakdown(name: 'Newly Created', items: const [
+    summaryBreakdown = const SummaryBreakdown(name: 'Newly Created', items: [
       BreakdownItem(value: 1, path: [1, 4, 8, 9]),
       BreakdownItem(value: 1, path: [1, 4, 8, 10]),
       BreakdownItem(value: 0.5, path: [1, 5, 11]),

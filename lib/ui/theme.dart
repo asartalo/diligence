@@ -7,10 +7,10 @@ import './colors.dart' as colors;
 class DiligenceTextTheme {
   final TextTheme textTheme;
 
-  DiligenceTextTheme({@required this.textTheme});
+  DiligenceTextTheme({required this.textTheme});
 
   TextStyle get dataTitle {
-    return textTheme.bodyText2.copyWith(
+    return textTheme.bodyText2!.copyWith(
       color: colors.grayText,
       letterSpacing: 1,
     );
@@ -28,12 +28,12 @@ class DiligenceTheme {
   static Map<ThemeData, DiligenceTheme> themeCache = {};
 
   DiligenceTheme({
-    @required this.themeData,
-    @required this.text,
+    required this.themeData,
+    required this.text,
   });
 
   factory DiligenceTheme.fromTheme(ThemeData themeData) {
-    DiligenceTheme theTheme = themeCache[themeData];
+    DiligenceTheme? theTheme = themeCache[themeData];
     if (theTheme == null) {
       themeCache.clear();
       theTheme = DiligenceTheme(

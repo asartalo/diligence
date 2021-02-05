@@ -15,7 +15,7 @@ const basicData = [
 class MainSummarySection extends StatelessWidget {
   final ReviewSummaryData summaryData;
 
-  const MainSummarySection({@required this.summaryData});
+  const MainSummarySection({required this.summaryData});
 
   @override
   Widget build(BuildContext context) {

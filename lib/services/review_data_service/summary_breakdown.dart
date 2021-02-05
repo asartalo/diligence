@@ -6,8 +6,8 @@ class BreakdownItem {
   final num value;
 
   const BreakdownItem({
-    this.path,
-    this.value,
+    required this.path,
+    required this.value,
   });
 }
 
@@ -43,17 +43,15 @@ class SummaryBreakdown {
       if (match.isNotEmpty) {
         // print(match);
         final key = match.first;
-        if (map[key] == null) {
-          map[key] = 0.0;
-        }
-        map[key] = map[key] + item.value;
+        final value = map[key] ?? 0.0;
+        map[key] = value + item.value;
       }
       return map;
     });
   }
 
-  SummaryBreakdown({
-    @required this.name,
-    @required this.items,
+  const SummaryBreakdown({
+    required this.name,
+    required this.items,
   });
 }

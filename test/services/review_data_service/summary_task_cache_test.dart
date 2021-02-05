@@ -7,18 +7,19 @@ import 'package:path/path.dart' as path;
 import 'package:sqflite/sqflite.dart';
 
 import '../../helpers/common_helpers.dart';
+import '../../helpers/database_log_wrapper.dart';
 
 void main() {
-  group('basic integration', () {
-    Database db;
-    SummaryTaskCache cache;
+  group('SummaryTaskCache', () {
+    late DatabaseLogWrapper db;
+    late SummaryTaskCache cache;
     final paths = ProjectPaths.instance;
     sqflitePrepare();
     final dbFile = TestDbFile('test_database.db');
 
     setUp(() async {
       await dbFile.setUp();
-      db = await openDatabase(dbFile.path);
+      db = DatabaseLogWrapper(await openDatabase(dbFile.path));
       await SqliteSchema(db).loadSqlFile(path.join(
         paths.test,
         'fixtures/test.sql',
@@ -27,18 +28,55 @@ void main() {
     });
 
     tearDown(() async {
-      if (db != null) {
+      if (db is Database) {
         await db.close();
       }
     });
 
-    test('it retrieves task names based on ids', () async {
-      final result = await cache.getAll([
-        taskIds['Life Goals'],
-        taskIds['Work'],
-        taskIds['Projects'],
-      ]);
-      expect(result, equals([2, 364, 2252, 3154]));
+    group('getAll()', () {
+      late List<String> result;
+
+      setUp(() async {
+        result = await cache.getAll([
+          taskIds['Life Goals']!,
+          taskIds['Work']!,
+          8713491234, // this does not exist
+          taskIds['Projects']!,
+        ]);
+      });
+
+      test('it retrieves task names based on ids', () {
+        expect(result, equals(['Life Goals', 'Work', '', 'Projects']));
+      });
+
+      test('it calls rawQuery once', () {
+        expect(db.getMethodLog('rawQuery').count, equals(1));
+      });
+
+      group('when it is called with same ids', () {
+        setUp(() async {
+          result = await cache.getAll([
+            taskIds['Work']!,
+            taskIds['Life Goals']!,
+            taskIds['Projects']!,
+          ]);
+        });
+
+        test('it retrieves task names based on ids', () {
+          expect(result, equals(['Work', 'Life Goals', 'Projects']));
+        });
+
+        test('it does not query names if it retrieved them already', () async {
+          expect(db.getMethodLog('rawQuery').count, equals(1));
+        });
+      });
+    });
+
+    group('get()', () {
+      test('it retrieves the name based on id', () async {
+        final name = await cache.get(taskIds['Projects']!);
+        expect(name, equals('Projects'));
+      });
     });
   });
 }

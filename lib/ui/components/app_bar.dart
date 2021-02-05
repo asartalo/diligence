@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 
 AppBar appBar(BuildContext context, String title) {
   final theme = Theme.of(context);
-  final titleStyle = theme.textTheme.headline6.merge(TextStyle(
-    color: theme.textTheme.bodyText1.color,
+  final titleStyle = theme.textTheme.headline6!.merge(TextStyle(
+    color: theme.textTheme.bodyText1!.color,
   ));
   return AppBar(
     leading: IconButton(
       icon: Icon(
         Icons.menu,
-        color: theme.textTheme.bodyText1.color,
+        color: theme.textTheme.bodyText1!.color,
       ),
       onPressed: () {
         Scaffold.of(context).openDrawer();

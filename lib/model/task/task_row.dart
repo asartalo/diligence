@@ -1,49 +1,32 @@
 part of '../task.dart';
 
-class TaskRow extends Equatable {
-  final int id;
-  final int parentId;
+class TaskRow {
+  final int? id;
+  final int? parentId;
   final int sortOrder;
   final bool done;
   final bool expanded;
   final String name;
-  final String oldId;
-  final String oldParentId;
-  final DateTime doneAt;
-  final DateTime primaryFocusedAt;
+  final String? oldId;
+  final String? oldParentId;
+  final DateTime? doneAt;
+  final DateTime? primaryFocusedAt;
   final DateTime createdAt;
   final DateTime updatedAt;
 
-  @override
-  List<Object> get props => [
-        id,
-        parentId,
-        sortOrder,
-        done,
-        expanded,
-        name,
-        done,
-        oldId,
-        oldParentId,
-        doneAt,
-        primaryFocusedAt,
-        createdAt,
-        updatedAt,
-      ];
-
   factory TaskRow({
-    int id,
-    int parentId,
+    int? id,
+    int? parentId,
     int sortOrder = 0,
     bool expanded = false,
-    @required String name,
+    required String name,
     bool done = false,
-    String oldId,
-    String oldParentId,
-    DateTime doneAt,
-    DateTime primaryFocusedAt,
-    DateTime createdAt,
-    DateTime updatedAt,
+    String? oldId,
+    String? oldParentId,
+    DateTime? doneAt,
+    DateTime? primaryFocusedAt,
+    DateTime? createdAt,
+    DateTime? updatedAt,
   }) {
     final now = DateTime.now();
     return TaskRow._(
@@ -65,33 +48,17 @@ class TaskRow extends Equatable {
   const TaskRow._({
     this.id,
     this.parentId, // null means no parent or root task
-    @required this.sortOrder,
-    @required this.expanded,
-    @required this.name,
-    @required this.done,
+    required this.sortOrder,
+    required this.expanded,
+    required this.name,
+    required this.done,
     this.oldId,
     this.oldParentId,
     this.doneAt,
     this.primaryFocusedAt,
-    @required this.createdAt,
-    @required this.updatedAt,
+    required this.createdAt,
+    required this.updatedAt,
   });
-
-  Task toTask() {
-    return Task(
-      id: id,
-      parentId: parentId,
-      sortOrder: sortOrder,
-      done: done,
-      expanded: expanded,
-      name: name,
-      oldId: oldParentId,
-      doneAt: doneAt,
-      primaryFocusedAt: primaryFocusedAt,
-      createdAt: createdAt,
-      updatedAt: updatedAt,
-    );
-  }
 
   Map<String, dynamic> toSqliteMap() {
     return {

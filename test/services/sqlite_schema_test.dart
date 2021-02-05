@@ -7,8 +7,8 @@ import 'package:path/path.dart' as path;
 import 'package:sqflite/sqflite.dart';
 
 Future<void> main() async {
-  Database db;
-  SqliteSchema helper;
+  late Database db;
+  late SqliteSchema helper;
 
   sqflitePrepare();
 
@@ -20,13 +20,13 @@ Future<void> main() async {
   });
 
   tearDownAll(() {
-    if (db != null) {
+    if (db is Database) {
       db.close();
     }
   });
 
   group('SqliteSchema#loadSqlFile', () {
-    File schemaFile;
+    late File schemaFile;
 
     setUp(() async {
       schemaFile = File(path.join(

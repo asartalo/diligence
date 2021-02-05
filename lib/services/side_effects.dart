@@ -35,6 +35,6 @@ class DevSideEffects extends SideEffects {
     if (config.today == null) {
       return realNow;
     }
-    return _toDate(realNow, config.today);
+    return _toDate(realNow, config.today!);
   }
 }

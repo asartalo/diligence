@@ -9,7 +9,7 @@ import 'package:sqflite/sqflite.dart';
 import 'helpers/common_helpers.dart';
 
 Future<void> main() async {
-  Database db;
+  late Database db;
   final paths = ProjectPaths.instance;
 
   sqflitePrepare();
@@ -17,7 +17,7 @@ Future<void> main() async {
   final dbFile = TestDbFile('test_database.db');
 
   tearDownAll(() async {
-    if (db != null) {
+    if (db is Database) {
       await db.close();
       await deleteDatabase(dbFile.path);
     }

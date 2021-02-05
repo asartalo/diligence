@@ -4,7 +4,6 @@ import 'package:diligence/services/review_data_service.dart';
 import 'package:diligence/services/sqlite_schema.dart';
 import 'package:diligence/utils/cast.dart';
 import 'package:diligence/utils/sqflite_prepare.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as path;
 import 'package:sqflite/sqflite.dart';
@@ -12,9 +11,9 @@ import 'package:sqflite/sqflite.dart';
 import '../helpers/common_helpers.dart';
 
 Future<void> main() async {
-  Database db;
+  late Database db;
   final paths = ProjectPaths.instance;
-  ReviewDataService service;
+  late ReviewDataService service;
   sqflitePrepare();
   final dbFile = TestDbFile('test_database.db');
 
@@ -29,7 +28,7 @@ Future<void> main() async {
   });
 
   tearDown(() async {
-    if (db != null) {
+    if (db is Database) {
       await db.close();
     }
   });
@@ -41,7 +40,7 @@ Future<void> main() async {
   });
 
   group('getSummaryData', () {
-    ReviewSummaryData summary;
+    late ReviewSummaryData summary;
 
     group('newlyCreated', () {
       setUp(() async {
@@ -86,7 +85,7 @@ Future<void> main() async {
             FROM tasks 
             WHERE parent_id = ?;
             ''', [lifeGoalsParentId]);
-        final childCount = castOrDefault<int>(result.first['task_count'], null);
+        final childCount = castOrDefault<int>(result.first['task_count'], 0);
         final tasks = [
           TaskRow(
             name: 'Foo',

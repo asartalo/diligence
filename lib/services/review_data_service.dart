@@ -52,6 +52,7 @@ class ReviewDataService {
     final completed = await _calculateCompleted(dayRange);
     final overdue = await _calculateOverdue(dayRange);
     return ReviewSummaryData(
+      notes: '',
       completed: completed,
       overdue: overdue,
       newlyCreated: created,
@@ -76,14 +77,12 @@ class ReviewDataService {
   }
 
   Future<int> _calculateOverdue(DateTimeRange range) async {
-    final settingsResult = await db.rawQuery('''
+    final settingsResult = Sqflite.firstIntValue(await db.rawQuery('''
       SELECT max_idle_minutes
       FROM "settings"
       LIMIT 1;
-    ''');
-    final maxIdleMinutes = settingsResult.isNotEmpty
-        ? settingsResult.first['max_idle_minutes']
-        : kDefaultMaxIdleMinutes;
+    '''));
+    final maxIdleMinutes = settingsResult ?? kDefaultMaxIdleMinutes;
     final result = await db.rawQuery(
       overdueSql,
       [range.start.toString(), range.end.toString(), maxIdleMinutes * 60],

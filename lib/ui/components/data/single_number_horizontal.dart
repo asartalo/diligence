@@ -10,9 +10,9 @@ class SingleNumberDataPointHorizontal extends StatelessWidget {
   final num number;
 
   const SingleNumberDataPointHorizontal({
-    @required this.title,
-    @required this.caption,
-    @required this.number,
+    required this.title,
+    required this.caption,
+    required this.number,
   });
 
   @override

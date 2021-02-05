@@ -32,7 +32,7 @@ DateTime toDate(DateTime toConvert, DateTime date) {
 }
 
 void main() {
-  DevSideEffects sideEffects;
+  late DevSideEffects sideEffects;
 
   group('DevSideEffects', () {
     group('When no "DILIGENCE_DEV_TODAY" set in config', () {
@@ -44,7 +44,7 @@ void main() {
       test(
         'returns system DateTime.now()',
         () {
-          DateTime now;
+          late DateTime now;
           final interval = microInterval(() => now = sideEffects.now());
           expect(now, isBetweenInterval(interval));
         },
@@ -61,7 +61,7 @@ void main() {
       test(
         "returns that day's date with minutes and seconds set based on actual DateTime.now()",
         () {
-          DateTime now;
+          late DateTime now;
           final interval = microInterval(() => now = sideEffects.now());
 
           final reference = DateTime.parse('2010-02-14');

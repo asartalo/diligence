@@ -19,7 +19,7 @@ const Map<String, int> taskIds = {
 
 class TestDbFile {
   final String name;
-  String _path;
+  String? _path;
 
   TestDbFile(this.name);
 

@@ -1,11 +1,9 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
-import 'package:dartz/dartz.dart';
 import 'package:diligence/services/review_data_service.dart';
 import 'package:diligence/services/side_effects.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
 
 part 'review_data_event.dart';
 part 'review_data_state.dart';
@@ -13,7 +11,7 @@ part 'review_data_state.dart';
 class ReviewDataBloc extends Bloc<ReviewDataEvent, ReviewDataState> {
   final ReviewDataService dataService;
   final SideEffects sideEffects;
-  ReviewDataBloc(this.dataService, {@required this.sideEffects})
+  ReviewDataBloc(this.dataService, {required this.sideEffects})
       : super(ReviewDataInitial());
 
   @override

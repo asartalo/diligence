@@ -7,8 +7,8 @@ class CommonScreen extends StatelessWidget {
   final String title;
 
   const CommonScreen({
-    @required this.title,
-    @required this.child,
+    required this.title,
+    required this.child,
   });
 
   @override

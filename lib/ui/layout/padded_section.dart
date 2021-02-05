@@ -5,7 +5,7 @@ import '../theme.dart';
 class PaddedSection extends StatelessWidget {
   final Widget child;
 
-  const PaddedSection({@required this.child});
+  const PaddedSection({required this.child});
 
   @override
   Widget build(BuildContext context) {

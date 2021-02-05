@@ -1,8 +1,41 @@
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:pub_release/pub_release.dart';
+import 'package:path/path.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml_edit/yaml_edit.dart';
+
+bool exists(String path) {
+  return FileSystemEntity.typeSync(path) != FileSystemEntityType.notFound;
+}
+
+final rootPath = Platform.pathSeparator;
+
+String findPubSpec() {
+  final startingDir = Directory.current.path;
+  const pubspecName = 'pubspec.yaml';
+  var cwd = startingDir;
+  var found = true;
+
+  var pubspecPath = join(cwd, pubspecName);
+  // climb the path searching for the pubspec
+  while (!exists(pubspecPath)) {
+    cwd = dirname(cwd);
+    // Have we found the root?
+    if (cwd == rootPath) {
+      found = false;
+      break;
+    }
+    pubspecPath = join(cwd, pubspecName);
+  }
+
+  if (!found) {
+    print('Unable to find pubspec.yaml, run release from the '
+        "package's root directory.");
+    exit(-1);
+  }
+  return canonicalize(pubspecPath);
+}
 
 // ignore_for_file: avoid_print
 Future<void> main(List<String> arguments) async {
@@ -12,7 +45,7 @@ Future<void> main(List<String> arguments) async {
     final parser = ArgParser();
     parser.addCommand('bumpVersion');
     final command = parser.parse(arguments).command;
-    if (command != null && command.name == 'bumpVersion') {
+    if (command.name == 'bumpVersion') {
       if (command.rest.isEmpty) {
         throw Exception('Please provide the new version');
       }

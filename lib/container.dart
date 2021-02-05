@@ -8,8 +8,7 @@ import 'package:diligence/utils/sqflite_prepare.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:meta/meta.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart' as dot_env;
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 import 'package:sqflite/sqflite.dart';
@@ -25,8 +24,8 @@ class DiligenceContainer {
   final Database database;
 
   DiligenceContainer({
-    @required this.config,
-    @required this.database,
+    required this.config,
+    required this.database,
   });
 
   List<SingleChildWidget> providers() {
@@ -50,9 +49,8 @@ class DiligenceContainer {
     String envFile = '.env',
     bool test = false,
   }) async {
-    final dotEnv = DotEnv();
-    await dotEnv.load(envFile);
-    final config = DiligenceConfig.fromEnv(dotEnv.env, test: test);
+    await dot_env.load(fileName: envFile);
+    final config = DiligenceConfig.fromEnv(dot_env.env, test: test);
     sqflitePrepare();
     final database = await _setupDatabase(config.dbPath);
     return DiligenceContainer(

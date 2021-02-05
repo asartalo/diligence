@@ -15,7 +15,7 @@ import '../components/typography/page_title.dart';
 import '../layout/padded_section.dart';
 
 class ReviewPage extends StatelessWidget {
-  const ReviewPage({@required this.title});
+  const ReviewPage({required this.title});
 
   final String title;
 
@@ -25,14 +25,13 @@ class ReviewPage extends StatelessWidget {
       title: 'Review',
       child: BlocBuilder<ReviewDataBloc, ReviewDataState>(
         builder: (context, state) {
-          Widget shown;
-          state.maybeSummaryData.fold(
+          final shown = state.maybeSummaryData.choice<Widget>(
             () {
-              shown = renderSpinner();
               Provider.of<ReviewDataBloc>(context).requestData();
+              return renderSpinner();
             },
             (summaryData) {
-              shown = renderContents(context, summaryData);
+              return renderContents(context, summaryData);
             },
           );
           return shown;
@@ -92,7 +91,7 @@ class ReviewPage extends StatelessWidget {
               const DataTitle('Notes'),
               const PaddedSection(
                 child: MarkdownBody(
-                  data: 'foo',
+                  data: '# Foo',
                   key: Key('txtDayLogNotes'),
                 ),
               ),
@@ -104,10 +103,8 @@ class ReviewPage extends StatelessWidget {
                 ),
               ),
               PaddedSection(
-                child: FlatButton(
+                child: TextButton(
                   key: const Key('btnSaveLog'),
-                  color: theme.primaryColor,
-                  textColor: Colors.white,
                   onPressed: () {},
                   child: const Text('Save Log'),
                 ),
