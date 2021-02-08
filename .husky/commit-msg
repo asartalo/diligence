@@ -1,9 +1,4 @@
 #!/bin/sh
 . "$(dirname $0)/_/husky.sh"
 
-if [ $HUSKY_SKIP_HOOKS -gt 0 ]
-then
-  echo "No commitlint"
-else
-  commitlint --edit $1
-fi
+commitlint --edit $1

@@ -17,7 +17,7 @@ plugins:
         - CHANGELOG.md
         - package.json
         - pubspec.yaml
-      message: "chore(release): version ${nextRelease.version}\n\n${nextRelease.notes}"
+      message: "chore(release): version ${nextRelease.version}"
   - - "@semantic-release/exec"
     - prepareCmd: |
         flutter pub run diligence bumpVersion ${nextRelease.version}
