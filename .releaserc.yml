@@ -20,4 +20,4 @@ plugins:
       message: "chore(release): version ${nextRelease.version}"
   - - "@semantic-release/exec"
     - prepareCmd: |
-        flutter pub run diligence bumpVersion ${nextRelease.version}
+        flutter pub run --no-sound-null-safety diligence bumpVersion ${nextRelease.version}
