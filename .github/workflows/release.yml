@@ -49,12 +49,12 @@ jobs:
           echo "::set-output name=should::$output"
 
       - name: Echo output of checkShouldRelease
-        run: echo "${{ steps.checkShouldRelease.should }}"
+        run: echo "${{ steps.checkShouldRelease.outputs.should }}"
 
-      - if: steps.checkShouldRelease.should == 'yes'
+      - if: steps.checkShouldRelease.outputs.should == 'yes'
         run: echo "Will release"
 
-      - if: steps.checkShouldRelease.should != 'yes'
+      - if: steps.checkShouldRelease.outputs.should != 'yes'
         run: echo "Will not release"
 
       # - name: Install dependencies
