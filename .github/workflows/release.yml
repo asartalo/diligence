@@ -38,10 +38,10 @@ jobs:
 
       - run: echo "${{ steps.checkShouldRelease.should }}"
 
-      - if: ${{ steps.checkShouldRelease.should == "yes" }}
+      - if: steps.checkShouldRelease.should == 'yes'
         run: "Will release"
 
-      - if: ${{ steps.checkShouldRelease.should != "yes" }}
+      - if: steps.checkShouldRelease.should != 'yes'
         run: "Will not release"
 
       # - name: Install dependencies
