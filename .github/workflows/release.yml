@@ -38,19 +38,19 @@ jobs:
       # Get flutter dependencies.
       - run: flutter pub get
 
-      - run: echo "${{ steps.latestRelease.tag_name }})"
+      - run: echo "${{ steps.latestRelease.tag_name }})
 
       - name: Check if we should release
         id: checkShouldRelease
-        run: echo "::set-output name=should::$(pub run --no-sound-null-safety diligence shouldRelease ${{ steps.latestRelease.tag_name }})"
+        run: echo "::set-output name=should::$(pub run --no-sound-null-safety diligence shouldRelease ${{ steps.latestRelease.tag_name }}"
 
       - run: echo "${{ steps.checkShouldRelease.should }}"
 
       - if: steps.checkShouldRelease.should == 'yes'
-        run: "Will release"
+        run: echo "Will release"
 
       - if: steps.checkShouldRelease.should != 'yes'
-        run: "Will not release"
+        run: echo "Will not release"
 
       # - name: Install dependencies
       #   run: npm ci

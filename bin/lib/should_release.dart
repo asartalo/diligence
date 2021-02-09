@@ -41,7 +41,6 @@ Future<String> getCommitLogsFrom(String lastHash) async {
 }
 
 Future<String> getHashForTag(String tag) async {
-  // git rev-parse beforeFeat^{}
   final result = await execute(
     'git',
     'rev-parse $tag^{}'.split(' '),
@@ -56,11 +55,19 @@ Future<String> getHashForTag(String tag) async {
   return '';
 }
 
+Future<String> getFirstHash() async {
+  final result = await execute(
+    'git',
+    'rev-list --max-parents=0 HEAD'.split(' '),
+    projectRoot,
+  );
+
+  return result.output;
+}
+
 Future<String> shouldRelease(String tag) async {
-  if (tag.isEmpty) {
-    return 'no';
-  }
-  final lastHash = await getHashForTag(tag);
+  final lastHash =
+      tag.isEmpty ? await getFirstHash() : await getHashForTag(tag);
   final result = await getCommitLogsFrom(lastHash);
   final kindsUnique = parseKindsOfCommit(result);
   return hasReleasableCommits(kindsUnique) ? 'yes' : 'no';
