@@ -13,14 +13,22 @@ jobs:
         with:
           fetch-depth: 0
 
-      - id: latestRelease
-        uses: pozetroninc/github-action-get-latest-release@master
-        with:
-          repository: asartalo/diligence
-
       - uses: subosito/flutter-action@v1
         with:
           channel: 'dev'
+
+      # - id: latestRelease
+      #   uses: pozetroninc/github-action-get-latest-release@master
+      #   with:
+      #     repository: ${{ github.repository }}
+
+      - name: "call action"
+        id: latestRelease
+        uses: InsonusK/get-latest-release@v1.0.1
+        with:
+          myToken: ${{ github.token }}
+          exclude_types: "release"
+          view_top: 1
 
       - name: Setup Node.js
         uses: actions/setup-node@v1
@@ -30,11 +38,11 @@ jobs:
       # Get flutter dependencies.
       - run: flutter pub get
 
-      - run: echo "${{ steps.latestRelease.release }})"
+      - run: echo "${{ steps.latestRelease.tag_name }})"
 
       - name: Check if we should release
         id: checkShouldRelease
-        run: echo "::set-output name=should::$(pub run --no-sound-null-safety diligence shouldRelease ${{ steps.latestRelease.release }})"
+        run: echo "::set-output name=should::$(pub run --no-sound-null-safety diligence shouldRelease ${{ steps.latestRelease.tag_name }})"
 
       - run: echo "${{ steps.checkShouldRelease.should }}"
 
