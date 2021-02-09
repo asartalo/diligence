@@ -42,7 +42,7 @@ jobs:
 
       - name: Check if we should release
         id: checkShouldRelease
-        run: echo "::set-output name=should::$(pub run --no-sound-null-safety diligence shouldRelease ${{ steps.latestRelease.tag_name }}"
+        run: echo "::set-output name=should::$(pub run --no-sound-null-safety diligence shouldRelease ${{ steps.latestRelease.tag_name }})"
 
       - run: echo "${{ steps.checkShouldRelease.should }}"
 
