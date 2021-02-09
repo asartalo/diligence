@@ -38,7 +38,7 @@ jobs:
       # Get flutter dependencies.
       - run: flutter pub get
 
-      - run: echo "${{ steps.latestRelease.tag_name }})
+      - run: echo "${{ steps.latestRelease.tag_name }}"
 
       - name: Check if we should release
         id: checkShouldRelease
