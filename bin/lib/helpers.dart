@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:path/path.dart' as paths;
 
 // ignore_for_file: avoid_print
@@ -40,6 +41,8 @@ String findProjectRoot() {
   return paths.dirname(pubspecPath);
 }
 
+final projectRoot = findProjectRoot();
+
 class Execution {
   final bool success;
   final String output;
@@ -50,14 +53,51 @@ class Execution {
   });
 }
 
-Future<Execution> execute(String cmd, List<String> args, String cwd) async {
+Future<String> getCommitLogsFrom(String lastHash) async {
+  final result = await execute(
+    'git',
+    '--no-pager log $lastHash..HEAD --no-decorate'.split(' '),
+  );
+
+  if (result.success) {
+    return result.output;
+  }
+
+  print(result.output);
+  return '';
+}
+
+Future<String> getHashForTag(String tag) async {
+  final result = await execute(
+    'git',
+    'rev-parse $tag^{}'.split(' '),
+  );
+
+  if (result.success) {
+    return result.output;
+  }
+
+  print(result.output);
+  return '';
+}
+
+Future<String> getFirstHash() async {
+  final result = await execute(
+    'git',
+    'rev-list --max-parents=0 HEAD'.split(' '),
+  );
+
+  return result.output;
+}
+
+Future<Execution> execute(String cmd, List<String> args) async {
   bool success = false;
   String output;
   try {
     final result = await Process.run(
       cmd,
       args,
-      workingDirectory: cwd,
+      workingDirectory: projectRoot,
     );
     final exitCode = result.exitCode;
     if (exitCode != 0) {

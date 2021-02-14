@@ -1,5 +1,5 @@
 name: version_bump
-description: A new Flutter package project.
+description: a lightweight library for bumping up semantic version numbers.
 version: 0.0.1
 author:
 homepage:
