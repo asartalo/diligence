@@ -1,7 +1,7 @@
 library version_bump;
 
 import 'package:conventional/conventional.dart';
-import 'package:pub_semver/pub_semver.dart';
+import 'package:pub_semver/pub_semver.dart' show Version;
 
 Version nextVersion(Version before, List<Commit> commits) {
   bool isMajor = false;

@@ -1,6 +1,6 @@
 part of 'conventional.dart';
 
-Future<bool> writeChangelog({
+Future<ChangeSummary?> writeChangelog({
   required List<Commit> commits,
   required String changelogFilePath,
   required String version,
@@ -12,17 +12,13 @@ Future<bool> writeChangelog({
     if (await file.exists()) {
       oldContents = (await file.readAsString()).trim();
     }
-    final content = _writeContents(commits, version, now);
-    await file.writeAsString(
-        oldContents.isEmpty ? content : '$content\n$oldContents\n');
+    final summary = _writeContents(commits, Version.parse(version), now);
+    await file.writeAsString(oldContents.isEmpty
+        ? summary.toMarkdown()
+        : '${summary.toMarkdown()}\n$oldContents\n');
+    return summary;
   }
-  return false;
-}
-
-class _CommitSections {
-  final List<Commit> bugFixes = [];
-  final List<Commit> features = [];
-  final List<Commit> breakingChanges = [];
+  return null;
 }
 
 String _commitLink(Commit commit) {
@@ -43,7 +39,7 @@ String _formatLog(Commit commit) {
   return '- $scopePart${_linkIssues(commit.description)} ${_commitLink(commit)}';
 }
 
-String? _commitSection(String header, List<Commit> commits) {
+String? _changeSection(String header, List<Commit> commits) {
   if (commits.isEmpty) {
     return null;
   }
@@ -57,25 +53,74 @@ String? _commitSection(String header, List<Commit> commits) {
   return '## $header\n\n$contents';
 }
 
-String _writeContents(List<Commit> commits, String version, DateTime now) {
-  final logs = _CommitSections();
-  for (final commit in commits) {
+class CommitSections extends Equatable {
+  final List<Commit> bugFixes = [];
+  final List<Commit> features = [];
+  final List<Commit> breakingChanges = [];
+
+  bool get isEmpty =>
+      (bugFixes.length + features.length + breakingChanges.length) > 0;
+  bool get isNotEmpty => !isEmpty;
+
+  @override
+  List<Object?> get props => [bugFixes, features, breakingChanges];
+
+  CommitSections fromCommits(List<Commit> commits) {
+    final section = CommitSections();
+    for (final commit in commits) {
+      section.add(commit);
+    }
+    return section;
+  }
+
+  add(Commit commit) {
     if (commit.breaking) {
-      logs.breakingChanges.add(commit);
+      breakingChanges.add(commit);
     } else if (commit.type == 'fix') {
-      logs.bugFixes.add(commit);
+      bugFixes.add(commit);
     } else if (commit.type == 'feat') {
-      logs.features.add(commit);
+      features.add(commit);
     }
   }
-  final List<String> sections = [
-    _versionHeadline(version, now),
-    _commitSection('Bug Fixes', logs.bugFixes),
-    _commitSection('Features', logs.features),
-    _commitSection('BREAKING CHANGES', logs.breakingChanges),
-  ].whereType<String>().toList();
+}
 
-  return '${sections.join('\n\n').trim()}\n';
+class ChangeSummary extends Equatable {
+  final Version version;
+  final CommitSections sections;
+  final DateTime date;
+
+  bool get isNotEmpty => sections.isNotEmpty;
+  bool get isEmpty => sections.isEmpty;
+
+  const ChangeSummary({
+    required this.version,
+    required this.sections,
+    required this.date,
+  });
+
+  @override
+  List<Object?> get props => [version, sections, date];
+
+  String toMarkdown() {
+    final List<String> parts = [
+      _versionHeadline(version.toString(), date),
+      _changeSection('Bug Fixes', sections.bugFixes),
+      _changeSection('Features', sections.features),
+      _changeSection('BREAKING CHANGES', sections.breakingChanges),
+    ].whereType<String>().toList();
+
+    return '${parts.join('\n\n').trim()}\n';
+  }
+}
+
+ChangeSummary _writeContents(
+    List<Commit> commits, Version version, DateTime now) {
+  final logs = CommitSections();
+  for (final commit in commits) {
+    logs.add(commit);
+  }
+
+  return ChangeSummary(version: version, sections: logs, date: now);
 }
 
 String _versionHeadline(String version, DateTime now) {

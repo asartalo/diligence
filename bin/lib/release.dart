@@ -29,6 +29,16 @@ Future<void> bumpPubspecVersion(Version newVersion) async {
   print('DONE.');
 }
 
+Future<void> _writeNewVersion(String directory, Version version) async {
+  final file = File(paths.join(directory, 'NEWVERSION.txt'));
+  await file.writeAsString('v$version');
+}
+
+Future<void> _writeSummary(String directory, ChangeSummary summary) async {
+  final file = File(paths.join(directory, 'SUMMARY.md'));
+  await file.writeAsString(summary.toMarkdown());
+}
+
 Future<void> release(String tag) async {
   print('Releasing...');
   final lastHash =
@@ -44,16 +54,29 @@ Future<void> release(String tag) async {
   final currentVersion = await getCurrentVersion();
   // Calculate new version
   final newVersion = nextVersion(currentVersion, commits);
+  final cleanVersion = buildlessVersion(newVersion);
   // Bump version
   print('Updating pubspec version from $currentVersion to $newVersion');
   bumpPubspecVersion(newVersion);
   // Write changelog
   final changelogFile = paths.join(paths.dirname(pubspecPath), 'CHANGELOG.md');
-  await writeChangelog(
-    version: newVersion.toString(),
+  print('Updating CHANGELOG.md');
+  final summary = await writeChangelog(
+    version: cleanVersion.toString(),
     commits: commits,
     now: DateTime.now(),
     changelogFilePath: changelogFile,
   );
-  // Update pubspec.yaml
+
+  if (summary == null) {
+    print('No changelogs written.');
+    return;
+  }
+
+  // Write new version to NEWVERSION.txt
+  final dirname = paths.dirname(changelogFile);
+  print('Writing "NEWVERSION.txt" with $cleanVersion');
+  await _writeNewVersion(dirname, cleanVersion);
+  print('Writing "SUMMARY.md"');
+  await _writeSummary(dirname, summary);
 }

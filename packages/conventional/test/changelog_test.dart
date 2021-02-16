@@ -108,7 +108,7 @@ void main() {
       };
 
       noChangeLogs.forEach((condition, commitsStrings) {
-        test('does not create a changelog if $condition', () async {
+        final setupFunction = () async {
           commits = Commit.parseCommitsStringList(commitsStrings);
           await writeChangelog(
             commits: commits,
@@ -116,20 +116,31 @@ void main() {
             version: version,
             now: now,
           );
-          expect(_exists(changelogFilePath), false);
-        });
+        };
 
-        test('does not update a file if $condition', () async {
-          File file = File(changelogFilePath);
-          await file.writeAsString('');
-          commits = Commit.parseCommitsStringList([]);
-          await writeChangelog(
-            commits: commits,
-            changelogFilePath: changelogFilePath,
-            version: version,
-            now: now,
-          );
-          expect(await file.readAsString(), equals(''));
+        group('if $condition', () {
+          group('if there is no changelog file yet', () {
+            setUp(() async {
+              await setupFunction();
+            });
+
+            test('does not create a changelog if $condition', () async {
+              expect(_exists(changelogFilePath), false);
+            });
+          });
+
+          group('if there is an existing changelog file', () {
+            setUp(() async {
+              File file = File(changelogFilePath);
+              await file.writeAsString('');
+              await setupFunction();
+            });
+
+            test('does not update a file if $condition', () async {
+              final file = File(changelogFilePath);
+              expect(await file.readAsString(), equals(''));
+            });
+          });
         });
       });
     });

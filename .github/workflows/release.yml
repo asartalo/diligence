@@ -17,12 +17,7 @@ jobs:
         with:
           channel: 'dev'
 
-      # - id: latestRelease
-      #   uses: pozetroninc/github-action-get-latest-release@master
-      #   with:
-      #     repository: ${{ github.repository }}
-
-      - name: "call action"
+      - name: Latest Release
         id: latestRelease
         uses: InsonusK/get-latest-release@v1.0.1
         with:
@@ -43,24 +38,57 @@ jobs:
       - name: Check if we should release
         id: checkShouldRelease
         run: |
-          pwd
-          output=$(flutter pub run --no-sound-null-safety diligence shouldRelease ${{ steps.latestRelease.tag_name }})
-          echo $output
+          output=$(flutter pub run --no-sound-null-safety diligence shouldRelease )
           echo "::set-output name=should::$output"
-
-      - name: Echo output of checkShouldRelease
-        run: echo "${{ steps.checkShouldRelease.outputs.should }}"
 
       - if: steps.checkShouldRelease.outputs.should == 'yes'
         run: echo "Will release"
 
-      - if: steps.checkShouldRelease.outputs.should != 'yes'
-        run: echo "Will not release"
+      - if: steps.checkShouldRelease.outputs.should == 'no'
+        run: echo "No release"
 
-      # - name: Install dependencies
-      #   run: npm ci
+      - name: Track Changes
+        id: trackChanges
+        run: |
+          flutter pub run --no-sound-null-safety diligence release
+          echo "::set-output name=version::$(cat NEWVERSION.txt)"
+          echo "::set-output name=summary::$(cat SUMMARY.md)"
 
-      # - name: Release
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   run: npx semantic-release
+      - name: Create Release
+        if: steps.checkShouldRelease.outputs.should == 'yes'
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.trackChanges.outputs.version }}
+          release_name: Release ${{ steps.trackChanges.outputs.version }}
+          body: |
+            Changes in this Release ${{ steps.trackChanges.outputs.summary }}
+
+          draft: false
+          prerelease: false
+
+      - name: Check version
+        if: steps.checkShouldRelease.outputs.should == 'yes'
+        run: cat NEWVERSION.txt
+
+      - name: Build
+        if: steps.checkShouldRelease.outputs.should == 'yes'
+        run: flutter build linux
+
+      - name: Gzip
+        if: steps.checkShouldRelease.outputs.should == 'yes'
+        run: cd build/linux && tar -czvf release.tar.gz release
+
+      - name: Upload Release Asset
+        if: steps.checkShouldRelease.outputs.should == 'yes'
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
+          asset_path: ./build/linux/release.tar.gz
+          asset_name: release.tar.gz
+          asset_content_type: application/gzip

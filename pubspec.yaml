@@ -40,6 +40,8 @@ dependencies:
 
 dev_dependencies:
   args: ^1.6.0
+  conventional:
+    path: packages/conventional
   flutter_driver:
     sdk: flutter
   flutter_test:
@@ -50,6 +52,8 @@ dev_dependencies:
   mockito: 5.0.0-nullsafety.5
   # pub_release: ^5.0.3
   pub_semver: ^2.0.0-nullsafety.0
+  version_bump:
+    path: packages/version_bump
   yaml_edit: ^1.0.3
 
 # For information on the generic Dart part of this file, see the

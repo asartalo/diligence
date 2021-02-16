@@ -50,3 +50,7 @@ app.*.map.json
 
 # dotenv
 .env
+
+# Releasing
+NEWVERSION.txt
+SUMMARY.md
