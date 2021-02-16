@@ -17,6 +17,8 @@ jobs:
         with:
           channel: 'dev'
 
+      - run: flutter config --enable-linux-desktop
+
       - name: Latest Release
         id: latestRelease
         uses: InsonusK/get-latest-release@v1.0.1
@@ -53,6 +55,12 @@ jobs:
           flutter pub run --no-sound-null-safety diligence release
           echo "::set-output name=version::$(cat NEWVERSION.txt)"
           echo "::set-output name=summary::$(cat SUMMARY.md)"
+      
+      - name: Commit Release
+        run: |
+          git diff
+          git add .
+          git commit -m "chore(release): release for ${{ steps.trackChanges.outputs.version }}
 
       - name: Create Release
         if: steps.checkShouldRelease.outputs.should == 'yes'
