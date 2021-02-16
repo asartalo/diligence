@@ -60,7 +60,7 @@ jobs:
         run: |
           git diff
           git add .
-          git commit -m "chore(release): release for ${{ steps.trackChanges.outputs.version }}
+          git commit -m "chore(release): release for ${{ steps.trackChanges.outputs.version }}"
 
       - name: Create Release
         if: steps.checkShouldRelease.outputs.should == 'yes'
