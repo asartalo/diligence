@@ -73,7 +73,7 @@ class CommitSections extends Equatable {
     return section;
   }
 
-  add(Commit commit) {
+  void add(Commit commit) {
     if (commit.breaking) {
       breakingChanges.add(commit);
     } else if (commit.type == 'fix') {

@@ -67,7 +67,7 @@ Date:   Mon Feb 8 15:26:09 2021 +0800
 ''',
     Commit(
       id: 'fc9d8117b1074c3c965c5c1ccf845d784c026ac7',
-      author: CommitAuthor(
+      author: const CommitAuthor(
         name: 'Jane Doe',
         email: 'jane.doe@example.com',
       ),
@@ -89,7 +89,7 @@ Date:   Sat Dec 19 13:28:47 2020 +0800
 ''',
     Commit(
       id: '18bf98f5cddfecc69b26285b6edca063f1a8b1ec',
-      author: CommitAuthor(
+      author: const CommitAuthor(
         name: 'Jane Doe',
         email: 'jane.doe@example.com',
       ),
@@ -101,7 +101,7 @@ Date:   Sat Dec 19 13:28:47 2020 +0800
     ),
   ),
   'with breaking change in body': _TestData(
-    '''    
+    '''
 commit 43cf9b78f77a0180ad408cb87e8a774a530619ce
 Author: Jane Doe <jane.doe@example.com>
 Date:   Fri Feb 5 11:56:26 2021 +0800
@@ -114,7 +114,7 @@ Date:   Fri Feb 5 11:56:26 2021 +0800
 ''',
     Commit(
       id: '43cf9b78f77a0180ad408cb87e8a774a530619ce',
-      author: CommitAuthor(
+      author: const CommitAuthor(
         name: 'Jane Doe',
         email: 'jane.doe@example.com',
       ),
@@ -137,7 +137,7 @@ Date:   Sun Feb 7 12:58:06 2021 +0800
     fix!: try fixing problem with release''',
     Commit(
       id: 'cf6080079cd96cb4ccc2edca2ba9cacbcfd64704',
-      author: CommitAuthor(
+      author: const CommitAuthor(
         name: 'Jane Doe',
         email: 'jane.doe@example.com',
       ),
@@ -157,7 +157,7 @@ Date:   Mon Feb 8 15:26:09 2021 +0800
 ''',
     Commit(
       id: 'fc9d8117b1074c3c965c5c1ccf845d784c026ac7',
-      author: CommitAuthor(
+      author: const CommitAuthor(
         name: 'Jane Doe',
         email: 'jane.doe@example.com',
       ),

@@ -77,8 +77,8 @@ bool _exists(String path) {
 
 void main() {
   group('updateChangelog()', () {
-    Directory tmpDir = Directory(_tmpDir);
-    String changelogFilePath = paths.join(_tmpDir, 'CHANGELOG.md');
+    final tmpDir = Directory(_tmpDir);
+    final changelogFilePath = paths.join(_tmpDir, 'CHANGELOG.md');
     final now = DateTime.parse('2021-02-09 12:00:00');
     const version = '1.0.0';
     late List<Commit> commits;
@@ -108,7 +108,7 @@ void main() {
       };
 
       noChangeLogs.forEach((condition, commitsStrings) {
-        final setupFunction = () async {
+        Future<void> setupFunction() async {
           commits = Commit.parseCommitsStringList(commitsStrings);
           await writeChangelog(
             commits: commits,
@@ -116,7 +116,7 @@ void main() {
             version: version,
             now: now,
           );
-        };
+        }
 
         group('if $condition', () {
           group('if there is no changelog file yet', () {
@@ -131,7 +131,7 @@ void main() {
 
           group('if there is an existing changelog file', () {
             setUp(() async {
-              File file = File(changelogFilePath);
+              final file = File(changelogFilePath);
               await file.writeAsString('');
               await setupFunction();
             });
@@ -147,7 +147,7 @@ void main() {
 
     group('when CHANGELOG can be generated or updated', () {
       final Map<String, _Test> testData = {
-        'all stuff': _Test(
+        'all stuff': const _Test(
           [chore, docs, fix, feat, feat2, feat3, feat4, breaking],
           '''
 # 1.0.0 (2021-02-09)
@@ -171,7 +171,7 @@ void main() {
       };
 
       testData.forEach((key, data) {
-        final setupProper = () async {
+        Future<void> setupProper() async {
           commits = Commit.parseCommitsStringList(data.commits);
           await writeChangelog(
             commits: commits,
@@ -179,7 +179,7 @@ void main() {
             version: version,
             now: now,
           );
-        };
+        }
 
         group('$key and no changelog file yet', () {
           setUp(() async {

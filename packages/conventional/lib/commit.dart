@@ -169,6 +169,7 @@ class Commit extends Equatable {
     this.body = '',
   });
 
+  // ignore: prefer_constructors_over_static_methods
   static Commit parse(String str) {
     final lines = str.trim().split('\n');
     if (lines.isEmpty) {
