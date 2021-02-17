@@ -36,7 +36,8 @@ dependencies:
   flutter_markdown: ^0.6.0-nullsafety.0
   provider: ^5.0.0-nullsafety.3
   sqflite: ^2.0.0-nullsafety.3
-  sqflite_common_ffi: ^2.0.0-nullsafety.6
+  sqflite_common_ffi:
+    path: packages/sqflite_common_ffi
   sqlite3: ^1.0.0
 
 dev_dependencies:
