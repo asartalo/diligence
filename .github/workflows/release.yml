@@ -57,6 +57,7 @@ jobs:
           echo "::set-output name=summary::$(cat SUMMARY.md)"
       
       - name: Commit Release
+        if: steps.checkShouldRelease.outputs.should == 'yes'
         run: |
           git diff
           git config user.name github-actions
@@ -83,6 +84,10 @@ jobs:
       - name: Check version
         if: steps.checkShouldRelease.outputs.should == 'yes'
         run: cat NEWVERSION.txt
+        
+      - name: Install Build Dependencies
+        if: steps.checkShouldRelease.outputs.should == 'yes'
+        run: sudo apt-get install clang cmake ninja-build pkg-config libgtk-3-dev libblkid-dev liblzma-dev
 
       - name: Build
         if: steps.checkShouldRelease.outputs.should == 'yes'
