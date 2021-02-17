@@ -66,7 +66,9 @@ jobs:
 
       - name: Build
         if: steps.checkShouldRelease.outputs.should == 'yes'
-        run: flutter build linux
+        run: |
+          touch .env
+          flutter build linux
 
       - name: Commit Release
         if: steps.checkShouldRelease.outputs.should == 'yes'
