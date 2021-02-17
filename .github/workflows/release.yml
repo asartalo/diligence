@@ -24,7 +24,6 @@ jobs:
         uses: InsonusK/get-latest-release@v1.0.1
         with:
           myToken: ${{ github.token }}
-          exclude_types: "release"
           view_top: 1
 
       - name: Setup Node.js
@@ -37,7 +36,7 @@ jobs:
 
       - name: Check last release
         run: |
-          [ -z "${{ steps.latestRelease.outputs.tag_name }}" ]
+          [ ! -z "${{ steps.latestRelease.outputs.tag_name }}" ]
 
       - name: Check if we should release
         id: checkShouldRelease
