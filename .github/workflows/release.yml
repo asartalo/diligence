@@ -55,7 +55,19 @@ jobs:
           flutter pub run --no-sound-null-safety diligence release
           echo "::set-output name=version::$(cat NEWVERSION.txt)"
           echo "::set-output name=summary::$(cat SUMMARY.md)"
-      
+
+      - name: Check version
+        if: steps.checkShouldRelease.outputs.should == 'yes'
+        run: cat NEWVERSION.txt
+        
+      - name: Install Build Dependencies
+        if: steps.checkShouldRelease.outputs.should == 'yes'
+        run: sudo apt-get install clang cmake ninja-build pkg-config libgtk-3-dev libblkid-dev liblzma-dev libsqlite3-dev
+
+      - name: Build
+        if: steps.checkShouldRelease.outputs.should == 'yes'
+        run: flutter build linux
+
       - name: Commit Release
         if: steps.checkShouldRelease.outputs.should == 'yes'
         run: |
@@ -80,18 +92,6 @@ jobs:
 
           draft: false
           prerelease: false
-
-      - name: Check version
-        if: steps.checkShouldRelease.outputs.should == 'yes'
-        run: cat NEWVERSION.txt
-        
-      - name: Install Build Dependencies
-        if: steps.checkShouldRelease.outputs.should == 'yes'
-        run: sudo apt-get install clang cmake ninja-build pkg-config libgtk-3-dev libblkid-dev liblzma-dev
-
-      - name: Build
-        if: steps.checkShouldRelease.outputs.should == 'yes'
-        run: flutter build linux
 
       - name: Gzip
         if: steps.checkShouldRelease.outputs.should == 'yes'
