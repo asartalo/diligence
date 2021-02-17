@@ -59,8 +59,11 @@ jobs:
       - name: Commit Release
         run: |
           git diff
+          git config user.name github-actions
+          git config user.email github-actions@github.com
           git add .
           git commit -m "chore(release): release for ${{ steps.trackChanges.outputs.version }}"
+          git push
 
       - name: Create Release
         if: steps.checkShouldRelease.outputs.should == 'yes'
