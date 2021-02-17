@@ -407,10 +407,10 @@ packages:
   sqflite_common_ffi:
     dependency: "direct main"
     description:
-      path: "packages/sqflite_common_ffi"
-      relative: true
-    source: path
-    version: "2.0.0-nullsafety.6"
+      name: sqflite_common_ffi
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.0-nullsafety.7"
   sqlite3:
     dependency: "direct main"
     description:
