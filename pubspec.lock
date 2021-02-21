@@ -116,10 +116,10 @@ packages:
   conventional:
     dependency: "direct dev"
     description:
-      path: "packages/conventional"
-      relative: true
-    source: path
-    version: "0.0.1"
+      name: conventional
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.0.1-pre"
   convert:
     dependency: transitive
     description:
@@ -363,7 +363,7 @@ packages:
       name: pub_semver
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.0-nullsafety.0"
+    version: "2.0.0"
   quiver:
     dependency: transitive
     description:

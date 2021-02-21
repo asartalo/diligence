@@ -41,8 +41,7 @@ dependencies:
 
 dev_dependencies:
   args: ^2.0.0
-  conventional:
-    path: packages/conventional
+  conventional: ^0.0.1-pre
   flutter_driver:
     sdk: flutter
   flutter_test:
