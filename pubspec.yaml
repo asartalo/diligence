@@ -40,7 +40,7 @@ dependencies:
   sqlite3: ^1.0.0
 
 dev_dependencies:
-  args: ^1.6.0
+  args: ^2.0.0
   conventional:
     path: packages/conventional
   flutter_driver:
