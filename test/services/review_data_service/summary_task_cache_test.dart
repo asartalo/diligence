@@ -15,10 +15,10 @@ void main() {
     late SummaryTaskCache cache;
     final paths = ProjectPaths.instance;
     sqflitePrepare();
-    final dbFile = TestDbFile('test_database.db');
+    final dbFile = TestDbFile('test_database3.db');
 
     setUp(() async {
-      await dbFile.setUp();
+      await dbFile.deleteIfExists();
       db = DatabaseLogWrapper(await openDatabase(dbFile.path));
       await SqliteSchema(db).loadSqlFile(path.join(
         paths.test,
@@ -31,6 +31,7 @@ void main() {
       if (db is Database) {
         await db.close();
       }
+      await deleteDatabase(dbFile.path);
     });
 
     group('getAll()', () {

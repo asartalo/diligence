@@ -30,7 +30,7 @@ class TestDbFile {
     );
   }
 
-  Future<void> setUp() async {
+  Future<void> deleteIfExists() async {
     final dbFile = File(path);
     if (await dbFile.exists()) {
       await dbFile.delete();

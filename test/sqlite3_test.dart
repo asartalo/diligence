@@ -25,7 +25,7 @@ Future<void> main() async {
 
   group('Testing with own file database', () {
     setUp(() async {
-      dbFile.setUp();
+      await dbFile.deleteIfExists();
       db = await openDatabase(dbFile.path);
       final file = File(path.join(paths.test, 'fixtures/test.sql'));
       final contents = await file.readAsString();

@@ -15,10 +15,10 @@ Future<void> main() async {
   final paths = ProjectPaths.instance;
   late ReviewDataService service;
   sqflitePrepare();
-  final dbFile = TestDbFile('test_database.db');
+  final dbFile = TestDbFile('test_database2.db');
 
   setUp(() async {
-    await dbFile.setUp();
+    await dbFile.deleteIfExists();
     db = await openDatabase(dbFile.path);
     await SqliteSchema(db).loadSqlFile(path.join(
       paths.test,
@@ -31,6 +31,7 @@ Future<void> main() async {
     if (db is Database) {
       await db.close();
     }
+    await deleteDatabase(dbFile.path);
   });
 
   test('it loads data', () async {
@@ -81,8 +82,8 @@ Future<void> main() async {
         final lifeGoalsParentId = taskIds['Life Goals'];
         final workParentId = taskIds['Work'];
         final result = await db.rawQuery('''
-            SELECT COUNT("tasks"."id") AS task_count 
-            FROM tasks 
+            SELECT COUNT("tasks"."id") AS task_count
+            FROM tasks
             WHERE parent_id = ?;
             ''', [lifeGoalsParentId]);
         final childCount = castOrDefault<int>(result.first['task_count'], 0);
