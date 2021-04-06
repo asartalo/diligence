@@ -18,7 +18,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 0.1.0+1
 
 environment:
-  sdk: ">=2.12.0-29.beta <3.0.0"
+  sdk: ">=2.12.2 <3.0.0"
 
 dependencies:
   # The following adds the Cupertino Icons font to your application.
@@ -26,7 +26,7 @@ dependencies:
   cupertino_icons: ^1.0.1
   dartz: ^0.10.0-nullsafety.0
   equatable: ^2.0.0-nullsafety.1
-  # fl_chart: ^0.12.2
+  fl_chart: ^0.20.1
   flutter:
     sdk: flutter
   flutter_bloc: ^7.0.0-nullsafety.1
@@ -40,31 +40,21 @@ dependencies:
   sqlite3: ^1.0.0
 
 dev_dependencies:
-  args: ^2.0.0
-  conventional: ^0.0.1-pre
+  conventional: ^0.2.4
+  # coverage: ^1.0.1 # Install globally
   flutter_driver:
     sdk: flutter
   flutter_test:
     sdk: flutter
+  git_hooks:
+    git:
+      url: https://github.com/asartalo/git_hooks.git
+      ref: null-safety-2
   integration_test:
     sdk: flutter
-  lint: 1.5.1
-  mockito: 5.0.0-nullsafety.5
-  # pub_release: ^5.0.3
-  pub_semver: ^2.0.0-nullsafety.0
-  version_bump:
-    path: packages/version_bump
-  yaml_edit: ^1.0.3
+  lint: ^1.5.3
 
-# For information on the generic Dart part of this file, see the
-# following page: https://dart.dev/tools/pub/pubspec
-
-# The following section is specific to Flutter.
 flutter:
-
-  # The following line ensures that the Material Icons font is
-  # included with your application, so that you can use the icons in
-  # the material Icons class.
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:

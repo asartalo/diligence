@@ -1,6 +1,6 @@
 # Temporarily including the analysis
-# include: package:lint/analysis_options.yaml
-include: lint_analysis_options.yaml
+include: package:lint/analysis_options.yaml
+# include: lint_analysis_options.yaml
 
 analyzer:
   errors:
