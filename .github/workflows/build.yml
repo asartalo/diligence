@@ -64,16 +64,11 @@ jobs:
       - name: Hookup pub tools
         run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
 
-      - run: pub global activate coverage
-
-      - name: Prepare coverage
-        run: format_coverage --lcov --in=coverage --out=lcov.info --packages=.packages --report-on=lib --report-on=packages
-
       - name: Upload coverage
         uses: coverallsapp/github-action@v1.1.2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: lcov.info
+          path-to-lcov: coverage/lcov.info
 
   release:
     name: Release
@@ -171,6 +166,22 @@ jobs:
           draft: false
           prerelease: false
 
+      - name: Gzip
+        if: steps.shouldRelease.outputs.value == 'yes'
+        run: cd build/linux && tar -czvf release.tar.gz release
+
+      - name: Upload Release Asset
+        if: steps.shouldRelease.outputs.value == 'yes'
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
+          asset_path: ./build/linux/release.tar.gz
+          asset_name: release.tar.gz
+          asset_content_type: application/gzip
+
       # Build apk.
       # - run: flutter build apk
 
@@ -179,7 +190,3 @@ jobs:
       #   with:
       #      name: release-apk
       #      path: build/app/outputs/apk/release/app-release.apk
-
-      - name: Publish package
-        if: steps.shouldRelease.outputs.value == 'yes'
-        run: pub publish -f
