@@ -61,6 +61,9 @@ jobs:
       # Run widget tests for our flutter project.
       - run: flutter test --coverage
 
+      - name: Hookup pub tools
+        run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+
       - run: pub global activate coverage
 
       - name: Prepare coverage
