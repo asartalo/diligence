@@ -1,8 +1,7 @@
 name: version_bump
 description: a lightweight library for bumping up semantic version numbers.
 version: 0.0.1
-author:
-homepage:
+homepage: https://github.com/asartalo/diligence/
 publish_to: none
 
 environment:

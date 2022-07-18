@@ -1,8 +1,8 @@
-import 'package:diligence/ui/components/typography/data_title.dart';
 import 'package:flutter/material.dart';
 
 import '../../theme.dart';
 import '../easy_card.dart';
+import '../typography/data_title.dart';
 
 class SingleNumberDataPointHorizontal extends StatelessWidget {
   final String title;

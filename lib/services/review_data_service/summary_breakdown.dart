@@ -11,7 +11,7 @@ class BreakdownItem {
   });
 }
 
-Function listEquals = const ListEquality().equals;
+Function listEquals = const ListEquality<int>().equals;
 
 @immutable
 class SummaryBreakdown {
@@ -30,6 +30,7 @@ class SummaryBreakdown {
       return [];
     }
     final subPath = path.sublist(0, levels.length);
+    // ignore: avoid_dynamic_calls
     final equal = listEquals(subPath, levels) as bool;
     if (!equal) {
       return [];

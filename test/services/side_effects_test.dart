@@ -9,7 +9,9 @@ import '../helpers/between_dates_matcher.dart';
 
 const microsecond = Duration(microseconds: 1);
 
-Interval microInterval(Function fn) {
+typedef IntervalCallback = void Function();
+
+Interval microInterval(IntervalCallback fn) {
   final before = DateTime.now();
   sleep(microsecond);
   fn();

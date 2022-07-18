@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 
 import './colors.dart' as colors;
@@ -52,9 +50,7 @@ class DiligenceTheme {
   static ThemeData createThemeData() {
     final backgroundColor = colors.paperGray;
     return ThemeData(
-      primarySwatch: colors.twilightBlue,
       primaryColor: colors.primaryColor,
-      accentColor: colors.secondaryColor,
       backgroundColor: backgroundColor,
       cardColor: Colors.white,
       fontFamily: 'Roboto',
@@ -76,6 +72,8 @@ class DiligenceTheme {
       cardTheme: const CardTheme(
         elevation: 0,
       ),
+      colorScheme: ColorScheme.fromSwatch(primarySwatch: colors.twilightBlue)
+          .copyWith(secondary: colors.secondaryColor),
       // appBarTheme: AppBarTheme(
       //   // backgroundColor: backgroundColor.withOpacity(0.9),
       //   shadowColor: Colors.transparent,

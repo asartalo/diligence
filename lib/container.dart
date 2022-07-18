@@ -1,10 +1,5 @@
 import 'dart:convert';
 
-import 'package:diligence/services/review_data/review_data_bloc.dart';
-import 'package:diligence/services/review_data_service.dart';
-import 'package:diligence/services/side_effects.dart';
-import 'package:diligence/utils/cast.dart';
-import 'package:diligence/utils/sqflite_prepare.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,9 +8,12 @@ import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 import 'package:sqflite/sqflite.dart';
 
-// import 'package:flutter/foundation.dart' show kReleaseMode;
-
 import 'config.dart';
+import 'services/review_data/review_data_bloc.dart';
+import 'services/review_data_service.dart';
+import 'services/side_effects.dart';
+import 'utils/cast.dart';
+import 'utils/sqflite_prepare.dart';
 
 final loadAssetString = rootBundle.loadString;
 
@@ -34,10 +32,11 @@ class DiligenceContainer {
       Provider(create: (_) => database),
       Provider(create: (_) => _sideEffects()),
       BlocProvider(
-          create: (_) => ReviewDataBloc(
-                ReviewDataService(database),
-                sideEffects: _sideEffects(),
-              )),
+        create: (_) => ReviewDataBloc(
+          ReviewDataService(database),
+          sideEffects: _sideEffects(),
+        ),
+      ),
     ];
   }
 
@@ -68,8 +67,10 @@ class DiligenceContainer {
       {},
     );
     final migrations = manifestMap.keys
-        .where((String key) =>
-            key.startsWith('data/migrations/') && key.endsWith('.sql'))
+        .where(
+          (String key) =>
+              key.startsWith('data/migrations/') && key.endsWith('.sql'),
+        )
         .toList();
     return openDatabase(
       path,

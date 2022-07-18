@@ -20,9 +20,7 @@ Future<void> main() async {
   });
 
   tearDownAll(() {
-    if (db is Database) {
-      db.close();
-    }
+    db.close();
   });
 
   group('SqliteSchema#loadSqlFile', () {

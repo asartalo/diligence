@@ -1,8 +1,9 @@
-import 'package:diligence/services/review_data_service.dart';
-import 'package:diligence/ui/components/data/single_number.dart';
-import 'package:diligence/ui/components/data/single_number_horizontal.dart';
-import 'package:diligence/ui/layout/even_row.dart';
 import 'package:flutter/material.dart';
+
+import '../../../services/review_data_service.dart';
+import '../../components/data/single_number.dart';
+import '../../components/data/single_number_horizontal.dart';
+import '../../layout/even_row.dart';
 
 const basicData = [
   {'genre': 'Sports', 'sold': 275},

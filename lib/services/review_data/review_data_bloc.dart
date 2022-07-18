@@ -1,9 +1,10 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
-import 'package:diligence/services/review_data_service.dart';
-import 'package:diligence/services/side_effects.dart';
 import 'package:equatable/equatable.dart';
+
+import '../review_data_service.dart';
+import '../side_effects.dart';
 
 part 'review_data_event.dart';
 part 'review_data_state.dart';

@@ -1,9 +1,9 @@
-import 'package:diligence/ui/screens/review.dart';
-import 'package:diligence/ui/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'container.dart';
+import 'ui/screens/review.dart';
+import 'ui/theme.dart';
 
 final diligenceTheme = DiligenceTheme.createThemeData();
 

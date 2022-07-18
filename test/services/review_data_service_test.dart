@@ -28,9 +28,7 @@ Future<void> main() async {
   });
 
   tearDown(() async {
-    if (db is Database) {
-      await db.close();
-    }
+    await db.close();
   });
 
   test('it loads data', () async {
@@ -81,8 +79,8 @@ Future<void> main() async {
         final lifeGoalsParentId = taskIds['Life Goals'];
         final workParentId = taskIds['Work'];
         final result = await db.rawQuery('''
-            SELECT COUNT("tasks"."id") AS task_count 
-            FROM tasks 
+            SELECT COUNT("tasks"."id") AS task_count
+            FROM tasks
             WHERE parent_id = ?;
             ''', [lifeGoalsParentId]);
         final childCount = castOrDefault<int>(result.first['task_count'], 0);

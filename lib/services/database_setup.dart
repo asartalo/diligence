@@ -1,8 +1,9 @@
 import 'dart:convert';
 
-import 'package:diligence/utils/cast.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:sqflite/sqflite.dart';
+
+import '../utils/cast.dart';
 
 final loadAssetString = rootBundle.loadString;
 
@@ -14,8 +15,10 @@ Future<Database> setupDatabase(String path) async {
     {},
   );
   final migrations = manifestMap.keys
-      .where((String key) =>
-          key.startsWith('data/migrations/') && key.endsWith('.sql'))
+      .where(
+        (String key) =>
+            key.startsWith('data/migrations/') && key.endsWith('.sql'),
+      )
       .toList();
   return openDatabase(
     path,

@@ -1,5 +1,5 @@
-import 'package:diligence/ui/layout/gutter.dart';
 import 'package:flutter/material.dart';
+import 'gutter.dart';
 
 /// Row with evenly spaced items
 class EvenRow extends StatelessWidget {

@@ -1,10 +1,10 @@
 import 'package:collection/collection.dart';
-import 'package:diligence/constants.dart';
-import 'package:diligence/utils/cast.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
-import 'package:meta/meta.dart';
 import 'package:sqflite/sqflite.dart';
+
+import '../constants.dart';
+import '../utils/cast.dart';
 
 part 'review_data_service/summary_breakdown.dart';
 part 'review_data_service/summary_data.dart';
@@ -20,9 +20,9 @@ DateTimeRange getDayRange(DateTime now) {
 class ReviewDataService {
   final Database db;
   static const String summarySql = '''
-    SELECT count(id) as created 
-    FROM tasks 
-    WHERE created_at >= ? 
+    SELECT count(id) as created
+    FROM tasks
+    WHERE created_at >= ?
     AND created_at < ?;''';
 
   static const String overdueSql = '''
@@ -39,9 +39,9 @@ class ReviewDataService {
     HAVING sum_duration > ?;
     ''';
   static const String completedSql = '''
-    SELECT count(id) as completed 
-    FROM tasks 
-    WHERE done_at >= ? 
+    SELECT count(id) as completed
+    FROM tasks
+    WHERE done_at >= ?
     AND done_at < ?;''';
 
   ReviewDataService(this.db);
@@ -77,11 +77,15 @@ class ReviewDataService {
   }
 
   Future<int> _calculateOverdue(DateTimeRange range) async {
-    final settingsResult = Sqflite.firstIntValue(await db.rawQuery('''
+    final settingsResult = Sqflite.firstIntValue(
+      await db.rawQuery(
+        '''
       SELECT max_idle_minutes
       FROM "settings"
       LIMIT 1;
-    '''));
+    ''',
+      ),
+    );
     final maxIdleMinutes = settingsResult ?? kDefaultMaxIdleMinutes;
     final result = await db.rawQuery(
       overdueSql,

@@ -1,18 +1,18 @@
-import 'package:diligence/services/review_data/review_data_bloc.dart';
-import 'package:diligence/services/review_data_service.dart';
-import 'package:diligence/ui/components/data/easy_pie_chart.dart';
-import 'package:diligence/ui/components/typography/data_title.dart';
-import 'package:diligence/ui/layout/gutter.dart';
-import 'package:diligence/ui/screens/review/main_summary_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:provider/provider.dart';
 
+import '../../services/review_data/review_data_bloc.dart';
+import '../../services/review_data_service.dart';
 import '../components/common_screen.dart';
+import '../components/data/easy_pie_chart.dart';
 import '../components/easy_card.dart';
+import '../components/typography/data_title.dart';
 import '../components/typography/page_title.dart';
+import '../layout/gutter.dart';
 import '../layout/padded_section.dart';
+import 'review/main_summary_section.dart';
 
 class ReviewPage extends StatelessWidget {
   const ReviewPage({required this.title});

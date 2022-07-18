@@ -29,11 +29,14 @@ class SummaryTaskCache {
 
   Future<List<Map<String, Object?>>> _queryNames(List<int> ids) async {
     final joinedList = ids.join(',');
-    return (await db.rawQuery('''
+    return (await db.rawQuery(
+      '''
         SELECT name, id
         FROM "tasks"
         WHERE id IN ($joinedList);
-      ''')).sublist(0);
+      ''',
+    ))
+        .sublist(0);
   }
 
   Future<List<String>> getAll(List<int> ids) async {

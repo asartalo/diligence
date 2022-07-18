@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 
 AppBar appBar(BuildContext context, String title) {
   final theme = Theme.of(context);
-  final titleStyle = theme.textTheme.headline6!.merge(TextStyle(
-    color: theme.textTheme.bodyText1!.color,
-  ));
+  final titleStyle = theme.textTheme.headline6!.merge(
+    TextStyle(
+      color: theme.textTheme.bodyText1!.color,
+    ),
+  );
   return AppBar(
     leading: IconButton(
       icon: Icon(
@@ -32,7 +34,7 @@ AppBar appBar(BuildContext context, String title) {
       style: titleStyle,
     ),
     // backgroundColor: theme.backgroundColor.withOpacity(0.5),
-    backgroundColor: theme.accentColor,
+    backgroundColor: theme.colorScheme.secondary,
     // backgroundColor: Colors.deepOrange,
     shadowColor: Colors.transparent,
   );

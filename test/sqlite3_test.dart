@@ -17,10 +17,8 @@ Future<void> main() async {
   final dbFile = TestDbFile('test_database.db');
 
   tearDownAll(() async {
-    if (db is Database) {
-      await db.close();
-      await deleteDatabase(dbFile.path);
-    }
+    await db.close();
+    await deleteDatabase(dbFile.path);
   });
 
   group('Testing with own file database', () {

@@ -7,7 +7,9 @@ MaterialColor createMaterialColorFromRgb(int red, int green, int blue) {
 MaterialColor createMaterialColor(Color color) {
   final strengths = <double>[.05];
   final Map<int, Color> swatch = {};
-  final int r = color.red, g = color.green, b = color.blue;
+  final r = color.red;
+  final g = color.green;
+  final b = color.blue;
 
   for (int i = 1; i < 10; i++) {
     strengths.add(0.1 * i);

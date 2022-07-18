@@ -28,9 +28,7 @@ void main() {
     });
 
     tearDown(() async {
-      if (db is Database) {
-        await db.close();
-      }
+      await db.close();
     });
 
     group('getAll()', () {
