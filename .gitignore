@@ -54,6 +54,9 @@ app.*.map.json
 # dotenv
 .env
 
+# coverage
+/coverage
+
 # Releasing
 NEWVERSION.txt
 SUMMARY.md
