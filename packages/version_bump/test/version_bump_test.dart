@@ -1,7 +1,6 @@
 import 'package:conventional/conventional.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pub_semver/pub_semver.dart';
-import 'package:version_bump/version_bump.dart';
 
 const chore = '''
 commit fc9d8117b1074c3c965c5c1ccf845d784c026ac7
