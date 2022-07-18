@@ -31,7 +31,7 @@ dependencies:
   fl_chart: ^0.20.1
   flutter:
     sdk: flutter
-  flutter_bloc: ^7.3.3
+  flutter_bloc: ^8.0.1
   flutter_dotenv:
     git:
       url: https://github.com/asartalo/flutter_dotenv.git

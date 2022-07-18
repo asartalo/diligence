@@ -13,23 +13,18 @@ class ReviewDataBloc extends Bloc<ReviewDataEvent, ReviewDataState> {
   final ReviewDataService dataService;
   final SideEffects sideEffects;
   ReviewDataBloc(this.dataService, {required this.sideEffects})
-      : super(ReviewDataInitial());
-
-  @override
-  Stream<ReviewDataState> mapEventToState(
-    ReviewDataEvent event,
-  ) async* {
-    if (event is ReviewDataRequested) {
-      yield* _dataRequested();
-    }
+      : super(ReviewDataInitial()) {
+    on<ReviewDataRequested>((_, emit) async {
+      emit(await _dataRequested());
+    });
   }
 
   void requestData() {
     add(const ReviewDataRequested());
   }
 
-  Stream<ReviewDataState> _dataRequested() async* {
+  Future<ReviewDataState> _dataRequested() async {
     final summaryData = await dataService.getSummaryData(sideEffects.now());
-    yield ReviewDataAvailable(summaryData);
+    return ReviewDataAvailable(summaryData);
   }
 }
