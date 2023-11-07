@@ -35,7 +35,7 @@ class SingleNumberDataPoint extends StatelessWidget {
               ),
               Text(
                 "$number",
-                style: textTheme.headline2,
+                style: textTheme.displayMedium,
               ),
               const SizedBox(height: 5.0),
               DataTitle(title),

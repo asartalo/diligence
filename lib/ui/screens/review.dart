@@ -41,9 +41,9 @@ class ReviewPage extends StatelessWidget {
   }
 
   Widget renderSpinner() {
-    return Column(
+    return const Column(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: const [
+      children: [
         Center(
           child: CircularProgressIndicator.adaptive(),
         ),

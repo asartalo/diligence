@@ -29,10 +29,10 @@ class SingleNumberDataPointHorizontal extends StatelessWidget {
               children: [
                 DataTitle(title),
                 const SizedBox(height: 10.0),
-                Text(caption, style: textTheme.caption),
+                Text(caption, style: textTheme.bodySmall),
               ],
             ),
-            Text("$number", style: textTheme.headline3),
+            Text("$number", style: textTheme.displaySmall),
           ],
         ),
       ],

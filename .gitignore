@@ -54,8 +54,16 @@ app.*.map.json
 # dotenv
 .env
 
+# testing
+/test/tmp
+
 # coverage
 /coverage
+
+# objectobox
+/lib/objectbox.g.dart
+/download
+/mydatabase.db/
 
 # Releasing
 NEWVERSION.txt

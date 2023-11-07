@@ -8,7 +8,7 @@ class DiligenceTextTheme {
   DiligenceTextTheme({required this.textTheme});
 
   TextStyle get dataTitle {
-    return textTheme.bodyText2!.copyWith(
+    return textTheme.bodyLarge!.copyWith(
       color: colors.grayText,
       letterSpacing: 1,
     );
@@ -51,18 +51,17 @@ class DiligenceTheme {
     final backgroundColor = colors.paperGray;
     return ThemeData(
       primaryColor: colors.primaryColor,
-      backgroundColor: backgroundColor,
       cardColor: Colors.white,
       fontFamily: 'Roboto',
       textTheme: const TextTheme(
-        bodyText1: TextStyle(
+        bodyLarge: TextStyle(
           fontWeight: FontWeight.w300,
           fontSize: 16.0,
         ),
-        headline2: TextStyle(
+        displayMedium: TextStyle(
           fontWeight: FontWeight.w300,
         ),
-        headline3: TextStyle(
+        displaySmall: TextStyle(
           fontWeight: FontWeight.w400,
           color: Colors.black,
         ),
@@ -72,8 +71,11 @@ class DiligenceTheme {
       cardTheme: const CardTheme(
         elevation: 0,
       ),
-      colorScheme: ColorScheme.fromSwatch(primarySwatch: colors.twilightBlue)
-          .copyWith(secondary: colors.secondaryColor),
+      colorScheme:
+          ColorScheme.fromSwatch(primarySwatch: colors.twilightBlue).copyWith(
+        secondary: colors.secondaryColor,
+        background: backgroundColor,
+      ),
       // appBarTheme: AppBarTheme(
       //   // backgroundColor: backgroundColor.withOpacity(0.9),
       //   shadowColor: Colors.transparent,

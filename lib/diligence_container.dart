@@ -41,7 +41,7 @@ class DiligenceContainer {
     bool test = false,
   }) async {
     await dot_env.load(fileName: envFile);
-    final config = DiligenceConfig.fromEnv(dot_env.env, test: test);
+    final config = DiligenceConfig.fromEnv(dot_env.env);
     return DiligenceContainer(
       config: config,
     );

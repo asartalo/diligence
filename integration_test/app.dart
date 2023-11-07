@@ -1,5 +1,5 @@
 import 'package:diligence/app.dart';
-import 'package:diligence/container.dart';
+import 'package:diligence/diligence_container.dart';
 import 'package:flutter/material.dart';
 
 Future<void> main() async {

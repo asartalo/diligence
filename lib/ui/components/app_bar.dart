@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 
 AppBar appBar(BuildContext context, String title) {
   final theme = Theme.of(context);
-  final titleStyle = theme.textTheme.headline6!.merge(
+  final titleStyle = theme.textTheme.titleLarge!.merge(
     TextStyle(
-      color: theme.textTheme.bodyText1!.color,
+      color: theme.textTheme.bodyLarge!.color,
     ),
   );
   return AppBar(
     leading: IconButton(
       icon: Icon(
         Icons.menu,
-        color: theme.textTheme.bodyText1!.color,
+        color: theme.textTheme.bodyLarge!.color,
       ),
       onPressed: () {
         Scaffold.of(context).openDrawer();
@@ -24,7 +24,7 @@ AppBar appBar(BuildContext context, String title) {
         child: Center(
           child: Text(
             'Mon November 23, 2020  5:07 PM',
-            style: theme.textTheme.bodyText2,
+            style: theme.textTheme.bodyMedium,
           ),
         ),
       ),
