@@ -1,60 +1,67 @@
-import 'package:diligence/constants.dart';
-import 'package:diligence/model/objectbox.dart';
+import 'package:diligence/model/new_task.dart';
 import 'package:diligence/model/task.dart';
-import 'package:diligence/objectbox.g.dart';
 import 'package:diligence/services/diligent.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('Diligent', () {
     late Diligent diligent;
-    late Store store;
 
-    setUp(() async {
-      store = await openStore(directory: Paths.testTmp);
-      final objectbox = await ObjectBox.create(store);
-      diligent = Diligent(objectbox: objectbox);
+    setUpAll(() {
+      diligent = Diligent.forTests();
+      diligent.runMigrations();
     });
 
     tearDown(() {
-      store.close();
+      diligent.clearDataForTests();
     });
 
-    test('it can create a root task', () {
-      final task = diligent.addTask(name: 'Root');
-      expect(task.name, equals('Root'));
+    test('can create a root task', () async {
+      final task = await diligent.addTask(NewTask(name: 'Root'));
+      expect(task?.name, equals('Root'));
     });
 
-    test('it persists task', () {
-      final id = (diligent.addTask(name: 'Foo')).id;
-      final task = diligent.findTask(id);
-      expect(task!.name, equals('Foo'));
+    test('persists task', () async {
+      final id = (await diligent.addTask(NewTask(name: 'Foo')))!.id;
+      final task = await diligent.findTask(id);
+      expect(task?.name, equals('Foo'));
     });
 
-    test('it can delete a task', () {
-      final task = diligent.addTask(name: 'Foo');
-      diligent.deleteTask(task.id);
-      expect(diligent.findTask(task.id), isNull);
+    test('can delete a task', () async {
+      final task = await diligent.addTask(NewTask(name: 'Foo'));
+      diligent.deleteTask(task!);
+      expect(await diligent.findTask(task.id), isNull);
     });
 
-    test('it can set a parent to a task', () {
-      final parentTask = diligent.addTask(name: 'Root');
-      final task = diligent.addTask(name: 'Foo', parentId: parentTask.id);
-      expect(parentTask.children.first.name, equals(task.name));
+    test('it can set a parent to a task', () async {
+      final parentTask = await diligent.addTask(NewTask(name: 'Root'));
+      final task = await diligent
+          .addTask(NewTask(name: 'Foo', parentId: parentTask!.id));
+      final children = await parentTask.children;
+      expect(children.first.name, equals(task!.name));
+      expect((await task.parent)!.name, equals(parentTask.name));
+    });
+
+    test('it can update a task', () async {
+      final task = await diligent.addTask(NewTask(name: 'Foo'));
+      await diligent.updateTask(task!.copyWith(name: 'Bar'));
+      final updatedTask = await diligent.findTask(task.id);
+      expect(updatedTask?.name, equals('Bar'));
     });
 
     group('subtreeFlat()', () {
       late Map<String, Task> setupResult;
-      setUp(() {
-        setupResult = subtreeTestSetup(diligent);
+
+      setUp(() async {
+        setupResult = await testTreeSetup(diligent);
       });
 
-      test('it returns subtree as a flat list', () {
+      test('it returns subtree as a flat list', () async {
         final aTask = setupResult['A'];
         if (aTask == null) {
-          fail('Unexpected result. subtreeSetup() did not work.');
+          fail('Unexpected result. testTreeSetup() did not work.');
         }
-        final TaskList tasks = diligent.subtreeFlat(aTask.id);
+        final TaskList tasks = await diligent.subtreeFlat(aTask.id);
         final nameList = <String>[];
         for (final task in tasks) {
           nameList.add(task.name);
@@ -78,34 +85,32 @@ void main() {
   });
 }
 
-Map<String, Task> subtreeTestSetup(Diligent diligent) {
+Future<Map<String, Task>> testTreeSetup(Diligent diligent) async {
   final Map<String, Task> result = {};
-  diligent.taskWriteTransaction(() {
-    final root = diligent.addTask(name: 'Root');
-    final a = diligent.addTask(name: 'A', parent: root);
-    final a1 = diligent.addTask(name: 'A1', parent: a);
-    diligent.addTask(name: 'A1i - leaf', parent: a1);
-    diligent.addTask(name: 'A1ii - leaf', parent: a1);
-    diligent.addTask(name: 'A1iii - leaf', parent: a1);
-    diligent.addTask(name: 'A2 - leaf', parent: a);
-    diligent.addTask(name: 'A3 - leaf', parent: a);
+  final root = await diligent.addTask(NewTask(name: 'Root'));
+  final a = await diligent.addTask(NewTask(name: 'A', parent: root));
+  final a1 = await diligent.addTask(NewTask(name: 'A1', parent: a));
+  await diligent.addTask(NewTask(name: 'A1i - leaf', parent: a1));
+  await diligent.addTask(NewTask(name: 'A1ii - leaf', parent: a1));
+  await diligent.addTask(NewTask(name: 'A1iii - leaf', parent: a1));
+  await diligent.addTask(NewTask(name: 'A2 - leaf', parent: a));
+  await diligent.addTask(NewTask(name: 'A3 - leaf', parent: a));
 
-    final b = diligent.addTask(name: 'B', parent: root);
-    diligent.addTask(name: 'B1 - leaf', parent: b);
-    final b2 = diligent.addTask(name: 'B2', parent: b);
-    diligent.addTask(name: 'B2i - leaf', parent: b2);
-    diligent.addTask(name: 'B2ii - leaf', parent: b2);
-    diligent.addTask(name: 'B2iii - leaf', parent: b2);
-    diligent.addTask(name: 'B3', parent: b);
-    final c = diligent.addTask(name: 'C', parent: root);
+  final b = await diligent.addTask(NewTask(name: 'B', parent: root));
+  await diligent.addTask(NewTask(name: 'B1 - leaf', parent: b));
+  final b2 = await diligent.addTask(NewTask(name: 'B2', parent: b));
+  await diligent.addTask(NewTask(name: 'B2i - leaf', parent: b2));
+  await diligent.addTask(NewTask(name: 'B2ii - leaf', parent: b2));
+  await diligent.addTask(NewTask(name: 'B2iii - leaf', parent: b2));
+  await diligent.addTask(NewTask(name: 'B3', parent: b));
+  final c = await diligent.addTask(NewTask(name: 'C', parent: root));
 
-    result['Root'] = root;
-    result['A'] = a;
-    result['A1'] = a1;
-    result['B'] = b;
-    result['B2'] = b2;
-    result['C'] = c;
-  });
+  result['Root'] = root!;
+  result['A'] = a!;
+  result['A1'] = a1!;
+  result['B'] = b!;
+  result['B2'] = b2!;
+  result['C'] = c!;
 
   return result;
 }

@@ -60,10 +60,10 @@ app.*.map.json
 # coverage
 /coverage
 
-# objectobox
-/lib/objectbox.g.dart
-/download
-/mydatabase.db/
+# database
+/*.db
+/*.db-shm
+/*.db-wal
 
 # Releasing
 NEWVERSION.txt

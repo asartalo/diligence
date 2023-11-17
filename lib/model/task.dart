@@ -1,27 +1,14 @@
-import 'package:objectbox/objectbox.dart';
+import 'dart:async';
 
-@Entity()
-class Task {
-  int id;
-  bool done;
-  String name = '';
+abstract class Task {
+  int get id;
+  int? get parentId;
+  bool get done;
+  String get name;
 
-  final parentRel = ToOne<Task>();
+  FutureOr<List<Task>> get children;
 
-  Task? get parent => parentRel.target;
+  FutureOr<Task?> get parent;
 
-  set parent(Task? newParent) {
-    parentRel.target = newParent;
-  }
-
-  @Backlink('parentRel')
-  final childrenRel = ToMany<Task>();
-
-  List<Task> get children => childrenRel.toList();
-
-  Task({
-    this.id = 0,
-    this.done = false,
-    this.name = '',
-  });
+  Task copyWith({int? id, int? parentId, bool? done, String? name});
 }

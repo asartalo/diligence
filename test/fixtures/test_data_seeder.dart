@@ -1,3 +1,4 @@
+import 'package:diligence/model/new_task.dart';
 import 'package:diligence/services/diligent.dart';
 
 const roots = {
@@ -19,7 +20,7 @@ class DataSeeder {
 
   void createRoots() {
     roots.forEach((name, id) {
-      diligent.addTask(name: name, id: id);
+      diligent.addTask(NewTask(name: name, id: id));
     });
   }
 }

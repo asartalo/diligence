@@ -37,10 +37,10 @@ dependencies:
       url: https://github.com/asartalo/flutter_dotenv.git
   flutter_markdown: ^0.6.10+2
   meta: any
-  objectbox: ^2.3.1
-  objectbox_flutter_libs: any
   path: any # any until we resolve integration_test upgrade
   provider: ^6.0.3
+  sqlite3_flutter_libs: ^0.5.18
+  sqlite_async: ^0.5.2
 
 dev_dependencies:
   analyzer: ^6.2.0
@@ -56,8 +56,7 @@ dev_dependencies:
       ref: null-safety-2
   integration_test:
     sdk: flutter
-  lint: ^2.1.2
-  objectbox_generator: any
+  lint: ^2.2.0
 
 flutter:
   uses-material-design: true

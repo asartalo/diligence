@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../model/new_task.dart';
 import '../../model/task.dart';
 import '../components/common_screen.dart';
 
@@ -25,7 +26,7 @@ class _MyHomePageState extends State<MyHomePage> {
         title: 'Diligence',
         floatingActionButton: FloatingActionButton(
           onPressed: () async {
-            final newTask = await TaskDialog.open(context, Task());
+            final newTask = await TaskDialog.open(context, NewTask());
             if (newTask is Task) {
               setState(() {
                 // objectBox.taskBox.put(newTask);
@@ -45,7 +46,7 @@ class _MyHomePageState extends State<MyHomePage> {
               title: Text(task.name),
               onChanged: (bool? done) {
                 setState(() {
-                  task.done = done ?? false;
+                  _tasks[index] = task.copyWith(done: done ?? false);
                   // objectBox.taskBox.put(task);
                   // _tasks = objectBox.tasks();
                 });
@@ -97,7 +98,7 @@ class _TaskDialogState extends State<TaskDialog> {
         initialValue: _task.name,
         onChanged: (str) {
           setState(() {
-            _task.name = str;
+            // _task.name = str;
           });
         },
       ),
