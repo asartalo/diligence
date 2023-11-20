@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'diligence_container.dart';
+import 'ui/screens/home_page.dart';
 import 'ui/screens/review.dart';
 import 'ui/theme.dart';
 
@@ -20,8 +21,9 @@ class DiligenceApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Diligence',
         theme: diligenceTheme,
-        initialRoute: '/review',
+        initialRoute: '/',
         routes: {
+          '/': (context) => const MyHomePage(),
           '/review': (context) => const ReviewPage(title: 'Diligence'),
         },
       ),

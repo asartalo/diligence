@@ -15,7 +15,7 @@ import '../layout/padded_section.dart';
 import 'review/main_summary_section.dart';
 
 class ReviewPage extends StatelessWidget {
-  const ReviewPage({required this.title});
+  const ReviewPage({required this.title, super.key});
 
   final String title;
 

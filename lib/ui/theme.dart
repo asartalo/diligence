@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../utils/detect.dart';
 import './colors.dart' as colors;
 
 class DiligenceTextTheme {
@@ -49,9 +50,16 @@ class DiligenceTheme {
 
   static ThemeData createThemeData() {
     final backgroundColor = colors.paperGray;
+    final visualDensity = isDesktop()
+        ? const VisualDensity(
+            horizontal: VisualDensity.minimumDensity,
+            vertical: VisualDensity.minimumDensity) // VisualDensity.compact
+        : VisualDensity.standard;
+
     return ThemeData(
       primaryColor: colors.primaryColor,
       cardColor: Colors.white,
+      visualDensity: visualDensity,
       fontFamily: 'Roboto',
       textTheme: const TextTheme(
         bodyLarge: TextStyle(
@@ -75,6 +83,12 @@ class DiligenceTheme {
           ColorScheme.fromSwatch(primarySwatch: colors.twilightBlue).copyWith(
         secondary: colors.secondaryColor,
         background: backgroundColor,
+      ),
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.linux: OpenUpwardsPageTransitionsBuilder()
+        },
       ),
       // appBarTheme: AppBarTheme(
       //   // backgroundColor: backgroundColor.withOpacity(0.9),
