@@ -28,7 +28,7 @@ dependencies:
   cupertino_icons: ^1.0.1
   dartz: ^0.10.1
   equatable: ^2.0.3
-  fl_chart: ^0.64.0
+  fl_chart: ^0.65.0
   flutter:
     sdk: flutter
   flutter_bloc: ^8.0.1
@@ -38,14 +38,14 @@ dependencies:
   flutter_markdown: ^0.6.10+2
   meta: any
   path: any # any until we resolve integration_test upgrade
-  provider: ^6.0.3
+  provider: ^6.1.1
   sqlite3_flutter_libs: ^0.5.18
   sqlite_async: ^0.5.2
 
 dev_dependencies:
   analyzer: ^6.2.0
-  build_runner: ^2.2.0
-  conventional: ^0.3.0
+  build_runner: ^2.4.7
+  conventional: ^0.4.0
   flutter_driver:
     sdk: flutter
   flutter_test:

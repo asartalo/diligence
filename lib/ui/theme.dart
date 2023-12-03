@@ -84,16 +84,6 @@ class DiligenceTheme {
         secondary: colors.secondaryColor,
         background: backgroundColor,
       ),
-      pageTransitionsTheme: const PageTransitionsTheme(
-        builders: {
-          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-          TargetPlatform.linux: OpenUpwardsPageTransitionsBuilder()
-        },
-      ),
-      // appBarTheme: AppBarTheme(
-      //   // backgroundColor: backgroundColor.withOpacity(0.9),
-      //   shadowColor: Colors.transparent,
-      // ),
     );
   }
 }
