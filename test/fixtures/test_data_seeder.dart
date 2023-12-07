@@ -1,4 +1,4 @@
-import 'package:diligence/model/new_task.dart';
+import 'package:diligence/models/new_task.dart';
 import 'package:diligence/services/diligent.dart';
 
 const roots = {

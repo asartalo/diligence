@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../model/new_task.dart';
-import '../../model/task.dart';
+import '../../models/new_task.dart';
+import '../../models/task.dart';
 import '../components/common_screen.dart';
 
 class MyHomePage extends StatefulWidget {

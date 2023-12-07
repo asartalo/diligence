@@ -1,7 +1,17 @@
-import 'package:diligence/model/new_task.dart';
-import 'package:diligence/model/task.dart';
+import 'package:diligence/models/new_task.dart';
+import 'package:diligence/models/task.dart';
 import 'package:diligence/services/diligent.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+List<String> taskNames(List<Task?> tasks) {
+  final List<String> names = [];
+  for (final task in tasks) {
+    if (task != null) {
+      names.add(task.name);
+    }
+  }
+  return names;
+}
 
 void main() {
   group('Diligent', () {
@@ -16,30 +26,86 @@ void main() {
       diligent.clearDataForTests();
     });
 
-    test('can create a root task', () async {
-      final task = await diligent.addTask(NewTask(name: 'Root'));
-      expect(task?.name, equals('Root'));
+    group('Basic CRUD', () {
+      test('can create a root task', () async {
+        final task = await diligent.addTask(NewTask(name: 'Root'));
+        expect(task?.name, equals('Root'));
+      });
+
+      test('persists task', () async {
+        final id = (await diligent.addTask(NewTask(name: 'Foo')))!.id;
+        final task = await diligent.findTask(id);
+        expect(task?.name, equals('Foo'));
+      });
+
+      test('can delete a task', () async {
+        final task = await diligent.addTask(NewTask(name: 'Foo'));
+        diligent.deleteTask(task!);
+        expect(await diligent.findTask(task.id), isNull);
+      });
     });
 
-    test('persists task', () async {
-      final id = (await diligent.addTask(NewTask(name: 'Foo')))!.id;
-      final task = await diligent.findTask(id);
-      expect(task?.name, equals('Foo'));
+    group('Hierarchy', () {
+      late Task parentTask;
+
+      setUp(() async {
+        parentTask = (await diligent.addTask(NewTask(name: 'Root')))!;
+      });
+
+      test('it can set a parent to a task', () async {
+        final task = await diligent
+            .addTask(NewTask(name: 'Foo', parentId: parentTask.id));
+        final children = await parentTask.children;
+        expect(children.first.name, equals(task!.name));
+        expect((await task.parent)!.name, equals(parentTask.name));
+      });
+
+      test('it appends new children to parent', () async {
+        final task1 = await diligent.addTask(
+          NewTask(name: 'Foo', parent: parentTask),
+        );
+        final task2 = await diligent.addTask(
+          NewTask(name: 'Bar', parent: parentTask),
+        );
+        expect(
+          taskNames(await parentTask.children),
+          equals(taskNames([task1, task2])),
+        );
+      });
     });
 
-    test('can delete a task', () async {
-      final task = await diligent.addTask(NewTask(name: 'Foo'));
-      diligent.deleteTask(task!);
-      expect(await diligent.findTask(task.id), isNull);
-    });
+    group('Ordering', () {
+      test('it can insert new child at the beginning', () async {
+        final parentTask = await diligent.addTask(NewTask(name: 'Root'));
+        final task1 = await diligent.addTask(
+          NewTask(name: 'Foo', parent: parentTask),
+        );
+        final task2 = await diligent.addTask(
+          NewTask(name: 'Bar', parent: parentTask),
+          position: 0,
+        );
+        final children = await parentTask!.children;
+        expect(taskNames(children), equals([task2!.name, task1!.name]));
+      });
 
-    test('it can set a parent to a task', () async {
-      final parentTask = await diligent.addTask(NewTask(name: 'Root'));
-      final task = await diligent
-          .addTask(NewTask(name: 'Foo', parentId: parentTask!.id));
-      final children = await parentTask.children;
-      expect(children.first.name, equals(task!.name));
-      expect((await task.parent)!.name, equals(parentTask.name));
+      test('it can reorder children', () async {
+        final parentTask = await diligent.addTask(NewTask(name: 'Root'));
+        final task1 = await diligent.addTask(
+          NewTask(name: 'Foo', parent: parentTask),
+        );
+        final task2 = await diligent.addTask(
+          NewTask(name: 'Bar', parent: parentTask),
+        );
+        final task3 = await diligent.addTask(
+          NewTask(name: 'Baz', parent: parentTask),
+        );
+        await diligent.moveTask(task3!, 1);
+        final children = await parentTask!.children;
+        expect(
+          taskNames(children),
+          equals(taskNames([task1, task3, task2])),
+        );
+      });
     });
 
     test('it can update a task', () async {

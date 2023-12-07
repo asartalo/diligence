@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:sqlite_async/sqlite3.dart';
 import 'package:sqlite_async/sqlite_async.dart';
-import '../model/provided_task.dart';
-import '../model/task.dart';
+import '../models/provided_task.dart';
+import '../models/task.dart';
 
 typedef VoidCallback = void Function();
 typedef TaskList = List<Task>;
@@ -14,6 +14,7 @@ final migrations = SqliteMigrations()
         id INTEGER PRIMARY KEY,
         name TEXT NOT NULL,
         parentId INTEGER,
+        position INTEGER NOT NULL DEFAULT 0,
         done INTEGER NOT NULL DEFAULT 0
       )
     ''');
@@ -37,11 +38,33 @@ class Diligent implements NodeProvider {
     if (_isTest) db.execute('DELETE FROM tasks');
   }
 
-  Future<Task?> addTask(Task task) async {
-    await db.execute(
-      'INSERT INTO tasks (name, parentId) VALUES (?, ?)',
-      [task.name, task.parentId],
-    );
+  Future<Task?> addTask(Task task, {int? position}) async {
+    if (position != null) {
+      await db.writeTransaction((tx) async {
+        await tx.execute(
+          '''
+          UPDATE tasks SET position = position + 1
+          WHERE parentId = ? AND position >= ?
+          ''',
+          [task.parentId, position],
+        );
+        await tx.execute(
+          '''
+          INSERT INTO tasks (name, parentId, position)
+          SELECT ?, ?, ?
+          ''',
+          [task.name, task.parentId, position],
+        );
+      });
+    } else {
+      await db.execute(
+        '''
+        INSERT INTO tasks (name, parentId, position)
+        SELECT ?, ?, COALESCE(MAX(position) + 1, 0) FROM tasks WHERE parentId = ?
+        ''',
+        [task.name, task.parentId, task.parentId],
+      );
+    }
     final result = await db.execute('SELECT last_insert_rowid() as id');
     return _asProvidedTask(task.copyWith(id: result.first['id'] as int));
   }
@@ -64,8 +87,8 @@ class Diligent implements NodeProvider {
 
   Future<void> updateTask(Task task) async {
     await db.execute(
-      'UPDATE tasks SET name = ?, parentId = ?, done = ? WHERE id = ?',
-      [task.name, task.parentId, if (task.done) 1 else 0, task.id],
+      'UPDATE tasks SET name = ?, done = ? WHERE id = ?',
+      [task.name, if (task.done) 1 else 0, task.id],
     );
   }
 
@@ -83,10 +106,40 @@ class Diligent implements NodeProvider {
     await db.execute('DELETE FROM tasks WHERE id = ?', [task.id]);
   }
 
+  Future<void> moveTask(Task task, int position) async {
+    await db.writeTransaction((tx) async {
+      await tx.execute(
+        '''
+        UPDATE tasks SET position =
+          (SELECT MAX(position) FROM tasks WHERE parentId = ?) + 2
+        WHERE id = ?
+        ''',
+        [task.parentId, task.id],
+      );
+      await tx.execute(
+        '''
+        UPDATE tasks
+        SET position = position + 1
+        WHERE parentId = ? AND position >= ?
+        ''',
+        [task.parentId, position],
+      );
+      await tx.execute(
+        '''
+        UPDATE tasks
+        SET position = MIN(?, (SELECT MAX(position) FROM tasks WHERE parentId = ?))
+        WHERE id = ?
+        ''',
+        [position, task.parentId, task.id],
+      );
+    });
+  }
+
   @override
   FutureOr<List<Task>> getChildren(Task task) async {
-    final rows =
-        await db.getAll('SELECT * FROM tasks WHERE parentId = ?', [task.id]);
+    final rows = await db.getAll(
+        'SELECT * FROM tasks WHERE parentId = ? ORDER BY position ASC',
+        [task.id]);
     return rows.map((row) => _taskFromRow(row)).toList();
   }
 

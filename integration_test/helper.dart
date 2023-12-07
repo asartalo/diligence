@@ -15,8 +15,3 @@ Future<void> callIntegrationTests() async {
     }
   }
 }
-
-Future<void> navigateToReminderPage(WidgetTester tester) async {
-  await tester.pumpAndSettle();
-  expect(find.text('Review'), findsOneWidget);
-}

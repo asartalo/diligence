@@ -9,7 +9,7 @@ Future<void> main() async {
     testWidgets('launching app has no errors', (WidgetTester tester) async {
       await app.main();
       await tester.pumpAndSettle();
-      expect(find.text('Review'), findsOneWidget);
+      expect(find.text('Diligence'), findsOneWidget);
     });
   });
 }
