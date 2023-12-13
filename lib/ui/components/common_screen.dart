@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import './app_bar.dart';
+import 'diligence_drawer.dart';
 
 class CommonScreen extends StatelessWidget {
   final Widget child;
@@ -29,38 +30,7 @@ class CommonScreen extends StatelessWidget {
         builder: (BuildContext context) => child,
       ),
       floatingActionButton: floatingActionButton,
-      drawer: Builder(builder: (context) => const NavigationDrawer()),
+      drawer: Builder(builder: (context) => const DiligenceDrawer()),
     );
   }
-}
-
-class NavigationDrawer extends StatelessWidget {
-  const NavigationDrawer({super.key});
-
-  @override
-  Widget build(BuildContext context) => Drawer(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              const DrawerHeader(
-                child: Text('Diligence'),
-              ),
-              ListTile(
-                key: const Key('drawerLinkHome'),
-                title: const Text('Home'),
-                onTap: () {
-                  Navigator.of(context).pushReplacementNamed('/');
-                },
-              ),
-              ListTile(
-                key: const Key('drawerLinkReview'),
-                title: const Text('Review Link'),
-                onTap: () {
-                  Navigator.of(context).pushReplacementNamed('/review');
-                },
-              ),
-            ],
-          ),
-        ),
-      );
 }

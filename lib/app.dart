@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'diligence_container.dart';
-import 'ui/screens/home_page.dart';
-import 'ui/screens/review.dart';
+import 'ui/screens/home/home_page.dart';
+import 'ui/screens/review/review_page.dart';
+import 'ui/screens/tasks_page.dart';
 import 'ui/theme.dart';
 
 final diligenceTheme = DiligenceTheme.createThemeData();
@@ -23,7 +24,8 @@ class DiligenceApp extends StatelessWidget {
         theme: diligenceTheme,
         initialRoute: '/',
         routes: {
-          '/': (context) => const MyHomePage(),
+          '/': (context) => const HomePage(),
+          '/tasks': (context) => const TasksPage(),
           '/review': (context) => const ReviewPage(title: 'Diligence'),
         },
       ),

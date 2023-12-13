@@ -4,14 +4,14 @@ import '../../models/new_task.dart';
 import '../../models/task.dart';
 import '../components/common_screen.dart';
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
+class TasksPage extends StatefulWidget {
+  const TasksPage({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<TasksPage> createState() => _TasksPageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _TasksPageState extends State<TasksPage> {
   late List<Task> _tasks;
 
   @override
@@ -23,7 +23,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return CommonScreen(
-        title: 'Diligence',
+        title: 'Tasks',
         floatingActionButton: FloatingActionButton(
           onPressed: () async {
             final newTask = await TaskDialog.open(context, NewTask());

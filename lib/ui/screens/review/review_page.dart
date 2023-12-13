@@ -3,16 +3,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:provider/provider.dart';
 
-import '../../services/review_data/review_data_bloc.dart';
-import '../../services/review_data_service.dart';
-import '../components/common_screen.dart';
-import '../components/data/easy_pie_chart.dart';
-import '../components/easy_card.dart';
-import '../components/typography/data_title.dart';
-import '../components/typography/page_title.dart';
-import '../layout/gutter.dart';
-import '../layout/padded_section.dart';
-import 'review/main_summary_section.dart';
+import '../../../services/review_data/review_data_bloc.dart';
+import '../../../services/review_data_service.dart';
+import '../../components/common_screen.dart';
+import '../../components/data/easy_pie_chart.dart';
+import '../../components/easy_card.dart';
+import '../../components/typography/data_title.dart';
+import '../../components/typography/page_title.dart';
+import '../../layout/gutter.dart';
+import '../../layout/padded_section.dart';
+import 'main_summary_section.dart';
 
 class ReviewPage extends StatelessWidget {
   const ReviewPage({required this.title, super.key});

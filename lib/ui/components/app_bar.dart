@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../keys.dart' as keys;
+
 AppBar appBar(BuildContext context, String title) {
   final theme = Theme.of(context);
   final titleStyle = theme.textTheme.titleLarge!.merge(
@@ -9,7 +11,7 @@ AppBar appBar(BuildContext context, String title) {
   );
   return AppBar(
     leading: IconButton(
-      key: const Key('appBarMenuButton'),
+      key: keys.appBarMenuButton,
       icon: Icon(
         Icons.menu,
         color: theme.textTheme.bodyLarge!.color,
