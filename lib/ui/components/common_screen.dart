@@ -46,13 +46,15 @@ class NavigationDrawer extends StatelessWidget {
                 child: Text('Diligence'),
               ),
               ListTile(
+                key: const Key('drawerLinkHome'),
                 title: const Text('Home'),
                 onTap: () {
                   Navigator.of(context).pushReplacementNamed('/');
                 },
               ),
               ListTile(
-                title: const Text('Review'),
+                key: const Key('drawerLinkReview'),
+                title: const Text('Review Link'),
                 onTap: () {
                   Navigator.of(context).pushReplacementNamed('/review');
                 },

@@ -9,6 +9,7 @@ AppBar appBar(BuildContext context, String title) {
   );
   return AppBar(
     leading: IconButton(
+      key: const Key('appBarMenuButton'),
       icon: Icon(
         Icons.menu,
         color: theme.textTheme.bodyLarge!.color,
