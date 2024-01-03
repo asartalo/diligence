@@ -62,7 +62,7 @@ jobs:
       - run: flutter test --no-pub --coverage --coverage-path=./coverage/lcov.base.info
 
       # Run integration tests
-      - run: flutter test --no-pub --coverage --merge-coverage integration_test/all_tests.dart
+      - run: xvfb-run flutter test -d linux --no-pub --coverage --merge-coverage integration_test/all_tests.dart
 
       - run: pub global activate coverage
 
