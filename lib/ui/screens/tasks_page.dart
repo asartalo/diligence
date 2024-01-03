@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../../models/new_task.dart';
 import '../../models/task.dart';
+import '../../services/diligent.dart';
 import '../components/common_screen.dart';
+import '../keys.dart';
 
 class TasksPage extends StatefulWidget {
-  const TasksPage({super.key});
+  final Diligent diligent;
+  const TasksPage({super.key, required this.diligent});
 
   @override
   State<TasksPage> createState() => _TasksPageState();
@@ -21,16 +24,43 @@ class _TasksPageState extends State<TasksPage> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    populateTasks();
+  }
+
+  Future<void> populateTasks() async {
+    final root = await widget.diligent.findTask(1);
+    // TODO: Find a way to guarantee root task is always present.
+    if (root == null) {
+      throw Exception('Root task not found');
+    }
+    final areas = await widget.diligent.getChildren(root);
+    updateTasks(areas);
+  }
+
+  void updateTasks(List<Task> tasks) {
+    setState(() {
+      _tasks = tasks;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final diligent = widget.diligent;
     return CommonScreen(
         title: 'Tasks',
         floatingActionButton: FloatingActionButton(
+          key: addTaskFloatingButton,
           onPressed: () async {
             final newTask = await TaskDialog.open(context, NewTask());
             if (newTask is Task) {
+              final currentTask = (await diligent.findTask(1))!;
+              await diligent
+                  .addTask(newTask.copyWith(parentId: currentTask.id));
+              final tasks = await diligent.getChildren(currentTask);
               setState(() {
-                // objectBox.taskBox.put(newTask);
-                // _tasks = objectBox.tasks();
+                _tasks = tasks;
               });
             }
           },
@@ -38,6 +68,7 @@ class _TasksPageState extends State<TasksPage> {
           child: const Icon(Icons.add),
         ),
         child: ReorderableListView.builder(
+          key: tasksTaskList,
           itemBuilder: (context, index) {
             final task = _tasks[index];
             return CheckboxListTile(
@@ -55,8 +86,11 @@ class _TasksPageState extends State<TasksPage> {
             );
           },
           itemCount: _tasks.length,
-          onReorder: (oldIndex, newIndex) {
-            //
+          onReorder: (oldIndex, newIndex) async {
+            final task = _tasks[oldIndex];
+            await diligent.moveTask(task, newIndex);
+            final currentParent = (await diligent.findTask(task.parentId!))!;
+            updateTasks(await diligent.getChildren(currentParent));
           },
         ));
   }
@@ -93,17 +127,19 @@ class _TaskDialogState extends State<TaskDialog> {
         _task.id == 0 ? 'New Task' : 'Edit Task',
       ),
       content: TextFormField(
+        key: addTaskTaskNameField,
         autofocus: true,
         decoration: const InputDecoration(hintText: 'Enter task name'),
         initialValue: _task.name,
         onChanged: (str) {
           setState(() {
-            // _task.name = str;
+            _task = _task.copyWith(name: str);
           });
         },
       ),
       actions: [
         TextButton(
+          key: addTaskSaveButton,
           onPressed: () => submit(),
           child: const Text('SAVE'),
         ),

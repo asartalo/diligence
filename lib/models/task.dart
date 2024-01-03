@@ -5,6 +5,7 @@ abstract class Task {
   int? get parentId;
   bool get done;
   String get name;
+  String? get details;
 
   FutureOr<List<Task>> get children;
 

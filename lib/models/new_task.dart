@@ -15,6 +15,9 @@ class NewTask implements Task {
   final String name;
 
   @override
+  final String? details;
+
+  @override
   FutureOr<List<Task>> get children => [];
 
   @override
@@ -25,16 +28,24 @@ class NewTask implements Task {
     int? parentId,
     this.done = false,
     this.name = '',
+    this.details,
     Task? parent,
   }) : parentId = parentId ?? parent?.id;
 
   @override
-  Task copyWith({int? id, int? parentId, bool? done, String? name}) {
+  Task copyWith({
+    int? id,
+    int? parentId,
+    bool? done,
+    String? name,
+    String? details,
+  }) {
     return NewTask(
       id: id ?? this.id,
       parentId: parentId ?? this.parentId,
       done: done ?? this.done,
       name: name ?? this.name,
+      details: details ?? this.details,
     );
   }
 }

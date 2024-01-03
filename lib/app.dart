@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'diligence_container.dart';
+import 'services/diligent.dart';
 import 'ui/screens/home/home_page.dart';
 import 'ui/screens/review/review_page.dart';
 import 'ui/screens/tasks_page.dart';
@@ -25,10 +26,15 @@ class DiligenceApp extends StatelessWidget {
         initialRoute: '/',
         routes: {
           '/': (context) => const HomePage(),
-          '/tasks': (context) => const TasksPage(),
+          '/tasks': (context) =>
+              TasksPage(diligent: Provider.of<Diligent>(context)),
           '/review': (context) => const ReviewPage(title: 'Diligence'),
         },
       ),
     );
+  }
+
+  Future<void> resetForTests() async {
+    await container.diligent.clearDataForTests();
   }
 }

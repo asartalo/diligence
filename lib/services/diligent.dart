@@ -1,24 +1,39 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 import 'package:sqlite_async/sqlite3.dart';
 import 'package:sqlite_async/sqlite_async.dart';
+import '../models/new_task.dart';
 import '../models/provided_task.dart';
 import '../models/task.dart';
+import 'migrations.dart';
 
 typedef VoidCallback = void Function();
 typedef TaskList = List<Task>;
 
-final migrations = SqliteMigrations()
-  ..add(SqliteMigration(1, (tx) async {
-    await tx.execute('''
-      CREATE TABLE IF NOT EXISTS tasks (
-        id INTEGER PRIMARY KEY,
-        name TEXT NOT NULL,
-        parentId INTEGER,
-        position INTEGER NOT NULL DEFAULT 0,
-        done INTEGER NOT NULL DEFAULT 0
-      )
-    ''');
-  }));
+final initialAreas = [
+  NewTask(name: 'Life', details: 'Life goals'),
+  NewTask(name: 'Work', details: 'Work-related tasks'),
+  NewTask(name: 'Projects', details: 'Personal projects'),
+  NewTask(
+    name: 'Miscellaneous',
+    details: "Stuff that don't belong to the main areas",
+  ),
+  NewTask(name: 'Inbox', details: "Tasks that haven't been categorized yet"),
+];
+
+SqliteMigrations migrate() {
+  final SqliteMigrations migrations = SqliteMigrations();
+  int i = 0;
+  for (final migrationQuery in migrationQueries) {
+    i += 1;
+    migrations.add(SqliteMigration(i, (tx) async {
+      await tx.execute(migrationQuery);
+    }));
+  }
+  return migrations;
+}
+
+final migrations = migrate();
 
 class Diligent implements NodeProvider {
   final SqliteDatabase db;
@@ -50,19 +65,19 @@ class Diligent implements NodeProvider {
         );
         await tx.execute(
           '''
-          INSERT INTO tasks (name, parentId, position)
-          SELECT ?, ?, ?
+          INSERT INTO tasks (name, parentId, details, position)
+          SELECT ?, ?, ?, ?
           ''',
-          [task.name, task.parentId, position],
+          [task.name, task.parentId, task.details, position],
         );
       });
     } else {
       await db.execute(
         '''
-        INSERT INTO tasks (name, parentId, position)
-        SELECT ?, ?, COALESCE(MAX(position) + 1, 0) FROM tasks WHERE parentId = ?
+        INSERT INTO tasks (name, parentId, details, position)
+        SELECT ?, ?, ?, COALESCE(MAX(position) + 1, 0) FROM tasks WHERE parentId = ?
         ''',
-        [task.name, task.parentId, task.parentId],
+        [task.name, task.parentId, task.details, task.parentId],
       );
     }
     final result = await db.execute('SELECT last_insert_rowid() as id');
@@ -85,6 +100,12 @@ class Diligent implements NodeProvider {
     return rows.isEmpty ? null : _taskFromRow(rows.first);
   }
 
+  Future<Task?> findTaskByName(String name) async {
+    final rows = await db.getAll('SELECT * FROM tasks WHERE UPPER(name) LIKE ?',
+        ["%${name.toUpperCase()}%"]);
+    return rows.isEmpty ? null : _taskFromRow(rows.first);
+  }
+
   Future<void> updateTask(Task task) async {
     await db.execute(
       'UPDATE tasks SET name = ?, done = ? WHERE id = ?',
@@ -98,6 +119,7 @@ class Diligent implements NodeProvider {
       name: row['name'] as String,
       parentId: row['parentId'] as int?,
       done: row['done'] as int == 1,
+      details: row['details'] as String?,
       nodeProvider: this,
     );
   }
@@ -133,6 +155,18 @@ class Diligent implements NodeProvider {
         [position, task.parentId, task.id],
       );
     });
+  }
+
+  Future<void> initialAreas(List<Task> areas) async {
+    final root = await findTask(1);
+    developer.log('root: $root');
+    if (root != null) {
+      return;
+    }
+    await addTask(NewTask(name: 'Root', id: 1));
+    for (final area in areas) {
+      await addTask(area.copyWith(parentId: 1));
+    }
   }
 
   @override

@@ -33,15 +33,26 @@ void main() {
       });
 
       test('persists task', () async {
-        final id = (await diligent.addTask(NewTask(name: 'Foo')))!.id;
+        final id = (await diligent.addTask(NewTask(
+          name: 'Foo',
+          details: 'Bar',
+        )))!
+            .id;
         final task = await diligent.findTask(id);
-        expect(task?.name, equals('Foo'));
+        expect(task!.name, equals('Foo'));
+        expect(task.details, equals('Bar'));
       });
 
       test('can delete a task', () async {
         final task = await diligent.addTask(NewTask(name: 'Foo'));
         diligent.deleteTask(task!);
         expect(await diligent.findTask(task.id), isNull);
+      });
+
+      test('can find task by name', () async {
+        await diligent.addTask(NewTask(name: 'Root'));
+        final task = await diligent.findTaskByName('root');
+        expect(task?.name, equals('Root'));
       });
     });
 
@@ -104,6 +115,47 @@ void main() {
         expect(
           taskNames(children),
           equals(taskNames([task1, task3, task2])),
+        );
+      });
+    });
+
+    group('Initial Data', () {
+      setUp(() async {
+        await diligent.initialAreas(initialAreas);
+      });
+
+      test('creates root node', () async {
+        final root = await diligent.findTask(1);
+        expect(root!.name, equals('Root'));
+      });
+
+      test('it can initialize with basic data', () async {
+        final root = await diligent.findTask(1);
+        expect(
+          taskNames(await diligent.getChildren(root!)),
+          [
+            'Life',
+            'Work',
+            'Projects',
+            'Miscellaneous',
+            'Inbox',
+          ],
+        );
+      });
+
+      test('it does nothing when called again', () async {
+        await diligent.initialAreas(initialAreas);
+        final tasks = await diligent.subtreeFlat(1);
+        expect(
+          taskNames(tasks),
+          equals([
+            'Root',
+            'Life',
+            'Work',
+            'Projects',
+            'Miscellaneous',
+            'Inbox',
+          ]),
         );
       });
     });

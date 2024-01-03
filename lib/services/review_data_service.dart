@@ -18,14 +18,11 @@ class ReviewDataService {
 
   Future<ReviewSummaryData> getSummaryData(DateTime now) async {
     final dayRange = getDayRange(now);
-    final created = await _calculateCreated(dayRange);
-    final completed = await _calculateCompleted(dayRange);
-    final overdue = await _calculateOverdue(dayRange);
     return ReviewSummaryData(
       notes: '',
-      completed: completed,
-      overdue: overdue,
-      newlyCreated: created,
+      completed: await _calculateCompleted(dayRange),
+      overdue: await _calculateOverdue(dayRange),
+      newlyCreated: await _calculateCreated(dayRange),
     );
   }
 

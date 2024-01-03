@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
 import 'config.dart';
+import 'services/diligent.dart';
 import 'services/review_data/review_data_bloc.dart';
 import 'services/review_data_service.dart';
 import 'services/side_effects.dart';
@@ -14,14 +15,17 @@ final loadAssetString = rootBundle.loadString;
 
 class DiligenceContainer {
   final DiligenceConfig config;
+  final Diligent diligent;
 
   DiligenceContainer({
     required this.config,
+    required this.diligent,
   });
 
   List<SingleChildWidget> providers() {
     return [
       Provider(create: (_) => config),
+      Provider(create: (_) => diligent),
       Provider(create: (_) => _sideEffects()),
       BlocProvider(
         create: (_) => ReviewDataBloc(
@@ -42,8 +46,12 @@ class DiligenceContainer {
   }) async {
     await dot_env.load(fileName: envFile);
     final config = DiligenceConfig.fromEnv(dot_env.env);
+    final diligent = test ? Diligent.forTests() : Diligent();
+    await diligent.runMigrations();
+    await diligent.initialAreas(initialAreas);
     return DiligenceContainer(
       config: config,
+      diligent: diligent,
     );
   }
 }

@@ -20,6 +20,9 @@ class ProvidedTask implements Task {
   @override
   final String name;
 
+  @override
+  final String? details;
+
   final NodeProvider _nodeProvider;
 
   @override
@@ -33,16 +36,24 @@ class ProvidedTask implements Task {
     this.parentId,
     this.done = false,
     this.name = '',
+    this.details,
     required NodeProvider nodeProvider,
   }) : _nodeProvider = nodeProvider;
 
   @override
-  Task copyWith({int? id, int? parentId, bool? done, String? name}) {
+  Task copyWith({
+    int? id,
+    int? parentId,
+    bool? done,
+    String? name,
+    String? details,
+  }) {
     return ProvidedTask(
       id: id ?? this.id,
       parentId: parentId ?? this.parentId,
       done: done ?? this.done,
       name: name ?? this.name,
+      details: details ?? this.details,
       nodeProvider: _nodeProvider,
     );
   }
