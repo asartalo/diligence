@@ -72,16 +72,16 @@ jobs:
       # Run integration tests
       - run: xvfb-run flutter test -d linux --no-pub --coverage --merge-coverage integration_test/all_tests.dart
 
-      - run: dart pub global activate coverage
+      # - run: dart pub global activate coverage
 
-      - name: Prepare coverage
-        run: format_coverage --lcov --in=coverage --out=lcov.info --packages=.packages --report-on=lib --report-on=packages
+      # - name: Prepare coverage
+      #   run: format_coverage --lcov --in=coverage --out=lcov.info --packages=.packages --report-on=lib --report-on=packages
 
       - name: Upload coverage
-        uses: coverallsapp/github-action@v1.1.2
+        uses: coverallsapp/github-action@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: lcov.info
+          file: coverage/lcov.info
 
   release:
     name: Release
