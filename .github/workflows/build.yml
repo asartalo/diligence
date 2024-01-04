@@ -72,7 +72,7 @@ jobs:
       # Run integration tests
       - run: xvfb-run flutter test -d linux --no-pub --coverage --merge-coverage integration_test/all_tests.dart
 
-      - run: pub global activate coverage
+      - run: dart pub global activate coverage
 
       - name: Prepare coverage
         run: format_coverage --lcov --in=coverage --out=lcov.info --packages=.packages --report-on=lib --report-on=packages
