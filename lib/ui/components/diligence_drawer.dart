@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../keys.dart' as keys;
+import 'keys.dart' as keys;
 
 class DiligenceDrawer extends StatelessWidget {
   const DiligenceDrawer({super.key});

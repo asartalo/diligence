@@ -1,4 +1,4 @@
-import 'package:diligence/ui/keys.dart';
+import 'package:diligence/ui/components/keys.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 

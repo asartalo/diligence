@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../models/new_task.dart';
-import '../../models/task.dart';
-import '../../services/diligent.dart';
-import '../components/common_screen.dart';
-import '../keys.dart';
+import '../../../models/new_task.dart';
+import '../../../models/task.dart';
+import '../../../services/diligent.dart';
+import '../../components/common_screen.dart';
+import 'keys.dart' as keys;
 
 class TasksPage extends StatefulWidget {
   final Diligent diligent;
@@ -51,7 +51,7 @@ class _TasksPageState extends State<TasksPage> {
     return CommonScreen(
         title: 'Tasks',
         floatingActionButton: FloatingActionButton(
-          key: addTaskFloatingButton,
+          key: keys.addTaskFloatingButton,
           onPressed: () async {
             final newTask = await TaskDialog.open(context, NewTask());
             if (newTask is Task) {
@@ -68,7 +68,7 @@ class _TasksPageState extends State<TasksPage> {
           child: const Icon(Icons.add),
         ),
         child: ReorderableListView.builder(
-          key: tasksTaskList,
+          key: keys.mainTaskList,
           itemBuilder: (context, index) {
             final task = _tasks[index];
             return CheckboxListTile(
@@ -127,7 +127,7 @@ class _TaskDialogState extends State<TaskDialog> {
         _task.id == 0 ? 'New Task' : 'Edit Task',
       ),
       content: TextFormField(
-        key: addTaskTaskNameField,
+        key: keys.taskNameField,
         autofocus: true,
         decoration: const InputDecoration(hintText: 'Enter task name'),
         initialValue: _task.name,
@@ -139,7 +139,7 @@ class _TaskDialogState extends State<TaskDialog> {
       ),
       actions: [
         TextButton(
-          key: addTaskSaveButton,
+          key: keys.saveTaskButton,
           onPressed: () => submit(),
           child: const Text('SAVE'),
         ),

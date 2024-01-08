@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../keys.dart' as keys;
+import 'keys.dart' as keys;
 
 AppBar appBar(BuildContext context, String title) {
   final theme = Theme.of(context);

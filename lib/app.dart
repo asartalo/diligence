@@ -5,7 +5,7 @@ import 'diligence_container.dart';
 import 'services/diligent.dart';
 import 'ui/screens/home/home_page.dart';
 import 'ui/screens/review/review_page.dart';
-import 'ui/screens/tasks_page.dart';
+import 'ui/screens/tasks/tasks_page.dart';
 import 'ui/theme.dart';
 
 final diligenceTheme = DiligenceTheme.createThemeData();
