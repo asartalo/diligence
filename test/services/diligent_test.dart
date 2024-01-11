@@ -86,35 +86,61 @@ void main() {
     });
 
     group('Ordering', () {
+      late Task parentTask;
+
+      setUp(() async {
+        parentTask = (await diligent.addTask(NewTask(name: 'Root')))!;
+        for (final taskName in ['A', 'B', 'C', 'D', 'E']) {
+          await diligent.addTask(NewTask(name: taskName, parent: parentTask));
+        }
+      });
+
       test('it can insert new child at the beginning', () async {
-        final parentTask = await diligent.addTask(NewTask(name: 'Root'));
-        final task1 = await diligent.addTask(
-          NewTask(name: 'Foo', parent: parentTask),
-        );
-        final task2 = await diligent.addTask(
+        await diligent.addTask(
           NewTask(name: 'Bar', parent: parentTask),
           position: 0,
         );
-        final children = await parentTask!.children;
-        expect(taskNames(children), equals([task2!.name, task1!.name]));
+        final children = await parentTask.children;
+        expect(taskNames(children), equals(['Bar', 'A', 'B', 'C', 'D', 'E']));
       });
 
-      test('it can reorder children', () async {
-        final parentTask = await diligent.addTask(NewTask(name: 'Root'));
-        final task1 = await diligent.addTask(
-          NewTask(name: 'Foo', parent: parentTask),
-        );
-        final task2 = await diligent.addTask(
-          NewTask(name: 'Bar', parent: parentTask),
-        );
-        final task3 = await diligent.addTask(
-          NewTask(name: 'Baz', parent: parentTask),
-        );
-        await diligent.moveTask(task3!, 1);
-        final children = await parentTask!.children;
+      test('it can move task up', () async {
+        final task = (await diligent.findTaskByName('D'))!;
+        await diligent.moveTask(task, 1);
+        final children = await parentTask.children;
         expect(
           taskNames(children),
-          equals(taskNames([task1, task3, task2])),
+          equals(['A', 'D', 'B', 'C', 'E']),
+        );
+      });
+
+      test('it can move task down', () async {
+        final task = (await diligent.findTaskByName('B'))!;
+        await diligent.moveTask(task, 3);
+        final children = await parentTask.children;
+        expect(
+          taskNames(children),
+          equals(['A', 'C', 'D', 'B', 'E']),
+        );
+      });
+
+      test('it limits movement to last position', () async {
+        final task = (await diligent.findTaskByName('B'))!;
+        await diligent.moveTask(task, 10);
+        final children = await parentTask.children;
+        expect(
+          taskNames(children),
+          equals(['A', 'C', 'D', 'E', 'B']),
+        );
+      });
+
+      test('it limits movement to first position', () async {
+        final task = (await diligent.findTaskByName('B'))!;
+        await diligent.moveTask(task, -3);
+        final children = await parentTask.children;
+        expect(
+          taskNames(children),
+          equals(['B', 'A', 'C', 'D', 'E']),
         );
       });
     });

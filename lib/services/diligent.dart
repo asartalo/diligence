@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:developer' as developer;
+import 'dart:math';
 import 'package:sqlite_async/sqlite3.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 import '../models/new_task.dart';
@@ -130,31 +131,59 @@ class Diligent implements NodeProvider {
 
   Future<void> moveTask(Task task, int position) async {
     await db.writeTransaction((tx) async {
-      await tx.execute(
-        '''
-        UPDATE tasks SET position =
-          (SELECT MAX(position) FROM tasks WHERE parentId = ?) + 2
-        WHERE id = ?
-        ''',
-        [task.parentId, task.id],
-      );
+      final (oldPosition, count) = await _getTaskPositionInfo(task, tx);
+      final actualPosition = max(min(count - 1, position), 0);
       await tx.execute(
         '''
         UPDATE tasks
-        SET position = position + 1
-        WHERE parentId = ? AND position >= ?
+        SET position = (
+          CASE
+          WHEN p.oldPosition < ? AND p.oldPosition >= ?
+            THEN p.oldPosition + 1
+          WHEN p.oldPosition > ? AND p.oldPosition <= ?
+            THEN p.oldPosition - 1
+          WHEN p.oldPosition = ? THEN ?
+          ELSE p.oldPosition
+          END
+        )
+        FROM (
+          SELECT id, position,
+            (row_number() OVER (ORDER BY position) - 1) AS oldPosition
+          FROM tasks
+          WHERE parentId = ?
+          ORDER BY position
+        ) AS p
+        WHERE p.id = tasks.id
         ''',
-        [task.parentId, position],
-      );
-      await tx.execute(
-        '''
-        UPDATE tasks
-        SET position = MIN(?, (SELECT MAX(position) FROM tasks WHERE parentId = ?))
-        WHERE id = ?
-        ''',
-        [position, task.parentId, task.id],
+        [
+          oldPosition,
+          actualPosition,
+          oldPosition,
+          actualPosition,
+          oldPosition,
+          actualPosition,
+          task.parentId,
+        ],
       );
     });
+  }
+
+  Future<(int, int)> _getTaskPositionInfo(
+      Task task, SqliteReadContext tx) async {
+    final positions = await tx.get(
+      '''
+      WITH siblings AS (
+        SELECT id, (row_number() OVER (ORDER BY position) - 1) AS oldPosition
+        FROM tasks
+        WHERE parentId = ?
+      )
+      SELECT oldPosition, peers FROM siblings
+      CROSS JOIN (SELECT count(id) AS peers FROM siblings)
+      WHERE id = ?
+      ''',
+      [task.parentId, task.id],
+    );
+    return (positions['oldPosition'] as int, positions['peers'] as int);
   }
 
   Future<void> initialAreas(List<Task> areas) async {
