@@ -18,16 +18,20 @@ class TaskTree extends StatelessWidget {
   Widget build(BuildContext context) {
     return ReorderableListView.builder(
       key: keys.mainTaskList,
+      buildDefaultDragHandles: false,
       itemBuilder: (context, index) {
         final task = tasks[index];
-        return CheckboxListTile(
-          controlAffinity: ListTileControlAffinity.leading,
+        return ReorderableDelayedDragStartListener(
           key: Key(task.id.toString()),
-          title: Text(task.name),
-          onChanged: (bool? done) {
-            onUpdateTask(task.copyWith(done: done ?? false), index);
-          },
-          value: task.done,
+          index: index,
+          child: CheckboxListTile(
+            controlAffinity: ListTileControlAffinity.leading,
+            title: Text(task.name),
+            onChanged: (bool? done) {
+              onUpdateTask(task.copyWith(done: done ?? false), index);
+            },
+            value: task.done,
+          ),
         );
       },
       itemCount: tasks.length,
