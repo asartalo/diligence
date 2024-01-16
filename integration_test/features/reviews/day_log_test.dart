@@ -1,12 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import '../../helpers/dtest.dart';
-import '../../helpers/navigation.dart';
+import '../../helpers/dtest/dtest.dart';
 
 Future<void> main() async {
   integrationTest('Day Log', () {
-    testApp('Shows log', (WidgetTester tester) async {
-      await navigateToReminderPage(tester);
+    testApp('Shows log', (dtest) async {
+      await dtest.navigateToReminderPage();
       // final dayLogField = find.byKey(const Key('fieldDayLogNotes'));
       // await tester.enterText(dayLogField, 'This is a log');
       // await tester.tap(find.byKey(const Key('btnSaveLog')));
