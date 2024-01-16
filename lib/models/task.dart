@@ -11,5 +11,11 @@ abstract class Task {
 
   FutureOr<Task?> get parent;
 
-  Task copyWith({int? id, int? parentId, bool? done, String? name});
+  Task copyWith({
+    int? id,
+    int? parentId,
+    bool? done,
+    String? name,
+    String? details,
+  });
 }

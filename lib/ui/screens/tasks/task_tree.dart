@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../models/task.dart';
 import 'keys.dart' as keys;
+import 'task_tree_item.dart';
 
 class TaskTree extends StatelessWidget {
   final List<Task> tasks;
@@ -24,13 +25,9 @@ class TaskTree extends StatelessWidget {
         return ReorderableDelayedDragStartListener(
           key: Key(task.id.toString()),
           index: index,
-          child: CheckboxListTile(
-            controlAffinity: ListTileControlAffinity.leading,
-            title: Text(task.name),
-            onChanged: (bool? done) {
-              onUpdateTask(task.copyWith(done: done ?? false), index);
-            },
-            value: task.done,
+          child: TaskTreeItem(
+            task: task,
+            onUpdateTask: (task) => onUpdateTask(task, index),
           ),
         );
       },

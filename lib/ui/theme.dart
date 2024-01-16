@@ -70,7 +70,7 @@ class DiligenceTheme {
           fontWeight: FontWeight.w300,
         ),
         displaySmall: TextStyle(
-          fontWeight: FontWeight.w400,
+          fontWeight: FontWeight.w300,
           color: Colors.black,
         ),
       ).apply(
@@ -84,6 +84,7 @@ class DiligenceTheme {
         secondary: colors.secondaryColor,
         background: backgroundColor,
       ),
+      dialogBackgroundColor: Colors.white,
     );
   }
 }

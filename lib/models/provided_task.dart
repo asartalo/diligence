@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'task.dart';
+import 'task_commons.dart';
 
 abstract class NodeProvider {
   FutureOr<List<Task>> getChildren(Task task);
@@ -7,7 +8,7 @@ abstract class NodeProvider {
   FutureOr<Task?> getParent(Task task);
 }
 
-class ProvidedTask implements Task {
+class ProvidedTask with TaskCommons implements Task {
   @override
   final int id;
 
@@ -53,7 +54,7 @@ class ProvidedTask implements Task {
       parentId: parentId ?? this.parentId,
       done: done ?? this.done,
       name: name ?? this.name,
-      details: details ?? this.details,
+      details: normalizedDetails(details),
       nodeProvider: _nodeProvider,
     );
   }

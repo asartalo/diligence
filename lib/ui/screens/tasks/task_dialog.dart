@@ -33,16 +33,35 @@ class _TaskDialogState extends State<TaskDialog> {
       title: Text(
         _task.id == 0 ? 'New Task' : 'Edit Task',
       ),
-      content: TextFormField(
-        key: keys.taskNameField,
-        autofocus: true,
-        decoration: const InputDecoration(hintText: 'Enter task name'),
-        initialValue: _task.name,
-        onChanged: (str) {
-          setState(() {
-            _task = _task.copyWith(name: str);
-          });
-        },
+      // backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextFormField(
+            key: keys.taskNameField,
+            autofocus: true,
+            decoration: const InputDecoration(hintText: 'Enter task name'),
+            initialValue: _task.name,
+            onChanged: (str) {
+              setState(() {
+                _task = _task.copyWith(name: str);
+              });
+            },
+          ),
+          TextFormField(
+            key: keys.taskDetailsField,
+            keyboardType: TextInputType.multiline,
+            maxLines: null,
+            decoration: const InputDecoration(labelText: 'Details'),
+            initialValue: _task.details,
+            onChanged: (str) {
+              setState(() {
+                _task = _task.copyWith(details: str);
+              });
+            },
+          )
+        ],
       ),
       actions: [
         TextButton(

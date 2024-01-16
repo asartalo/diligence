@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'task.dart';
+import 'task_commons.dart';
 
-class NewTask implements Task {
+class NewTask with TaskCommons implements Task {
   @override
   final int id;
 
@@ -45,7 +46,7 @@ class NewTask implements Task {
       parentId: parentId ?? this.parentId,
       done: done ?? this.done,
       name: name ?? this.name,
-      details: details ?? this.details,
+      details: normalizedDetails(details),
     );
   }
 }

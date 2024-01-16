@@ -70,7 +70,11 @@ class _TasksPageState extends State<TasksPage> {
       ),
       child: TaskTree(
         tasks: _tasks,
-        onUpdateTask: (task, index) {
+        onUpdateTask: (task, index) async {
+          setState(() {
+            _tasks[index] = task;
+          });
+          await diligent.updateTask(task);
           setState(() {
             _tasks[index] = task;
           });
