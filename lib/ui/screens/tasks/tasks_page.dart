@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../models/commands/commands.dart';
 import '../../../models/new_task.dart';
 import '../../../models/task.dart';
 import '../../../services/diligent.dart';
@@ -18,6 +19,7 @@ class TasksPage extends StatefulWidget {
 
 class _TasksPageState extends State<TasksPage> {
   late List<Task> _tasks;
+  late Task _root;
 
   @override
   void initState() {
@@ -38,12 +40,15 @@ class _TasksPageState extends State<TasksPage> {
       throw Exception('Root task not found');
     }
     final areas = await widget.diligent.getChildren(root);
-    updateTasks(areas);
+    updateTasks(areas, root: root);
   }
 
-  void updateTasks(List<Task> tasks) {
+  void updateTasks(List<Task> tasks, {Task? root}) {
     setState(() {
       _tasks = tasks;
+      if (root != null) {
+        _root = root;
+      }
     });
   }
 
@@ -55,11 +60,12 @@ class _TasksPageState extends State<TasksPage> {
       floatingActionButton: FloatingActionButton(
         key: keys.addTaskFloatingButton,
         onPressed: () async {
-          final newTask = await TaskDialog.open(context, NewTask());
-          if (newTask is Task) {
-            final currentTask = (await diligent.findTask(1))!;
-            await diligent.addTask(newTask.copyWith(parentId: currentTask.id));
-            final tasks = await diligent.getChildren(currentTask);
+          final command =
+              await TaskDialog.open(context, NewTask(parent: _root));
+          if (command is NewTaskCommand) {
+            final newTask = command.payload;
+            await diligent.addTask(newTask);
+            final tasks = await diligent.getChildren(_root);
             setState(() {
               _tasks = tasks;
             });
@@ -88,6 +94,16 @@ class _TasksPageState extends State<TasksPage> {
           await diligent.moveTask(task, newIndex);
           final currentParent = (await diligent.findTask(task.parentId!))!;
           updateTasks(await diligent.getChildren(currentParent));
+        },
+        onRequestEditTask: (task) async {
+          final command = await TaskDialog.open(context, task);
+          if (command is UpdateTaskCommand) {
+            await diligent.updateTask(command.payload);
+            updateTasks(await diligent.getChildren(_root));
+          } else if (command is DeleteTaskCommand) {
+            await diligent.deleteTask(command.payload);
+            updateTasks(await diligent.getChildren(_root));
+          }
         },
       ),
     );

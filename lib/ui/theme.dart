@@ -57,6 +57,7 @@ class DiligenceTheme {
         : VisualDensity.standard;
 
     return ThemeData(
+      useMaterial3: true,
       primaryColor: colors.primaryColor,
       cardColor: Colors.white,
       visualDensity: visualDensity,

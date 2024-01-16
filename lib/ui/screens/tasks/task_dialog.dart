@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../models/commands/commands.dart';
+import '../../../models/new_task.dart';
+import '../../../models/provided_task.dart';
 import '../../../models/task.dart';
 import 'keys.dart' as keys;
 
@@ -7,8 +10,8 @@ class TaskDialog extends StatefulWidget {
   final Task task;
   const TaskDialog({super.key, required this.task});
 
-  static Future<Task?> open(BuildContext context, Task task) {
-    return showDialog(
+  static Future<Command?> open(BuildContext context, Task task) {
+    return showDialog<Command>(
       context: context,
       builder: (context) => TaskDialog(task: task),
     );
@@ -29,51 +32,77 @@ class _TaskDialogState extends State<TaskDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(
-        _task.id == 0 ? 'New Task' : 'Edit Task',
+    final currentTheme = Theme.of(context);
+    return Theme(
+      data: currentTheme.copyWith(
+        visualDensity: VisualDensity.standard,
       ),
-      // backgroundColor: Colors.white,
-      surfaceTintColor: Colors.transparent,
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextFormField(
-            key: keys.taskNameField,
-            autofocus: true,
-            decoration: const InputDecoration(hintText: 'Enter task name'),
-            initialValue: _task.name,
-            onChanged: (str) {
-              setState(() {
-                _task = _task.copyWith(name: str);
-              });
+      child: AlertDialog(
+        title: Text(
+          _task.id == 0 ? 'New Task' : 'Edit Task',
+        ),
+        // backgroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextFormField(
+              key: keys.taskNameField,
+              autofocus: true,
+              decoration: const InputDecoration(hintText: 'Enter task name'),
+              initialValue: _task.name,
+              onChanged: (str) {
+                setState(() {
+                  _task = _task.copyWith(name: str);
+                });
+              },
+            ),
+            TextFormField(
+              key: keys.taskDetailsField,
+              keyboardType: TextInputType.multiline,
+              maxLines: null,
+              decoration: const InputDecoration(labelText: 'Details'),
+              initialValue: _task.details,
+              onChanged: (str) {
+                setState(() {
+                  _task = _task.copyWith(details: str);
+                });
+              },
+            )
+          ],
+        ),
+        actions: [
+          TextButton(
+            key: keys.deleteTaskButton,
+            onPressed: () {
+              if (_task is ProvidedTask) {
+                Navigator.of(context).pop<Command>(
+                  DeleteTaskCommand(payload: _task as ProvidedTask),
+                );
+              }
             },
+            child: const Text('DELETE'),
           ),
-          TextFormField(
-            key: keys.taskDetailsField,
-            keyboardType: TextInputType.multiline,
-            maxLines: null,
-            decoration: const InputDecoration(labelText: 'Details'),
-            initialValue: _task.details,
-            onChanged: (str) {
-              setState(() {
-                _task = _task.copyWith(details: str);
-              });
-            },
-          )
+          FilledButton(
+            key: keys.saveTaskButton,
+            onPressed: () => submit(),
+            child: const Text('SAVE'),
+          ),
         ],
       ),
-      actions: [
-        TextButton(
-          key: keys.saveTaskButton,
-          onPressed: () => submit(),
-          child: const Text('SAVE'),
-        ),
-      ],
     );
   }
 
   void submit() {
-    Navigator.of(context).pop<Task>(_task);
+    late Command command;
+    switch (_task) {
+      case final NewTask t:
+        command = NewTaskCommand(payload: t);
+      case final ProvidedTask t:
+        command = UpdateTaskCommand(payload: t);
+      default:
+        command = noOpCommand;
+    }
+    Navigator.of(context).pop<Command>(command);
   }
 }

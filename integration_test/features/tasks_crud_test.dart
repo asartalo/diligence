@@ -50,5 +50,23 @@ Future<void> main() async {
         findsOneWidget,
       );
     });
+
+    testApp('Deleting a task', (dtest) async {
+      await dtest.navigateToTasksPage();
+      await dtest.tapByKey(keys.addTaskFloatingButton);
+      await dtest.enterTextByKey(keys.taskNameField, 'First Task');
+      await dtest.tapByKey(keys.saveTaskButton);
+      final taskList = find.byKey(keys.mainTaskList);
+      final task = find.descendant(
+        of: taskList,
+        matching: find.text('First Task'),
+      );
+      await dtest.tapElement(task);
+      await dtest.tapByKey(keys.deleteTaskButton);
+      expect(
+        find.descendant(of: taskList, matching: find.text('First Task')),
+        findsNothing,
+      );
+    });
   });
 }

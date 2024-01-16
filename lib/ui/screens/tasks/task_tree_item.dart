@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 
 import '../../../models/task.dart';
-import 'task_dialog.dart';
 
 class TaskTreeItem extends StatelessWidget {
   final Task task;
   final void Function(Task task) onUpdateTask;
+  final void Function(Task task) onRequestEditTask;
 
   const TaskTreeItem({
     super.key,
     required this.task,
     required this.onUpdateTask,
+    required this.onRequestEditTask,
   });
 
   @override
@@ -22,10 +23,7 @@ class TaskTreeItem extends StatelessWidget {
         subtitle: taskDetails(),
         // hoverColor: Colors.green,
         onTap: () async {
-          final updatedTask = await TaskDialog.open(context, task);
-          if (updatedTask is Task) {
-            onUpdateTask(updatedTask);
-          }
+          onRequestEditTask(task);
         },
         leading: Column(
           children: [

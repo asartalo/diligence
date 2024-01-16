@@ -8,11 +8,14 @@ class TaskTree extends StatelessWidget {
   final List<Task> tasks;
   final void Function(Task task, int index) onUpdateTask;
   final void Function(int oldIndex, int newIndex) onReorder;
+  final void Function(Task task) onRequestEditTask;
+
   const TaskTree({
     super.key,
     required this.tasks,
     required this.onUpdateTask,
     required this.onReorder,
+    required this.onRequestEditTask,
   });
 
   @override
@@ -28,6 +31,7 @@ class TaskTree extends StatelessWidget {
           child: TaskTreeItem(
             task: task,
             onUpdateTask: (task) => onUpdateTask(task, index),
+            onRequestEditTask: onRequestEditTask,
           ),
         );
       },
