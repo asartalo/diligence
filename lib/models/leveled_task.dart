@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import 'decorated_task.dart';
 import 'task.dart';
 
-class LeveledTask implements Task {
+class LeveledTask implements Task, DecoratedTask {
+  @override
   final Task task;
   final int level;
 

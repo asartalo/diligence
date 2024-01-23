@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../models/commands/commands.dart';
+import '../../../models/decorated_task.dart';
 import '../../../models/new_task.dart';
 import '../../../models/provided_task.dart';
 import '../../../models/task.dart';
@@ -23,6 +24,9 @@ class TaskDialog extends StatefulWidget {
 
 class _TaskDialogState extends State<TaskDialog> {
   late Task _task;
+
+  Task get _trueTask =>
+      (_task is DecoratedTask) ? (_task as DecoratedTask).task : _task;
 
   @override
   void initState() {
@@ -75,9 +79,9 @@ class _TaskDialogState extends State<TaskDialog> {
           TextButton(
             key: keys.deleteTaskButton,
             onPressed: () {
-              if (_task is ProvidedTask) {
+              if (_trueTask is ProvidedTask) {
                 Navigator.of(context).pop<Command>(
-                  DeleteTaskCommand(payload: _task as ProvidedTask),
+                  DeleteTaskCommand(payload: _trueTask as ProvidedTask),
                 );
               }
             },
@@ -95,7 +99,7 @@ class _TaskDialogState extends State<TaskDialog> {
 
   void submit() {
     late Command command;
-    switch (_task) {
+    switch (_trueTask) {
       case final NewTask t:
         command = NewTaskCommand(payload: t);
       case final ProvidedTask t:
