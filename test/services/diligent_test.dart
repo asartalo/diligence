@@ -83,6 +83,20 @@ void main() {
           equals(taskNames([task1, task2])),
         );
       });
+
+      test('it can insert child to a position', () async {
+        final task1 = await diligent.addTask(
+          NewTask(name: 'Foo', parent: parentTask),
+        );
+        final task2 = await diligent.addTask(
+          NewTask(name: 'Bar', parent: parentTask),
+          position: 0,
+        );
+        expect(
+          taskNames(await parentTask.children),
+          equals(taskNames([task2, task1])),
+        );
+      });
     });
 
     group('Ordering', () {
@@ -226,28 +240,71 @@ void main() {
         );
       });
     });
+
+    group('expandedDescendantsTree()', () {
+      late Map<String, Task> setupResult;
+
+      setUp(() async {
+        setupResult = await testTreeSetup(diligent);
+      });
+
+      test('it returns subtree starting from descendants including of root',
+          () async {
+        final rootTask = setupResult['Root'];
+        if (rootTask == null) {
+          fail('Unexpected result. testTreeSetup() did not work.');
+        }
+        final TaskList tasks = await diligent.expandedDescendantsTree(rootTask);
+        final nameList = <String>[];
+        for (final task in tasks) {
+          nameList.add(task.name);
+        }
+        expect(
+          nameList,
+          equals(
+            [
+              'A',
+              'A1',
+              'A2 - leaf',
+              'A3 - leaf',
+              'B',
+              'B1 - leaf',
+              'B2',
+              'B3',
+              'C',
+            ],
+          ),
+        );
+      });
+    });
   });
 }
 
 Future<Map<String, Task>> testTreeSetup(Diligent diligent) async {
   final Map<String, Task> result = {};
   final root = await diligent.addTask(NewTask(name: 'Root'));
-  final a = await diligent.addTask(NewTask(name: 'A', parent: root));
+  final a = await diligent.addTask(
+    NewTask(name: 'A', parent: root, expanded: true),
+  );
   final a1 = await diligent.addTask(NewTask(name: 'A1', parent: a));
-  await diligent.addTask(NewTask(name: 'A1i - leaf', parent: a1));
-  await diligent.addTask(NewTask(name: 'A1ii - leaf', parent: a1));
-  await diligent.addTask(NewTask(name: 'A1iii - leaf', parent: a1));
   await diligent.addTask(NewTask(name: 'A2 - leaf', parent: a));
+  await diligent.addTask(NewTask(name: 'A1ii - leaf', parent: a1));
   await diligent.addTask(NewTask(name: 'A3 - leaf', parent: a));
+  await diligent.addTask(NewTask(name: 'A1iii - leaf', parent: a1));
+  await diligent.addTask(NewTask(name: 'A1i - leaf', parent: a1), position: 0);
 
-  final b = await diligent.addTask(NewTask(name: 'B', parent: root));
-  await diligent.addTask(NewTask(name: 'B1 - leaf', parent: b));
+  final c = await diligent.addTask(NewTask(name: 'C', parent: root));
+
+  final b = await diligent.addTask(
+    NewTask(name: 'B', parent: root, expanded: true),
+    position: 1,
+  );
+  await diligent.addTask(NewTask(name: 'B1 - leaf', parent: b, expanded: true));
   final b2 = await diligent.addTask(NewTask(name: 'B2', parent: b));
   await diligent.addTask(NewTask(name: 'B2i - leaf', parent: b2));
   await diligent.addTask(NewTask(name: 'B2ii - leaf', parent: b2));
-  await diligent.addTask(NewTask(name: 'B2iii - leaf', parent: b2));
   await diligent.addTask(NewTask(name: 'B3', parent: b));
-  final c = await diligent.addTask(NewTask(name: 'C', parent: root));
+  await diligent.addTask(NewTask(name: 'B2iii - leaf', parent: b2));
 
   result['Root'] = root!;
   result['A'] = a!;

@@ -3,6 +3,7 @@ import 'dart:developer' as developer;
 import 'dart:math';
 import 'package:sqlite_async/sqlite3.dart';
 import 'package:sqlite_async/sqlite_async.dart';
+import '../models/leveled_task.dart';
 import '../models/new_task.dart';
 import '../models/provided_task.dart';
 import '../models/task.dart';
@@ -21,6 +22,86 @@ final initialAreas = [
   ),
   NewTask(name: 'Inbox', details: "Tasks that haven't been categorized yet"),
 ];
+
+final _allTaskFields = [
+  'id',
+  'uid',
+  'name',
+  'details',
+  'parentId',
+  'done',
+  'expanded',
+  'position',
+];
+
+final _unmodifiableFields = ['id', 'uid'];
+
+final _newTaskFields = _allTaskFields
+    .where((field) => !['id', 'position'].contains(field))
+    .toList();
+
+final _modifiableFields = _allTaskFields
+    .where((field) => !_unmodifiableFields.contains(field))
+    .toList();
+
+final _modifiableNonPositionFields =
+    _modifiableFields.where((field) => field != 'position').toList();
+
+final _queryCache = <String, String>{};
+
+String _cachedQuery(String key, String query) {
+  String? value = _queryCache[key];
+  if (value == null) {
+    _queryCache[key] = query;
+    value = query;
+  }
+  return value;
+}
+
+String _prefixedField(String field, {String? prefix}) {
+  return prefix is String ? '$prefix.$field' : field;
+}
+
+String _commaFields(List<String> fields, {String? prefix}) {
+  return fields
+      .map((field) => _prefixedField(field, prefix: prefix))
+      .join(', ');
+}
+
+Object? _propFromTaskField(String field, Task task) {
+  switch (field) {
+    case 'id':
+      return task.id.toString();
+    case 'uid':
+      return task.uid;
+    case 'name':
+      return task.name;
+    case 'details':
+      return task.details;
+    case 'parentId':
+      return task.parentId;
+    case 'done':
+      return task.done ? 1 : 0;
+    case 'expanded':
+      return task.expanded ? 1 : 0;
+    default:
+      throw Exception('Unknown field: $field');
+  }
+}
+
+List<Object?> _propsFromTaskFields(List<String> fields, Task task) {
+  return fields.map((field) => _propFromTaskField(field, task)).toList();
+}
+
+String _fieldValuePlaceholders(List<String> fields, {String? prefix}) {
+  return fields
+      .map((field) => '${_prefixedField(field, prefix: prefix)} = ?')
+      .join(', ');
+}
+
+String _questionMarks(int count) {
+  return List.generate(count, (_) => '?').join(', ');
+}
 
 SqliteMigrations migrate() {
   final SqliteMigrations migrations = SqliteMigrations();
@@ -65,20 +146,32 @@ class Diligent implements NodeProvider {
           [task.parentId, position],
         );
         await tx.execute(
-          '''
-          INSERT INTO tasks (name, parentId, details, position)
-          SELECT ?, ?, ?, ?
-          ''',
-          [task.name, task.parentId, task.details, position],
+          _cachedQuery(
+            'taskInsertNoPosition',
+            '''
+            INSERT INTO tasks (${_newTaskFields.join(', ')}, position)
+            SELECT ${_questionMarks(_newTaskFields.length + 1)}
+            ''',
+          ),
+          [
+            ..._propsFromTaskFields(_newTaskFields, task),
+            position,
+          ],
         );
       });
     } else {
       await db.execute(
-        '''
-        INSERT INTO tasks (name, parentId, details, position)
-        SELECT ?, ?, ?, COALESCE(MAX(position) + 1, 0) FROM tasks WHERE parentId = ?
-        ''',
-        [task.name, task.parentId, task.details, task.parentId],
+        _cachedQuery(
+          'taskInsertWithPosition',
+          '''
+          INSERT INTO tasks (${_newTaskFields.join(', ')}, position)
+          SELECT ${_questionMarks(_newTaskFields.length)}, COALESCE(MAX(position) + 1, 0) FROM tasks WHERE parentId = ?
+          ''',
+        ),
+        [
+          ..._propsFromTaskFields(_newTaskFields, task),
+          task.parentId,
+        ],
       );
     }
     final result = await db.execute('SELECT last_insert_rowid() as id');
@@ -89,9 +182,12 @@ class Diligent implements NodeProvider {
     if (task is ProvidedTask) return task;
     return ProvidedTask(
       id: task.id,
-      name: task.name,
       parentId: task.parentId,
       done: task.done,
+      uid: task.uid,
+      name: task.name,
+      details: task.details,
+      expanded: task.expanded,
       nodeProvider: this,
     );
   }
@@ -109,20 +205,39 @@ class Diligent implements NodeProvider {
 
   Future<void> updateTask(Task task) async {
     await db.execute(
-      'UPDATE tasks SET name = ?, done = ? WHERE id = ?',
-      [task.name, if (task.done) 1 else 0, task.id],
+      _cachedQuery(
+        'updateTask',
+        '''
+          UPDATE tasks
+          SET ${_fieldValuePlaceholders(_modifiableNonPositionFields)}
+          WHERE id = ?
+        ''',
+      ),
+      [
+        ..._propsFromTaskFields(
+          _modifiableNonPositionFields,
+          task,
+        ),
+        task.id,
+      ],
     );
   }
 
-  Task _taskFromRow(Row row) {
-    return ProvidedTask(
+  Task _taskFromRow(Row row, {int? level}) {
+    final task = ProvidedTask(
       id: row['id'] as int,
       name: row['name'] as String,
       parentId: row['parentId'] as int?,
       done: row['done'] as int == 1,
+      uid: row['uid'] as String,
+      expanded: row['expanded'] as int == 1,
       details: row['details'] as String?,
       nodeProvider: this,
     );
+    if (level != null) {
+      return LeveledTask(task: task, level: level);
+    }
+    return task;
   }
 
   Future<void> deleteTask(Task task) async {
@@ -192,7 +307,7 @@ class Diligent implements NodeProvider {
     if (root != null) {
       return;
     }
-    await addTask(NewTask(name: 'Root', id: 1));
+    await addTask(NewTask(name: 'Root', id: 1, uid: 'root', expanded: true));
     for (final area in areas) {
       await addTask(area.copyWith(parentId: 1));
     }
@@ -201,32 +316,82 @@ class Diligent implements NodeProvider {
   @override
   FutureOr<List<Task>> getChildren(Task task) async {
     final rows = await db.getAll(
-        'SELECT * FROM tasks WHERE parentId = ? ORDER BY position ASC',
-        [task.id]);
+      'SELECT * FROM tasks WHERE parentId = ? ORDER BY position ASC',
+      [task.id],
+    );
     return rows.map((row) => _taskFromRow(row)).toList();
   }
 
   @override
   FutureOr<Task?> getParent(Task task) async {
     if (task.parentId == null) return null;
-    final rows =
-        await db.getAll('SELECT * FROM tasks WHERE id = ?', [task.parentId]);
+    final rows = await db.getAll(
+      'SELECT * FROM tasks WHERE id = ?',
+      [task.parentId],
+    );
     return rows.isEmpty ? null : _taskFromRow(rows.first);
   }
 
   /// Returns a task and its descendants as an ordered list
   Future<TaskList> subtreeFlat(int id) async {
+    final rows = await db.getAll(
+      _cachedQuery(
+        'subtreeFlat',
+        '''
+          WITH RECURSIVE
+            subtree(lvl, ${_commaFields(_allTaskFields)}) AS (
+              SELECT
+                0 AS lvl,
+                ${_commaFields(_allTaskFields)}
+              FROM tasks
+              WHERE id = ?
+            UNION ALL
+              SELECT
+                subtree.lvl + 1,
+                ${_commaFields(_allTaskFields, prefix: 'tasks')}
+              FROM
+                subtree
+                JOIN tasks ON tasks.parentId = subtree.id
+              ORDER BY
+                subtree.lvl+1 DESC,
+                tasks.position
+            )
+          SELECT * FROM subtree
+        ''',
+      ),
+      [id],
+    );
+    return rows
+        .map((row) => _taskFromRow(row, level: row['lvl'] as int))
+        .toList();
+  }
+
+  Future<TaskList> expandedDescendantsTree(Task task) async {
+    final id = task.id;
     final rows = await db.getAll('''
       WITH RECURSIVE
-        children_of(parent) AS (
-          VALUES(?)
-          UNION ALL
-          SELECT id FROM tasks, children_of
-          WHERE tasks.parentId=children_of.parent
+        subtree(lvl, ${_commaFields(_allTaskFields)}) AS (
+          SELECT
+            0 AS lvl,
+            ${_commaFields(_allTaskFields, prefix: 'tasks')}
+          FROM tasks
+          WHERE tasks.parentId = ?
+        UNION ALL
+          SELECT
+            subtree.lvl + 1,
+            ${_commaFields(_allTaskFields, prefix: 'tasks')}
+          FROM
+            subtree
+            JOIN tasks ON tasks.parentId = subtree.id
+          WHERE subtree.expanded = 1
+          ORDER BY
+            subtree.lvl+1 DESC,
+            tasks.position
         )
-      SELECT * FROM tasks
-      WHERE tasks.id IN children_of;;
+      SELECT * FROM subtree
     ''', [id]);
-    return rows.map((row) => _taskFromRow(row)).toList();
+    return rows
+        .map((row) => _taskFromRow(row, level: row['lvl'] as int))
+        .toList();
   }
 }

@@ -41,6 +41,7 @@ dependencies:
   provider: ^6.1.1
   sqlite3_flutter_libs: ^0.5.18
   sqlite_async: ^0.5.2
+  uuid: ^4.3.3
 
 dev_dependencies:
   analyzer: ^6.2.0

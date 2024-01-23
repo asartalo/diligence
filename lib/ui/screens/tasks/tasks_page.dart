@@ -39,8 +39,8 @@ class _TasksPageState extends State<TasksPage> {
     if (root == null) {
       throw Exception('Root task not found');
     }
-    final areas = await widget.diligent.getChildren(root);
-    updateTasks(areas, root: root);
+    final tasks = await widget.diligent.expandedDescendantsTree(root);
+    updateTasks(tasks, root: root);
   }
 
   void updateTasks(List<Task> tasks, {Task? root}) {
@@ -50,6 +50,13 @@ class _TasksPageState extends State<TasksPage> {
         _root = root;
       }
     });
+  }
+
+  Future<void> updateTaskTree({Task? root}) async {
+    updateTasks(
+      await widget.diligent.expandedDescendantsTree(root ?? _root),
+      root: root,
+    );
   }
 
   @override
@@ -65,10 +72,7 @@ class _TasksPageState extends State<TasksPage> {
           if (command is NewTaskCommand) {
             final newTask = command.payload;
             await diligent.addTask(newTask);
-            final tasks = await diligent.getChildren(_root);
-            setState(() {
-              _tasks = tasks;
-            });
+            await updateTaskTree();
           }
         },
         tooltip: 'Add Task',
@@ -92,18 +96,24 @@ class _TasksPageState extends State<TasksPage> {
             _tasks.insert(newIndex, task);
           });
           await diligent.moveTask(task, newIndex);
-          final currentParent = (await diligent.findTask(task.parentId!))!;
-          updateTasks(await diligent.getChildren(currentParent));
+          updateTaskTree();
         },
-        onRequestEditTask: (task) async {
+        onRequestTask: (task) async {
           final command = await TaskDialog.open(context, task);
-          if (command is UpdateTaskCommand) {
+          if (command is NewTaskCommand) {
+            await diligent.addTask(command.payload);
+            await updateTaskTree();
+          } else if (command is UpdateTaskCommand) {
             await diligent.updateTask(command.payload);
-            updateTasks(await diligent.getChildren(_root));
+            await updateTaskTree();
           } else if (command is DeleteTaskCommand) {
             await diligent.deleteTask(command.payload);
-            updateTasks(await diligent.getChildren(_root));
+            await updateTaskTree();
           }
+        },
+        onToggleExpandTask: (task) async {
+          await diligent.updateTask(task.copyWith(expanded: !task.expanded));
+          await updateTaskTree();
         },
       ),
     );

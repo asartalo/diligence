@@ -2,10 +2,12 @@ import 'dart:async';
 
 abstract class Task {
   int get id;
+  String get name;
   int? get parentId;
   bool get done;
-  String get name;
   String? get details;
+  bool get expanded;
+  String get uid;
 
   FutureOr<List<Task>> get children;
 
@@ -13,9 +15,11 @@ abstract class Task {
 
   Task copyWith({
     int? id,
+    String? name,
     int? parentId,
     bool? done,
-    String? name,
     String? details,
+    bool? expanded,
+    String? uid,
   });
 }

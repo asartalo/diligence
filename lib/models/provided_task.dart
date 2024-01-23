@@ -24,6 +24,12 @@ class ProvidedTask with TaskCommons implements Task {
   @override
   final String? details;
 
+  @override
+  final String uid;
+
+  @override
+  final bool expanded;
+
   final NodeProvider _nodeProvider;
 
   @override
@@ -38,6 +44,8 @@ class ProvidedTask with TaskCommons implements Task {
     this.done = false,
     this.name = '',
     this.details,
+    this.expanded = false,
+    required this.uid,
     required NodeProvider nodeProvider,
   }) : _nodeProvider = nodeProvider;
 
@@ -46,15 +54,19 @@ class ProvidedTask with TaskCommons implements Task {
     int? id,
     int? parentId,
     bool? done,
+    String? uid,
     String? name,
     String? details,
+    bool? expanded,
   }) {
     return ProvidedTask(
       id: id ?? this.id,
       parentId: parentId ?? this.parentId,
       done: done ?? this.done,
+      uid: uid ?? this.uid,
       name: name ?? this.name,
       details: normalizedDetails(details),
+      expanded: expanded ?? this.expanded,
       nodeProvider: _nodeProvider,
     );
   }
