@@ -1,3 +1,4 @@
+import 'package:diligence/models/leveled_task.dart';
 import 'package:diligence/models/new_task.dart';
 import 'package:diligence/models/task.dart';
 import 'package:diligence/services/diligent.dart';
@@ -43,10 +44,27 @@ void main() {
         expect(task.details, equals('Bar'));
       });
 
+      test('increments childrenCount when a child task is added', () async {
+        final parentTask = await diligent.addTask(NewTask(name: 'Root'));
+        await diligent.addTask(NewTask(name: 'Foo', parent: parentTask));
+        final tasks = await diligent.subtreeFlat(parentTask!.id);
+        expect((tasks.first as LeveledTask).childrenCount, equals(1));
+      });
+
       test('can delete a task', () async {
         final task = await diligent.addTask(NewTask(name: 'Foo'));
         diligent.deleteTask(task!);
         expect(await diligent.findTask(task.id), isNull);
+      });
+
+      test('decrements childrenCount when a child task is deleted', () async {
+        final parentTask = await diligent.addTask(NewTask(name: 'Root'));
+        final task = await diligent.addTask(
+          NewTask(name: 'Foo', parent: parentTask),
+        );
+        diligent.deleteTask(task!);
+        final tasks = await diligent.subtreeFlat(parentTask!.id);
+        expect((tasks.first as LeveledTask).childrenCount, equals(0));
       });
 
       test('can find task by name', () async {
@@ -61,6 +79,11 @@ void main() {
 
       setUp(() async {
         parentTask = (await diligent.addTask(NewTask(name: 'Root')))!;
+      });
+
+      test('node with no children has 0 childCount', () async {
+        final tasks = await diligent.subtreeFlat(parentTask.id);
+        expect((tasks.first as LeveledTask).childrenCount, equals(0));
       });
 
       test('it can set a parent to a task', () async {

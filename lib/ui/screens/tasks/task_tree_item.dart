@@ -9,6 +9,7 @@ class TaskTreeItem extends StatelessWidget {
   final void Function(Task task) onRequestTask;
   final void Function(Task task) onToggleExpandTask;
   final int level;
+  final int childrenCount;
 
   const TaskTreeItem({
     super.key,
@@ -17,6 +18,7 @@ class TaskTreeItem extends StatelessWidget {
     required this.onRequestTask,
     required this.onToggleExpandTask,
     required this.level,
+    this.childrenCount = 0,
   });
 
   @override
@@ -37,14 +39,7 @@ class TaskTreeItem extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 SizedBox(width: level * 30),
-                IconButton(
-                  icon: Icon(
-                    task.expanded ? Icons.expand_less : Icons.expand_more,
-                  ),
-                  onPressed: () {
-                    onToggleExpandTask(task);
-                  },
-                ),
+                expandTaskButton(),
                 Checkbox(
                   value: task.done,
                   onChanged: (bool? done) {
@@ -71,5 +66,17 @@ class TaskTreeItem extends StatelessWidget {
       return Text(details);
     }
     return null;
+  }
+
+  Widget expandTaskButton() {
+    if (childrenCount > 0) {
+      return IconButton(
+        icon: Icon(task.expanded ? Icons.expand_less : Icons.expand_more),
+        onPressed: () {
+          onToggleExpandTask(task);
+        },
+      );
+    }
+    return const SizedBox(width: 40);
   }
 }

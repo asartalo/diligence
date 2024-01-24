@@ -223,7 +223,7 @@ class Diligent implements NodeProvider {
     );
   }
 
-  Task _taskFromRow(Row row, {int? level}) {
+  Task _taskFromRow(Row row, {int? level, int childrenCount = 0}) {
     final task = ProvidedTask(
       id: row['id'] as int,
       name: row['name'] as String,
@@ -235,7 +235,11 @@ class Diligent implements NodeProvider {
       nodeProvider: this,
     );
     if (level != null) {
-      return LeveledTask(task: task, level: level);
+      return LeveledTask(
+        task: task,
+        level: level,
+        childrenCount: childrenCount,
+      );
     }
     return task;
   }
@@ -356,42 +360,70 @@ class Diligent implements NodeProvider {
                 subtree.lvl+1 DESC,
                 tasks.position
             )
-          SELECT * FROM subtree
+          SELECT
+            subtree.*,
+            (
+              SELECT count(id)
+              FROM tasks
+              WHERE parentId = subtree.id
+            ) AS childrenCount
+          FROM subtree
         ''',
       ),
       [id],
     );
     return rows
-        .map((row) => _taskFromRow(row, level: row['lvl'] as int))
+        .map((row) => _taskFromRow(
+              row,
+              level: row['lvl'] as int,
+              childrenCount: row['childrenCount'] as int,
+            ))
         .toList();
   }
 
   Future<TaskList> expandedDescendantsTree(Task task) async {
     final id = task.id;
-    final rows = await db.getAll('''
-      WITH RECURSIVE
-        subtree(lvl, ${_commaFields(_allTaskFields)}) AS (
+    final rows = await db.getAll(
+      _cachedQuery(
+        'expandedDescendantsTree',
+        '''
+          WITH RECURSIVE
+            subtree(lvl, ${_commaFields(_allTaskFields)}) AS (
+              SELECT
+                0 AS lvl,
+                ${_commaFields(_allTaskFields, prefix: 'tasks')}
+              FROM tasks
+              WHERE tasks.parentId = ?
+            UNION ALL
+              SELECT
+                subtree.lvl + 1,
+                ${_commaFields(_allTaskFields, prefix: 'tasks')}
+              FROM
+                subtree
+                JOIN tasks ON tasks.parentId = subtree.id
+              WHERE subtree.expanded = 1
+              ORDER BY
+                subtree.lvl+1 DESC,
+                tasks.position
+            )
           SELECT
-            0 AS lvl,
-            ${_commaFields(_allTaskFields, prefix: 'tasks')}
-          FROM tasks
-          WHERE tasks.parentId = ?
-        UNION ALL
-          SELECT
-            subtree.lvl + 1,
-            ${_commaFields(_allTaskFields, prefix: 'tasks')}
-          FROM
-            subtree
-            JOIN tasks ON tasks.parentId = subtree.id
-          WHERE subtree.expanded = 1
-          ORDER BY
-            subtree.lvl+1 DESC,
-            tasks.position
-        )
-      SELECT * FROM subtree
-    ''', [id]);
+            subtree.*,
+            (
+              SELECT count(id)
+              FROM tasks
+              WHERE parentId = subtree.id
+            ) AS childrenCount
+          FROM subtree
+        ''',
+      ),
+      [id],
+    );
     return rows
-        .map((row) => _taskFromRow(row, level: row['lvl'] as int))
+        .map((row) => _taskFromRow(
+              row,
+              level: row['lvl'] as int,
+              childrenCount: row['childrenCount'] as int,
+            ))
         .toList();
   }
 }

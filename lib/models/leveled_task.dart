@@ -7,10 +7,12 @@ class LeveledTask implements Task, DecoratedTask {
   @override
   final Task task;
   final int level;
+  final int childrenCount;
 
   const LeveledTask({
     required this.task,
     required this.level,
+    required this.childrenCount,
   });
 
   @override
@@ -61,6 +63,7 @@ class LeveledTask implements Task, DecoratedTask {
         uid: uid,
       ),
       level: level,
+      childrenCount: childrenCount,
     );
   }
 }

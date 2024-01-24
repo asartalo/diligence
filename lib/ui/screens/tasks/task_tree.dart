@@ -37,6 +37,7 @@ class TaskTree extends StatelessWidget {
             onRequestTask: onRequestTask,
             onToggleExpandTask: onToggleExpandTask,
             level: task is LeveledTask ? task.level : 0,
+            childrenCount: task is LeveledTask ? task.childrenCount : 0,
           ),
         );
       },
