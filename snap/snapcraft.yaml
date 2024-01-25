@@ -1,0 +1,30 @@
+name: diligence
+version: 0.1.0
+summary: Diligence
+description: |
+  Diligence is a tree-based task management app that lets you breakdown tasks to
+  actionable tasks lessening overwhelm and minimal next view to keep you on track.
+
+confinement: strict
+base: core22
+grade: stable
+
+slots:
+  dbus-diligence:
+    interface: dbus
+    bus: session
+    name: com.brainchildprojects.diligence
+
+apps:
+  diligence:
+    command: diligence
+    extensions: [gnome] # gnome includes the libraries required by flutter
+    plugs:
+    - network
+    slots:
+      - dbus-diligence
+parts:
+  diligence:
+    source: .
+    plugin: flutter
+    flutter-target: lib/main.dart # The main entry-point file of the application
