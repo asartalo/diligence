@@ -223,7 +223,12 @@ class Diligent implements NodeProvider {
     );
   }
 
-  Task _taskFromRow(Row row, {int? level, int childrenCount = 0}) {
+  Task _taskFromRow(
+    Row row, {
+    int? level,
+    int childrenCount = 0,
+    int position = 0,
+  }) {
     final task = ProvidedTask(
       id: row['id'] as int,
       name: row['name'] as String,
@@ -239,16 +244,76 @@ class Diligent implements NodeProvider {
         task: task,
         level: level,
         childrenCount: childrenCount,
+        position: position,
       );
     }
     return task;
   }
 
   Future<void> deleteTask(Task task) async {
-    await db.execute('DELETE FROM tasks WHERE id = ?', [task.id]);
+    // TODO: Wrap the following in a transaction when https://github.com/powersync-ja/sqlite_async.dart/issues/24 is resolved
+    await db.execute(
+      'DELETE FROM tasks WHERE id = ?',
+      [task.id],
+    );
+    await _reorderChildren(db, task.parentId);
   }
 
-  Future<void> moveTask(Task task, int position) async {
+  Future<void> _reorderChildren(SqliteWriteContext tx, int? parentId) async {
+    await tx.execute(
+      '''
+        UPDATE tasks
+        SET position = p.newPosition
+        FROM (
+          SELECT id, position,
+            (row_number() OVER (ORDER BY position) - 1) AS newPosition
+          FROM tasks
+          WHERE parentId = ?
+          ORDER BY position
+        ) AS p
+        WHERE p.id = tasks.id
+        AND parentId = ?
+      ''',
+      [parentId, parentId],
+    );
+  }
+
+  Future<void> moveTask(Task task, int position, {Task? parent}) async {
+    if (parent is Task) {
+      await _moveTaskToAnotherParent(task, parent, position);
+    } else {
+      await _moveTaskWithinSiblings(task, position);
+    }
+  }
+
+  Future<void> _moveTaskToAnotherParent(
+    Task task,
+    Task parent,
+    int position,
+  ) async {
+    await db.writeTransaction((tx) async {
+      await tx.execute(
+        '''
+        UPDATE tasks
+        SET position = position + 1
+        WHERE parentId = ? AND position >= ?
+        ''',
+        [parent.id, position],
+      );
+      await tx.execute(
+        '''
+        UPDATE tasks
+        SET parentId = ?, position = ?
+        WHERE id = ?
+        ''',
+        [parent.id, position, task.id],
+      );
+
+      _reorderChildren(tx, task.parentId);
+    });
+  }
+
+  Future<void> _moveTaskWithinSiblings(Task task, int position) async {
     await db.writeTransaction((tx) async {
       final (oldPosition, count) = await _getTaskPositionInfo(task, tx);
       final actualPosition = max(min(count - 1, position), 0);
@@ -377,6 +442,7 @@ class Diligent implements NodeProvider {
               row,
               level: row['lvl'] as int,
               childrenCount: row['childrenCount'] as int,
+              position: row['position'] as int,
             ))
         .toList();
   }
@@ -423,6 +489,7 @@ class Diligent implements NodeProvider {
               row,
               level: row['lvl'] as int,
               childrenCount: row['childrenCount'] as int,
+              position: row['position'] as int,
             ))
         .toList();
   }

@@ -42,9 +42,7 @@ class TaskTree extends StatelessWidget {
         );
       },
       itemCount: tasks.length,
-      onReorder: (oldIndex, newIndex) async {
-        onReorder(oldIndex, oldIndex > newIndex ? newIndex : newIndex - 1);
-      },
+      onReorder: onReorder,
     );
   }
 }

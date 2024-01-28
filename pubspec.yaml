@@ -40,7 +40,7 @@ dependencies:
   path: any # any until we resolve integration_test upgrade
   provider: ^6.1.1
   sqlite3_flutter_libs: ^0.5.18
-  sqlite_async: ^0.5.2
+  sqlite_async: ^0.6.0
   uuid: ^4.3.3
 
 dev_dependencies:

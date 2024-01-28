@@ -1,6 +1,9 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 import '../../../models/commands/commands.dart';
+import '../../../models/leveled_task.dart';
 import '../../../models/new_task.dart';
 import '../../../models/task.dart';
 import '../../../services/diligent.dart';
@@ -90,13 +93,38 @@ class _TasksPageState extends State<TasksPage> {
           });
         },
         onReorder: (oldIndex, newIndex) async {
+          int position = newIndex;
+          late int? parentId;
+          late LeveledTask referenceTask;
+          if (newIndex > _tasks.length - 1) {
+            referenceTask = _tasks[newIndex - 1] as LeveledTask;
+            position = referenceTask.position + 1;
+            parentId = referenceTask.parentId;
+          } else {
+            referenceTask = _tasks[newIndex] as LeveledTask;
+            parentId = referenceTask.parentId;
+            position = referenceTask.position;
+          }
           final task = _tasks.removeAt(oldIndex);
           setState(() {
             // Let's move the element inline so we don't see a flicker
-            _tasks.insert(newIndex, task);
+            _tasks.insert(
+              max(0, oldIndex > newIndex ? newIndex : newIndex - 1),
+              task,
+            );
           });
-          await diligent.moveTask(task, newIndex);
-          updateTaskTree();
+
+          if (parentId != null) {
+            final parent = await diligent.findTask(parentId);
+            if (task is LeveledTask) {
+              await diligent.moveTask(
+                task,
+                position,
+                parent: parent,
+              );
+              updateTaskTree();
+            }
+          }
         },
         onRequestTask: (task) async {
           final command = await TaskDialog.open(context, task);

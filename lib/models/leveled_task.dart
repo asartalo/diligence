@@ -8,11 +8,13 @@ class LeveledTask implements Task, DecoratedTask {
   final Task task;
   final int level;
   final int childrenCount;
+  final int position;
 
   const LeveledTask({
     required this.task,
     required this.level,
     required this.childrenCount,
+    required this.position,
   });
 
   @override
@@ -64,6 +66,7 @@ class LeveledTask implements Task, DecoratedTask {
       ),
       level: level,
       childrenCount: childrenCount,
+      position: position,
     );
   }
 }
