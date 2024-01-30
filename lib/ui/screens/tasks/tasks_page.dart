@@ -24,6 +24,8 @@ class _TasksPageState extends State<TasksPage> {
   late List<Task> _tasks;
   late Task _root;
 
+  Diligent get diligent => widget.diligent;
+
   @override
   void initState() {
     super.initState();
@@ -37,12 +39,12 @@ class _TasksPageState extends State<TasksPage> {
   }
 
   Future<void> populateTasks() async {
-    final root = await widget.diligent.findTask(1);
+    final root = await diligent.findTask(1);
     // TODO: Find a way to guarantee root task is always present.
     if (root == null) {
       throw Exception('Root task not found');
     }
-    final tasks = await widget.diligent.expandedDescendantsTree(root);
+    final tasks = await diligent.expandedDescendantsTree(root);
     updateTasks(tasks, root: root);
   }
 
@@ -57,14 +59,13 @@ class _TasksPageState extends State<TasksPage> {
 
   Future<void> updateTaskTree({Task? root}) async {
     updateTasks(
-      await widget.diligent.expandedDescendantsTree(root ?? _root),
+      await diligent.expandedDescendantsTree(root ?? _root),
       root: root,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final diligent = widget.diligent;
     return CommonScreen(
       title: 'Tasks',
       floatingActionButton: FloatingActionButton(
@@ -129,7 +130,10 @@ class _TasksPageState extends State<TasksPage> {
         onRequestTask: (task) async {
           final command = await TaskDialog.open(context, task);
           if (command is NewTaskCommand) {
-            await diligent.addTask(command.payload);
+            final addedTask = await diligent.addTask(command.payload);
+            if (addedTask is Task) {
+              await _expandParent(addedTask);
+            }
             await updateTaskTree();
           } else if (command is UpdateTaskCommand) {
             await diligent.updateTask(command.payload);
@@ -140,10 +144,25 @@ class _TasksPageState extends State<TasksPage> {
           }
         },
         onToggleExpandTask: (task) async {
-          await diligent.updateTask(task.copyWith(expanded: !task.expanded));
+          await _expandTask(task, expanded: !task.expanded);
           await updateTaskTree();
         },
       ),
     );
+  }
+
+  Future<void> _expandTask(Task task, {bool expanded = true}) async {
+    await diligent.updateTask(task.copyWith(expanded: expanded));
+  }
+
+  Future<void> _expandParent(Task task) async {
+    final parentId = task.parentId;
+    if (parentId is int) {
+      final parent = await diligent.findTask(parentId);
+      final expanded = parent!.expanded;
+      if (!expanded) {
+        await _expandTask(parent);
+      }
+    }
   }
 }
