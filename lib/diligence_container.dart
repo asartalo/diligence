@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart' as dot_env;
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
@@ -46,7 +48,10 @@ class DiligenceContainer {
   }) async {
     await dot_env.load(fileName: envFile);
     final config = DiligenceConfig.fromEnv(dot_env.env);
-    final diligent = test ? Diligent.forTests() : Diligent();
+    final directory = await getApplicationDocumentsDirectory();
+    final diligent = test
+        ? Diligent.forTests()
+        : Diligent(path: path.join(directory.path, 'diligence.db'));
     await diligent.runMigrations();
     await diligent.initialAreas(initialAreas);
     return DiligenceContainer(

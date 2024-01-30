@@ -37,7 +37,8 @@ dependencies:
       url: https://github.com/asartalo/flutter_dotenv.git
   flutter_markdown: ^0.6.10+2
   meta: any
-  path: any # any until we resolve integration_test upgrade
+  path: ^1.8.3 # any until we resolve integration_test upgrade
+  path_provider: ^2.1.2
   provider: ^6.1.1
   sqlite3_flutter_libs: ^0.5.18
   sqlite_async: ^0.6.0
@@ -51,10 +52,7 @@ dev_dependencies:
     sdk: flutter
   flutter_test:
     sdk: flutter
-  git_hooks:
-    git:
-      url: https://github.com/asartalo/git_hooks.git
-      ref: null-safety-2
+  git_hooks: ^1.0.1
   integration_test:
     sdk: flutter
   lint: ^2.3.0
