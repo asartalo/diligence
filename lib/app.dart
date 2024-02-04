@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'diligence_container.dart';
 import 'services/diligent.dart';
+import 'ui/screens/focus/focus_page.dart';
 import 'ui/screens/home/home_page.dart';
 import 'ui/screens/review/review_page.dart';
 import 'ui/screens/tasks/tasks_page.dart';
@@ -29,6 +30,7 @@ class DiligenceApp extends StatelessWidget {
           '/tasks': (context) =>
               TasksPage(diligent: Provider.of<Diligent>(context)),
           '/review': (context) => const ReviewPage(title: 'Diligence'),
+          '/focus': (context) => const FocusPage(),
         },
       ),
     );

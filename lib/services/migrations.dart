@@ -12,4 +12,11 @@ const migrationQueries = [
     FOREIGN KEY (parentId) REFERENCES tasks(id)
   )
   ''',
+  '''
+  CREATE TABLE IF NOT EXISTS focusQueue (
+    taskId INTEGER PRIMARY KEY,
+    position INTEGER NOT NULL DEFAULT 0,
+    FOREIGN KEY (taskId) REFERENCES tasks(id)
+  )
+  ''',
 ];

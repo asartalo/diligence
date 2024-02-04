@@ -70,85 +70,59 @@ class _TasksPageState extends State<TasksPage> {
       title: 'Tasks',
       floatingActionButton: FloatingActionButton(
         key: keys.addTaskFloatingButton,
-        onPressed: () async {
-          final command =
-              await TaskDialog.open(context, NewTask(parent: _root));
-          if (command is NewTaskCommand) {
-            final newTask = command.payload;
-            await diligent.addTask(newTask);
-            await updateTaskTree();
-          }
-        },
+        onPressed: _handleAddTaskFloatingButtonPressed,
         tooltip: 'Add Task',
         child: const Icon(Icons.add),
       ),
       child: TaskTree(
         tasks: _tasks,
-        onUpdateTask: (task, index) async {
-          setState(() {
-            _tasks[index] = task;
-          });
-          await diligent.updateTask(task);
-          setState(() {
-            _tasks[index] = task;
-          });
-        },
-        onReorder: (oldIndex, newIndex) async {
-          int position = newIndex;
-          late int? parentId;
-          late LeveledTask referenceTask;
-          if (newIndex > _tasks.length - 1) {
-            referenceTask = _tasks[newIndex - 1] as LeveledTask;
-            position = referenceTask.position + 1;
-            parentId = referenceTask.parentId;
-          } else {
-            referenceTask = _tasks[newIndex] as LeveledTask;
-            parentId = referenceTask.parentId;
-            position = referenceTask.position;
-          }
-          final task = _tasks.removeAt(oldIndex);
-          setState(() {
-            // Let's move the element inline so we don't see a flicker
-            _tasks.insert(
-              max(0, oldIndex > newIndex ? newIndex : newIndex - 1),
-              task,
-            );
-          });
-
-          if (parentId != null) {
-            final parent = await diligent.findTask(parentId);
-            if (task is LeveledTask) {
-              await diligent.moveTask(
-                task,
-                position,
-                parent: parent,
-              );
-              updateTaskTree();
-            }
-          }
-        },
-        onRequestTask: (task) async {
-          final command = await TaskDialog.open(context, task);
-          if (command is NewTaskCommand) {
-            final addedTask = await diligent.addTask(command.payload);
-            if (addedTask is Task) {
-              await _expandParent(addedTask);
-            }
-            await updateTaskTree();
-          } else if (command is UpdateTaskCommand) {
-            await diligent.updateTask(command.payload);
-            await updateTaskTree();
-          } else if (command is DeleteTaskCommand) {
-            await diligent.deleteTask(command.payload);
-            await updateTaskTree();
-          }
-        },
-        onToggleExpandTask: (task) async {
-          await _expandTask(task, expanded: !task.expanded);
-          await updateTaskTree();
-        },
+        onUpdateTask: _handleUpdateTask,
+        onReorder: _handleReorder,
+        onRequestTask: _handleRequestTask,
+        onToggleExpandTask: _handleToggleExpandTask,
       ),
     );
+  }
+
+  Future<void> _handleAddTaskFloatingButtonPressed() async {
+    final command = await TaskDialog.open(context, NewTask(parent: _root));
+    if (command is NewTaskCommand) {
+      final newTask = command.payload;
+      await diligent.addTask(newTask);
+      await updateTaskTree();
+    }
+  }
+
+  Future<void> _handleToggleExpandTask(Task task) async {
+    await _expandTask(task, expanded: !task.expanded);
+    await updateTaskTree();
+  }
+
+  Future<void> _handleRequestTask(Task task) async {
+    final command = await TaskDialog.open(context, task);
+    if (command is NewTaskCommand) {
+      final addedTask = await diligent.addTask(command.payload);
+      if (addedTask is Task) {
+        await _expandParent(addedTask);
+      }
+      await updateTaskTree();
+    } else if (command is UpdateTaskCommand) {
+      await diligent.updateTask(command.payload);
+      await updateTaskTree();
+    } else if (command is DeleteTaskCommand) {
+      await diligent.deleteTask(command.payload);
+      await updateTaskTree();
+    }
+  }
+
+  Future<void> _handleUpdateTask(Task task, int index) async {
+    setState(() {
+      _tasks[index] = task;
+    });
+    await diligent.updateTask(task);
+    setState(() {
+      _tasks[index] = task;
+    });
   }
 
   Future<void> _expandTask(Task task, {bool expanded = true}) async {
@@ -162,6 +136,41 @@ class _TasksPageState extends State<TasksPage> {
       final expanded = parent!.expanded;
       if (!expanded) {
         await _expandTask(parent);
+      }
+    }
+  }
+
+  Future<void> _handleReorder(int oldIndex, int newIndex) async {
+    int position = newIndex;
+    late int? parentId;
+    late LeveledTask referenceTask;
+    if (newIndex > _tasks.length - 1) {
+      referenceTask = _tasks[newIndex - 1] as LeveledTask;
+      position = referenceTask.position + 1;
+      parentId = referenceTask.parentId;
+    } else {
+      referenceTask = _tasks[newIndex] as LeveledTask;
+      parentId = referenceTask.parentId;
+      position = referenceTask.position;
+    }
+    final task = _tasks.removeAt(oldIndex);
+    setState(() {
+      // Let's move the element inline so we don't see a flicker
+      _tasks.insert(
+        max(0, oldIndex > newIndex ? newIndex : newIndex - 1),
+        task,
+      );
+    });
+
+    if (parentId != null) {
+      final parent = await diligent.findTask(parentId);
+      if (task is LeveledTask) {
+        await diligent.moveTask(
+          task,
+          position,
+          parent: parent,
+        );
+        updateTaskTree();
       }
     }
   }

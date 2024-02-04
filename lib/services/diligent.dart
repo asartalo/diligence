@@ -68,25 +68,23 @@ String _commaFields(List<String> fields, {String? prefix}) {
       .join(', ');
 }
 
+// Define a map for task fields
+final taskFieldMap = {
+  'id': (Task task) => task.id.toString(),
+  'uid': (Task task) => task.uid,
+  'name': (Task task) => task.name,
+  'details': (Task task) => task.details,
+  'parentId': (Task task) => task.parentId,
+  'done': (Task task) => task.done ? 1 : 0,
+  'expanded': (Task task) => task.expanded ? 1 : 0,
+};
+
 Object? _propFromTaskField(String field, Task task) {
-  switch (field) {
-    case 'id':
-      return task.id.toString();
-    case 'uid':
-      return task.uid;
-    case 'name':
-      return task.name;
-    case 'details':
-      return task.details;
-    case 'parentId':
-      return task.parentId;
-    case 'done':
-      return task.done ? 1 : 0;
-    case 'expanded':
-      return task.expanded ? 1 : 0;
-    default:
-      throw Exception('Unknown field: $field');
+  final mapping = taskFieldMap[field];
+  if (mapping == null) {
+    throw Exception('Unknown field: $field');
   }
+  return mapping(task);
 }
 
 List<Object?> _propsFromTaskFields(List<String> fields, Task task) {
@@ -132,7 +130,10 @@ class Diligent implements NodeProvider {
   Future<void> runMigrations() async => migrations.migrate(db);
 
   Future<void> clearDataForTests() async {
-    if (_isTest) db.execute('DELETE FROM tasks');
+    if (_isTest) {
+      await db.execute('DELETE FROM focusQueue');
+      await db.execute('DELETE FROM tasks');
+    }
   }
 
   Future<Task?> addTask(Task task, {int? position}) async {
@@ -204,7 +205,16 @@ class Diligent implements NodeProvider {
   }
 
   Future<void> updateTask(Task task) async {
-    await db.execute(
+    await db.writeTransaction((tx) async {
+      await _updateTask(task, tx);
+      if (task.done) {
+        await _unfocus(task, tx);
+      }
+    });
+  }
+
+  Future<void> _updateTask(Task task, SqliteWriteContext tx) async {
+    await tx.execute(
       _cachedQuery(
         'updateTask',
         '''
@@ -251,6 +261,7 @@ class Diligent implements NodeProvider {
   }
 
   Future<void> deleteTask(Task task) async {
+    // await unfocus(task);
     // TODO: Wrap the following in a transaction when https://github.com/powersync-ja/sqlite_async.dart/issues/24 is resolved
     await db.execute(
       'DELETE FROM tasks WHERE id = ?',
@@ -492,5 +503,138 @@ class Diligent implements NodeProvider {
               position: row['position'] as int,
             ))
         .toList();
+  }
+
+  Future<TaskList> leaves(Task task) {
+    return _leaves(task, db);
+  }
+
+  Future<TaskList> _leaves(Task task, SqliteReadContext tx) async {
+    final id = task.id;
+    final rows = await tx.getAll(
+      _cachedQuery(
+        'leaves',
+        '''
+          WITH RECURSIVE
+            subtree(lvl, ${_commaFields(_allTaskFields)}) AS (
+              SELECT
+                0 AS lvl,
+                ${_commaFields(_allTaskFields, prefix: 'tasks')}
+              FROM tasks
+              WHERE tasks.parentId = ?
+            UNION ALL
+              SELECT
+                subtree.lvl + 1,
+                ${_commaFields(_allTaskFields, prefix: 'tasks')}
+              FROM
+                subtree
+                JOIN tasks ON tasks.parentId = subtree.id
+              ORDER BY
+                subtree.lvl+1 DESC,
+                tasks.position
+            )
+          SELECT
+            subtree.*,
+            (
+              SELECT count(id)
+              FROM tasks
+              WHERE parentId = subtree.id
+            ) AS childrenCount
+          FROM subtree
+          WHERE childrenCount = 0
+        ''',
+      ),
+      [id],
+    );
+    return rows.map((row) => _taskFromRow(row)).toList();
+  }
+
+  Future<TaskList> focusQueue() async {
+    final rows = await db.getAll(
+      '''
+      SELECT tasks.*, focusQueue.position
+      FROM tasks
+      JOIN focusQueue ON focusQueue.taskId = tasks.id
+      ORDER BY focusQueue.position DESC
+      ''',
+    );
+    return rows.map((row) => _taskFromRow(row)).toList();
+  }
+
+  Future<void> focus(Task task, {int position = 0}) async {
+    await db.writeTransaction((tx) async {
+      final taskLeaves = await _leaves(task, tx);
+      final toAdd = taskLeaves.isEmpty ? [task] : taskLeaves;
+
+      if (position == 0) {
+        await tx.executeBatch(
+          '''
+          INSERT INTO focusQueue (taskId, position) VALUES (?, (
+            SELECT COALESCE(MAX(position) + 1, 0) FROM focusQueue
+          ))
+          ''',
+          toAdd.reversed.map((task) => [task.id]).toList(),
+        );
+      } else {
+        final lengthResult = await tx.get(
+          'SELECT count(taskId) as length FROM focusQueue',
+        );
+        final length = lengthResult['length'] as int;
+        final realPosition = length - position;
+        await tx.execute(
+          '''
+          UPDATE focusQueue
+          SET position = position + ?
+          WHERE position >= ?
+          ''',
+          [toAdd.length + 1, realPosition],
+        );
+        await tx.executeBatch(
+          '''
+          INSERT INTO focusQueue (taskId, position) VALUES (?, ?)
+          ''',
+          toAdd.reversed.indexed.map((item) {
+            final (index, task) = item;
+            return [task.id, realPosition + index];
+          }).toList(),
+        );
+      }
+    });
+  }
+
+  Future<bool> _isFocused(Task task, SqliteReadContext tx) async {
+    final result = await tx.get(
+      'SELECT taskId FROM focusQueue WHERE taskId = ?',
+      [task.id],
+    );
+    return result.isNotEmpty;
+  }
+
+  Future<void> unfocus(Task task) async {
+    await db.writeTransaction((tx) async {
+      await _unfocus(task, tx);
+    });
+  }
+
+  Future<void> _unfocus(Task task, SqliteWriteContext tx) async {
+    if (!await _isFocused(task, tx)) {
+      return;
+    }
+    await tx.execute(
+      '''
+      UPDATE focusQueue
+      SET position = position - 1
+      WHERE position > (
+        SELECT position FROM focusQueue WHERE taskId = ?
+      )
+      ''',
+      [task.id],
+    );
+    await tx.execute(
+      '''
+      DELETE FROM focusQueue WHERE taskId = ?
+      ''',
+      [task.id],
+    );
   }
 }

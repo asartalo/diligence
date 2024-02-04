@@ -62,7 +62,7 @@ void main() {
         final task = await diligent.addTask(
           NewTask(name: 'Foo', parent: parentTask),
         );
-        diligent.deleteTask(task!);
+        await diligent.deleteTask(task!);
         final tasks = await diligent.subtreeFlat(parentTask!.id);
         expect((tasks.first as LeveledTask).childrenCount, equals(0));
       });
@@ -203,7 +203,7 @@ void main() {
           final oldSiblings = await oldParent.children;
           expect(
             taskNames(oldSiblings),
-            equals(['B1 - leaf', 'B3']),
+            equals(['B1 - leaf', 'B3 - leaf']),
           );
         });
 
@@ -260,6 +260,151 @@ void main() {
           ]),
         );
       });
+    });
+
+    group('Focus Queue', () {
+      late Map<String, Task> setupResult;
+
+      setUp(() async {
+        setupResult = await testTreeSetup(diligent);
+      });
+
+      Future<void> focusItems(List<String> tasksNames) async {
+        for (final taskName in tasksNames) {
+          await diligent.focus(setupResult[taskName]!);
+        }
+      }
+
+      test('it has no focusQueue by default', () async {
+        final queue = await diligent.focusQueue();
+        expect(queue, isEmpty);
+      });
+
+      test('it can add a task to focusQueue', () async {
+        final task = setupResult['A1i - leaf']!;
+        await diligent.focus(task);
+        final queue = await diligent.focusQueue();
+        expect(queue.first.id, equals(task.id));
+      });
+
+      test('it automatically adds new task first on queue', () async {
+        await focusItems(['A1i - leaf', 'A2 - leaf', 'B1 - leaf']);
+        final queue = await diligent.focusQueue();
+        expect(
+          taskNames(queue),
+          equals([
+            'B1 - leaf',
+            'A2 - leaf',
+            'A1i - leaf',
+          ]),
+        );
+      });
+
+      test('it can add a new task to queue on a specific position', () async {
+        await focusItems(['A1i - leaf', 'A2 - leaf', 'B1 - leaf']);
+        await diligent.focus(setupResult['C - leaf']!, position: 1);
+        expect(
+          taskNames(await diligent.focusQueue()),
+          equals([
+            'B1 - leaf',
+            'C - leaf',
+            'A2 - leaf',
+            'A1i - leaf',
+          ]),
+        );
+      });
+
+      test('it can remove a task from focusQueue', () async {
+        await focusItems(['A1i - leaf', 'A2 - leaf', 'B1 - leaf']);
+        await diligent.focus(setupResult['C - leaf']!, position: 1);
+        await diligent.unfocus(setupResult['A2 - leaf']!);
+        expect(
+          taskNames(await diligent.focusQueue()),
+          equals([
+            'B1 - leaf',
+            'C - leaf',
+            'A1i - leaf',
+          ]),
+        );
+      });
+
+      test(
+          'when adding an ancestor task, it adds its descendant leaf tasks to the queue',
+          () async {
+        await diligent.focus(setupResult['A1i - leaf']!);
+        await diligent.focus(setupResult['B']!);
+        expect(
+          taskNames(await diligent.focusQueue()),
+          equals([
+            'B1 - leaf',
+            'B2i - leaf',
+            'B2ii - leaf',
+            'B2iii - leaf',
+            'B3 - leaf',
+            'A1i - leaf',
+          ]),
+        );
+      });
+
+      test(
+          'when adding an ancestor task with position, it adds its descendant leaf tasks to the queue on that position',
+          () async {
+        await focusItems(['A1i - leaf', 'C - leaf']);
+        await diligent.focus(setupResult['B']!, position: 1);
+        expect(
+          taskNames(await diligent.focusQueue()),
+          equals([
+            'C - leaf',
+            'B1 - leaf',
+            'B2i - leaf',
+            'B2ii - leaf',
+            'B2iii - leaf',
+            'B3 - leaf',
+            'A1i - leaf',
+          ]),
+        );
+      });
+
+      test('when a task is deleted, it is also unfocused', () async {
+        final task = setupResult['C - leaf']!;
+        await diligent.focus(setupResult['A1i - leaf']!);
+        await diligent.focus(task);
+        await diligent.deleteTask(task);
+        expect(
+          taskNames(await diligent.focusQueue()),
+          equals([
+            'A1i - leaf',
+          ]),
+        );
+      });
+
+      test('when a task is marked as done, it is also unfocused', () async {
+        final task = setupResult['C - leaf']!;
+        await diligent.focus(setupResult['A1i - leaf']!);
+        await diligent.focus(task);
+        await diligent.updateTask(task.copyWith(done: true));
+        expect(
+          taskNames(await diligent.focusQueue()),
+          equals([
+            'A1i - leaf',
+          ]),
+        );
+      });
+    });
+
+    test('it can find all leaves on a subtree', () async {
+      final Map<String, Task> setupResult = await testTreeSetup(diligent);
+      final leaves = await diligent.leaves(setupResult['A']!);
+      expect(
+        taskNames(leaves),
+        equals([
+          'A1i - leaf',
+          'A1ii - leaf',
+          'A1iii - leaf',
+          'A2 - leaf',
+          'A3 - leaf',
+        ]),
+      );
     });
 
     test('it can update a task', () async {
@@ -332,8 +477,8 @@ void main() {
               'B',
               'B1 - leaf',
               'B2',
-              'B3',
-              'C',
+              'B3 - leaf',
+              'C - leaf',
             ],
           ),
         );
@@ -349,23 +494,28 @@ Future<Map<String, Task>> testTreeSetup(Diligent diligent) async {
     NewTask(name: 'A', parent: root, expanded: true),
   );
   final a1 = await diligent.addTask(NewTask(name: 'A1', parent: a));
-  await diligent.addTask(NewTask(name: 'A2 - leaf', parent: a));
+  final a2 = await diligent.addTask(NewTask(name: 'A2 - leaf', parent: a));
   await diligent.addTask(NewTask(name: 'A1ii - leaf', parent: a1));
   await diligent.addTask(NewTask(name: 'A3 - leaf', parent: a));
   await diligent.addTask(NewTask(name: 'A1iii - leaf', parent: a1));
-  await diligent.addTask(NewTask(name: 'A1i - leaf', parent: a1), position: 0);
+  final a1ILeaf = await diligent.addTask(
+    NewTask(name: 'A1i - leaf', parent: a1),
+    position: 0,
+  );
 
-  final c = await diligent.addTask(NewTask(name: 'C', parent: root));
+  final c = await diligent.addTask(NewTask(name: 'C - leaf', parent: root));
 
   final b = await diligent.addTask(
     NewTask(name: 'B', parent: root, expanded: true),
     position: 1,
   );
-  await diligent.addTask(NewTask(name: 'B1 - leaf', parent: b, expanded: true));
+  final b1Leaf = await diligent.addTask(
+    NewTask(name: 'B1 - leaf', parent: b, expanded: true),
+  );
   final b2 = await diligent.addTask(NewTask(name: 'B2', parent: b));
   await diligent.addTask(NewTask(name: 'B2i - leaf', parent: b2));
   await diligent.addTask(NewTask(name: 'B2ii - leaf', parent: b2));
-  await diligent.addTask(NewTask(name: 'B3', parent: b));
+  await diligent.addTask(NewTask(name: 'B3 - leaf', parent: b));
   await diligent.addTask(NewTask(name: 'B2iii - leaf', parent: b2));
 
   result['Root'] = root!;
@@ -373,7 +523,10 @@ Future<Map<String, Task>> testTreeSetup(Diligent diligent) async {
   result['A1'] = a1!;
   result['B'] = b!;
   result['B2'] = b2!;
-  result['C'] = c!;
+  result['C - leaf'] = c!;
+  result['A2 - leaf'] = a2!;
+  result['A1i - leaf'] = a1ILeaf!;
+  result['B1 - leaf'] = b1Leaf!;
 
   return result;
 }
