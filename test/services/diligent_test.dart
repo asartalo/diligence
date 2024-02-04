@@ -53,7 +53,7 @@ void main() {
 
       test('can delete a task', () async {
         final task = await diligent.addTask(NewTask(name: 'Foo'));
-        diligent.deleteTask(task!);
+        await diligent.deleteTask(task!);
         expect(await diligent.findTask(task.id), isNull);
       });
 
