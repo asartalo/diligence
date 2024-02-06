@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../models/commands/commands.dart';
+import '../../../models/commands/focus_task_command.dart';
 import '../../../models/decorated_task.dart';
 import '../../../models/new_task.dart';
 import '../../../models/provided_task.dart';
@@ -88,6 +89,11 @@ class _TaskDialogState extends State<TaskDialog> {
             child: const Text('DELETE'),
           ),
           FilledButton(
+            key: keys.focusTaskButton,
+            onPressed: _handleFocusTask,
+            child: const Text('FOCUS'),
+          ),
+          FilledButton(
             key: keys.saveTaskButton,
             onPressed: () => submit(),
             child: const Text('SAVE'),
@@ -95,6 +101,10 @@ class _TaskDialogState extends State<TaskDialog> {
         ],
       ),
     );
+  }
+
+  void _handleFocusTask() {
+    Navigator.of(context).pop<Command>(FocusTaskCommand(payload: _trueTask));
   }
 
   void submit() {

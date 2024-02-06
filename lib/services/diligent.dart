@@ -208,7 +208,7 @@ class Diligent implements NodeProvider {
     await db.writeTransaction((tx) async {
       await _updateTask(task, tx);
       if (task.done) {
-        await _unfocus(task, tx);
+        await _unfocus([task], tx);
       }
     });
   }
@@ -261,13 +261,17 @@ class Diligent implements NodeProvider {
   }
 
   Future<void> deleteTask(Task task) async {
-    // await unfocus(task);
-    // TODO: Wrap the following in a transaction when https://github.com/powersync-ja/sqlite_async.dart/issues/24 is resolved
-    await db.execute(
-      'DELETE FROM tasks WHERE id = ?',
-      [task.id],
-    );
-    await _reorderChildren(db, task.parentId);
+    await db.writeTransaction((tx) async {
+      //
+      await tx.execute(
+        'DELETE FROM tasks WHERE id = ?',
+        [task.id],
+      );
+      await _reorderChildren(
+        tx,
+        task.parentId,
+      );
+    });
   }
 
   Future<void> _reorderChildren(SqliteWriteContext tx, int? parentId) async {
@@ -549,13 +553,14 @@ class Diligent implements NodeProvider {
     return rows.map((row) => _taskFromRow(row)).toList();
   }
 
-  Future<TaskList> focusQueue() async {
+  Future<TaskList> focusQueue({int? limit}) async {
     final rows = await db.getAll(
       '''
       SELECT tasks.*, focusQueue.position
       FROM tasks
       JOIN focusQueue ON focusQueue.taskId = tasks.id
       ORDER BY focusQueue.position DESC
+      ${limit != null && limit > 0 ? 'LIMIT $limit' : ''}
       ''',
     );
     return rows.map((row) => _taskFromRow(row)).toList();
@@ -565,6 +570,8 @@ class Diligent implements NodeProvider {
     await db.writeTransaction((tx) async {
       final taskLeaves = await _leaves(task, tx);
       final toAdd = taskLeaves.isEmpty ? [task] : taskLeaves;
+
+      await _unfocus(toAdd, tx);
 
       if (position == 0) {
         await tx.executeBatch(
@@ -612,29 +619,57 @@ class Diligent implements NodeProvider {
 
   Future<void> unfocus(Task task) async {
     await db.writeTransaction((tx) async {
-      await _unfocus(task, tx);
+      await _unfocus([task], tx);
     });
   }
 
-  Future<void> _unfocus(Task task, SqliteWriteContext tx) async {
-    if (!await _isFocused(task, tx)) {
-      return;
-    }
-    await tx.execute(
-      '''
-      UPDATE focusQueue
-      SET position = position - 1
-      WHERE position > (
-        SELECT position FROM focusQueue WHERE taskId = ?
-      )
-      ''',
-      [task.id],
-    );
-    await tx.execute(
+  Future<void> _unfocus(List<Task> tasks, SqliteWriteContext tx) async {
+    await tx.executeBatch(
       '''
       DELETE FROM focusQueue WHERE taskId = ?
       ''',
-      [task.id],
+      tasks.map((task) => [task.id]).toList(),
     );
+
+    await tx.execute(
+      // Reorder positions
+      '''
+      UPDATE focusQueue
+      SET position = p.newPosition
+      FROM (
+        SELECT taskId, position,
+          (row_number() OVER (ORDER BY position) - 1) AS newPosition
+        FROM focusQueue
+        ORDER BY position
+      ) AS p
+      WHERE p.taskId = focusQueue.taskId
+      ''',
+    );
+  }
+
+  Future<void> reprioritizeInFocusQueue(Task task, int position) async {
+    await db.writeTransaction((tx) async {
+      final lengthResult = await tx.get(
+        'SELECT count(taskId) as length FROM focusQueue',
+      );
+      final length = lengthResult['length'] as int;
+      final realPosition = length - position;
+      await tx.execute(
+        '''
+        UPDATE focusQueue
+        SET position = position + ?
+        WHERE position >= ?
+        ''',
+        [1, realPosition],
+      );
+      await tx.execute(
+        '''
+        UPDATE focusQueue
+        SET position = ?
+        WHERE taskId = ?
+        ''',
+        [realPosition, task.id],
+      );
+    });
   }
 }

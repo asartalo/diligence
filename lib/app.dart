@@ -29,8 +29,9 @@ class DiligenceApp extends StatelessWidget {
           '/': (context) => const HomePage(),
           '/tasks': (context) =>
               TasksPage(diligent: Provider.of<Diligent>(context)),
+          '/focus': (context) =>
+              FocusPage(diligent: Provider.of<Diligent>(context)),
           '/review': (context) => const ReviewPage(title: 'Diligence'),
-          '/focus': (context) => const FocusPage(),
         },
       ),
     );

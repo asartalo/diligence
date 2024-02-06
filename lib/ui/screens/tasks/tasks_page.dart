@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../../../models/commands/commands.dart';
+import '../../../models/commands/focus_task_command.dart';
 import '../../../models/leveled_task.dart';
 import '../../../models/new_task.dart';
 import '../../../models/task.dart';
@@ -112,6 +113,9 @@ class _TasksPageState extends State<TasksPage> {
     } else if (command is DeleteTaskCommand) {
       await diligent.deleteTask(command.payload);
       await updateTaskTree();
+    } else if (command is FocusTaskCommand) {
+      await diligent.focus(command.payload);
+      await updateTaskTree();
     }
   }
 
@@ -150,8 +154,8 @@ class _TasksPageState extends State<TasksPage> {
       parentId = referenceTask.parentId;
     } else {
       referenceTask = _tasks[newIndex] as LeveledTask;
-      parentId = referenceTask.parentId;
       position = referenceTask.position;
+      parentId = referenceTask.parentId;
     }
     final task = _tasks.removeAt(oldIndex);
     setState(() {

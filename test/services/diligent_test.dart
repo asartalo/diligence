@@ -91,7 +91,7 @@ void main() {
             .addTask(NewTask(name: 'Foo', parentId: parentTask.id));
         final children = await parentTask.children;
         expect(children.first.name, equals(task!.name));
-        expect((await task.parent)!.name, equals(parentTask.name));
+        expect((await diligent.getParent(task))!.name, equals(parentTask.name));
       });
 
       test('it appends new children to parent', () async {
@@ -378,7 +378,8 @@ void main() {
         );
       });
 
-      test('when a task is marked as done, it is also unfocused', () async {
+      test('when a task is marked as done, it is removed from the queue',
+          () async {
         final task = setupResult['C - leaf']!;
         await diligent.focus(setupResult['A1i - leaf']!);
         await diligent.focus(task);
@@ -387,6 +388,50 @@ void main() {
           taskNames(await diligent.focusQueue()),
           equals([
             'A1i - leaf',
+          ]),
+        );
+      });
+
+      test('when a task is focused again it is moved to the top of the queue',
+          () async {
+        final task = setupResult['C - leaf']!;
+        await diligent.focus(task);
+        await diligent.focus(setupResult['A1i - leaf']!);
+        await diligent.focus(task);
+        expect(
+          taskNames(await diligent.focusQueue()),
+          equals([
+            'C - leaf',
+            'A1i - leaf',
+          ]),
+        );
+      });
+
+      test('focusQueue can limit result', () async {
+        await focusItems(['B', 'C - leaf']);
+        expect(
+          taskNames(await diligent.focusQueue(limit: 3)),
+          equals([
+            'C - leaf',
+            'B1 - leaf',
+            'B2i - leaf',
+          ]),
+        );
+      });
+
+      test('a task can be reprioretized in the focus queue', () async {
+        await focusItems(['B', 'C - leaf']);
+        final task = setupResult['B2i - leaf']!;
+        await diligent.reprioritizeInFocusQueue(task, 1);
+        expect(
+          taskNames(await diligent.focusQueue()),
+          equals([
+            'C - leaf',
+            'B2i - leaf',
+            'B1 - leaf',
+            'B2ii - leaf',
+            'B2iii - leaf',
+            'B3 - leaf',
           ]),
         );
       });
@@ -513,7 +558,7 @@ Future<Map<String, Task>> testTreeSetup(Diligent diligent) async {
     NewTask(name: 'B1 - leaf', parent: b, expanded: true),
   );
   final b2 = await diligent.addTask(NewTask(name: 'B2', parent: b));
-  await diligent.addTask(NewTask(name: 'B2i - leaf', parent: b2));
+  final b2i = await diligent.addTask(NewTask(name: 'B2i - leaf', parent: b2));
   await diligent.addTask(NewTask(name: 'B2ii - leaf', parent: b2));
   await diligent.addTask(NewTask(name: 'B3 - leaf', parent: b));
   await diligent.addTask(NewTask(name: 'B2iii - leaf', parent: b2));
@@ -527,6 +572,7 @@ Future<Map<String, Task>> testTreeSetup(Diligent diligent) async {
   result['A2 - leaf'] = a2!;
   result['A1i - leaf'] = a1ILeaf!;
   result['B1 - leaf'] = b1Leaf!;
+  result['B2i - leaf'] = b2i!;
 
   return result;
 }
