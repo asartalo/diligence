@@ -609,14 +609,6 @@ class Diligent implements NodeProvider {
     });
   }
 
-  Future<bool> _isFocused(Task task, SqliteReadContext tx) async {
-    final result = await tx.get(
-      'SELECT taskId FROM focusQueue WHERE taskId = ?',
-      [task.id],
-    );
-    return result.isNotEmpty;
-  }
-
   Future<void> unfocus(Task task) async {
     await db.writeTransaction((tx) async {
       await _unfocus([task], tx);
