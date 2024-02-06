@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.diligence">
+    package="com.brainchildprojects.diligence">
    <application
         android:label="diligence"
         android:icon="@mipmap/ic_launcher">
