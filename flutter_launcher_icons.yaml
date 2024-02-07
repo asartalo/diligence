@@ -1,0 +1,29 @@
+# flutter pub run flutter_launcher_icons
+# https://icon.kitchen/i/H4sIAAAAAAAAA1WQPU8DMQyG%2F4tZb4HCcisIduiGGHKJk4vqi0s%2BClV1%2Fx3HbZGaSI782LFf%2BwQHQw0LjCdwJu%2B2My4IozdUcAAfninuTa49XFAeyNySgwGi5SSundHuYB1gCtvjXn5CyMZFTFVypvAxG4Xlu8VsCQVKTSbOAu82ejTxn%2FlNv8rerpWkue3x%2B5sERQ8dOT2CTArSY3x8EkH%2BKsheRlCEv32Il0gxYLJnPa987uHNEuko4XeeuHLXwORgrLnhKhUXdo36qj6lkcscdQ9cxP7gJHYxVr1LtB7ga%2F0DIp1zUGEBAAA%3D
+flutter_launcher_icons:
+  image_path: "assets/icon/icon.png"
+
+  android: "launcher_icon"
+  # image_path_android: "assets/icon/icon.png"
+  min_sdk_android: 21 # android min sdk min:16, default 21
+  # adaptive_icon_background: "assets/icon/background.png"
+  # adaptive_icon_foreground: "assets/icon/foreground.png"
+
+  ios: true
+  # image_path_ios: "assets/icon/icon.png"
+  remove_alpha_channel_ios: true
+
+  web:
+    generate: true
+    image_path: "path/to/image.png"
+    background_color: "#hexcode"
+    theme_color: "#hexcode"
+
+  windows:
+    generate: true
+    image_path: "path/to/image.png"
+    icon_size: 48 # min:48, max:256, default: 48
+
+  macos:
+    generate: true
+    image_path: "path/to/image.png"

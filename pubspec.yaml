@@ -50,6 +50,7 @@ dev_dependencies:
   conventional: ^0.4.0
   flutter_driver:
     sdk: flutter
+  flutter_launcher_icons: ^0.13.1
   flutter_test:
     sdk: flutter
   git_hooks: ^1.0.1
