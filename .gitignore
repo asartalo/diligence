@@ -68,3 +68,6 @@ app.*.map.json
 # Releasing
 NEWVERSION.txt
 SUMMARY.md
+
+# Ubuntu snap
+/*.snap
