@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -48,10 +50,13 @@ class DiligenceContainer {
   }) async {
     await dot_env.load(fileName: envFile);
     final config = DiligenceConfig.fromEnv(dot_env.env);
-    final directory = await getApplicationDocumentsDirectory();
+    final directory = await getApplicationDirectory();
+    if (!await directory.exists()) {
+      await directory.create(recursive: true);
+    }
     final diligent = test
         ? Diligent.forTests()
-        : Diligent(path: path.join(directory.path, 'diligence.db'));
+        : Diligent(path: path.join(directory.path, dbName()));
     await diligent.runMigrations();
     await diligent.initialAreas(initialAreas);
     return DiligenceContainer(
@@ -59,4 +64,9 @@ class DiligenceContainer {
       diligent: diligent,
     );
   }
+
+  static Future<Directory> getApplicationDirectory() =>
+      Platform.isIOS ? getLibraryDirectory() : getApplicationSupportDirectory();
+
+  static String dbName() => kReleaseMode ? 'diligence.db' : 'diligence_dev.db';
 }
