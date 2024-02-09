@@ -89,7 +89,7 @@ void main() {
       test('it can set a parent to a task', () async {
         final task = await diligent
             .addTask(NewTask(name: 'Foo', parentId: parentTask.id));
-        final children = await parentTask.children;
+        final children = await diligent.getChildren(parentTask);
         expect(children.first.name, equals(task!.name));
         expect((await diligent.getParent(task))!.name, equals(parentTask.name));
       });
@@ -102,7 +102,7 @@ void main() {
           NewTask(name: 'Bar', parent: parentTask),
         );
         expect(
-          taskNames(await parentTask.children),
+          taskNames(await diligent.getChildren(parentTask)),
           equals(taskNames([task1, task2])),
         );
       });
@@ -116,7 +116,7 @@ void main() {
           position: 0,
         );
         expect(
-          taskNames(await parentTask.children),
+          taskNames(await diligent.getChildren(parentTask)),
           equals(taskNames([task2, task1])),
         );
       });
@@ -138,14 +138,14 @@ void main() {
             NewTask(name: 'Bar', parent: parentTask),
             position: 0,
           );
-          final children = await parentTask.children;
+          final children = await diligent.getChildren(parentTask);
           expect(taskNames(children), equals(['Bar', 'A', 'B', 'C', 'D', 'E']));
         });
 
         test('it can move task up', () async {
           final task = (await diligent.findTaskByName('D'))!;
           await diligent.moveTask(task, 1);
-          final children = await parentTask.children;
+          final children = await diligent.getChildren(parentTask);
           expect(
             taskNames(children),
             equals(['A', 'D', 'B', 'C', 'E']),
@@ -155,7 +155,7 @@ void main() {
         test('it can move task down', () async {
           final task = (await diligent.findTaskByName('B'))!;
           await diligent.moveTask(task, 3);
-          final children = await parentTask.children;
+          final children = await diligent.getChildren(parentTask);
           expect(
             taskNames(children),
             equals(['A', 'C', 'D', 'B', 'E']),
@@ -165,7 +165,7 @@ void main() {
         test('it limits movement to last position', () async {
           final task = (await diligent.findTaskByName('B'))!;
           await diligent.moveTask(task, 10);
-          final children = await parentTask.children;
+          final children = await diligent.getChildren(parentTask);
           expect(
             taskNames(children),
             equals(['A', 'C', 'D', 'E', 'B']),
@@ -175,7 +175,7 @@ void main() {
         test('it limits movement to first position', () async {
           final task = (await diligent.findTaskByName('B'))!;
           await diligent.moveTask(task, -3);
-          final children = await parentTask.children;
+          final children = await diligent.getChildren(parentTask);
           expect(
             taskNames(children),
             equals(['B', 'A', 'C', 'D', 'E']),
@@ -195,12 +195,12 @@ void main() {
           final oldParent = setupResult['B']!;
           final newParent = setupResult['A1']!;
           await diligent.moveTask(task, 0, parent: newParent);
-          final newSiblings = await newParent.children;
+          final newSiblings = await diligent.getChildren(newParent);
           expect(
             taskNames(newSiblings),
             equals(['B2', 'A1i - leaf', 'A1ii - leaf', 'A1iii - leaf']),
           );
-          final oldSiblings = await oldParent.children;
+          final oldSiblings = await diligent.getChildren(oldParent);
           expect(
             taskNames(oldSiblings),
             equals(['B1 - leaf', 'B3 - leaf']),
@@ -212,7 +212,7 @@ void main() {
           final task = setupResult['B2']!;
           final newParent = setupResult['A1']!;
           await diligent.moveTask(task, 2, parent: newParent);
-          final newSiblings = await newParent.children;
+          final newSiblings = await diligent.getChildren(newParent);
           expect(
             taskNames(newSiblings),
             equals(['A1i - leaf', 'A1ii - leaf', 'B2', 'A1iii - leaf']),
@@ -383,7 +383,7 @@ void main() {
         final task = setupResult['C - leaf']!;
         await diligent.focus(setupResult['A1i - leaf']!);
         await diligent.focus(task);
-        await diligent.updateTask(task.copyWith(done: true));
+        await diligent.updateTask(task.copyWith(doneAt: DateTime.now()));
         expect(
           taskNames(await diligent.focusQueue()),
           equals([

@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'decorated_task.dart';
 import 'task.dart';
 
@@ -30,6 +28,9 @@ class LeveledTask implements Task, DecoratedTask {
   bool get done => task.done;
 
   @override
+  DateTime? get doneAt => task.doneAt;
+
+  @override
   String? get details => task.details;
 
   @override
@@ -39,10 +40,10 @@ class LeveledTask implements Task, DecoratedTask {
   String get uid => task.uid;
 
   @override
-  FutureOr<List<Task>> get children => task.children;
+  DateTime get createdAt => task.createdAt;
 
   @override
-  FutureOr<Task?> get parent => task.parent;
+  DateTime get updatedAt => task.updatedAt;
 
   @override
   Task copyWith({
@@ -50,9 +51,12 @@ class LeveledTask implements Task, DecoratedTask {
     String? name,
     int? parentId,
     bool? done,
+    DateTime? doneAt,
     String? details,
     bool? expanded,
     String? uid,
+    DateTime? createdAt,
+    DateTime? updatedAt,
   }) {
     return LeveledTask(
       task: task.copyWith(
@@ -60,13 +64,32 @@ class LeveledTask implements Task, DecoratedTask {
         name: name,
         parentId: parentId,
         done: done,
+        doneAt: doneAt,
         details: details,
         expanded: expanded,
         uid: uid,
+        createdAt: createdAt,
+        updatedAt: updatedAt,
       ),
       level: level,
       childrenCount: childrenCount,
       position: position,
     );
   }
+
+  @override
+  Task markDone() => LeveledTask(
+        task: task.markDone(),
+        level: level,
+        childrenCount: childrenCount,
+        position: position,
+      );
+
+  @override
+  Task markNotDone() => LeveledTask(
+        task: task.markNotDone(),
+        level: level,
+        childrenCount: childrenCount,
+        position: position,
+      );
 }

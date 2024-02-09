@@ -50,13 +50,12 @@ class DiligenceContainer {
   }) async {
     await dot_env.load(fileName: envFile);
     final config = DiligenceConfig.fromEnv(dot_env.env);
-    final directory = await getApplicationDirectory();
-    if (!await directory.exists()) {
-      await directory.create(recursive: true);
+    final pathToDb = await dbPath();
+    if (!kReleaseMode) {
+      // ignore: avoid_print
+      print('Database path: $pathToDb');
     }
-    final diligent = test
-        ? Diligent.forTests()
-        : Diligent(path: path.join(directory.path, dbName()));
+    final diligent = test ? Diligent.forTests() : Diligent(path: pathToDb);
     await diligent.runMigrations();
     await diligent.initialAreas(initialAreas);
     return DiligenceContainer(
@@ -69,4 +68,12 @@ class DiligenceContainer {
       Platform.isIOS ? getLibraryDirectory() : getApplicationSupportDirectory();
 
   static String dbName() => kReleaseMode ? 'diligence.db' : 'diligence_dev.db';
+
+  static Future<String> dbPath() async {
+    final directory = await getApplicationDirectory();
+    if (!await directory.exists()) {
+      await directory.create(recursive: true);
+    }
+    return path.join(directory.path, dbName());
+  }
 }

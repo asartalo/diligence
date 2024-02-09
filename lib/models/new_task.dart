@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:uuid/uuid.dart';
 
 import 'task.dart';
@@ -14,7 +13,10 @@ class NewTask with TaskCommons implements Task {
   final int? parentId;
 
   @override
-  final bool done;
+  bool get done => doneAt != null;
+
+  @override
+  final DateTime? doneAt;
 
   @override
   final String name;
@@ -29,41 +31,50 @@ class NewTask with TaskCommons implements Task {
   final bool expanded;
 
   @override
-  FutureOr<List<Task>> get children => [];
+  final DateTime createdAt;
 
   @override
-  FutureOr<Task?> get parent => null;
+  final DateTime updatedAt;
 
   NewTask({
     this.id = 0,
     int? parentId,
-    this.done = false,
+    this.doneAt,
     String? uid,
     this.name = '',
     this.details,
     this.expanded = false,
+    DateTime? createdAt,
+    DateTime? updatedAt,
     Task? parent,
   })  : parentId = parentId ?? parent?.id,
-        uid = uid ?? uuidGenerator.v4();
+        uid = uid ?? uuidGenerator.v4(),
+        createdAt = createdAt ?? DateTime.now(),
+        updatedAt = updatedAt ?? DateTime.now();
 
   @override
   Task copyWith({
     int? id,
     int? parentId,
     bool? done,
+    DateTime? doneAt,
     String? uid,
     String? name,
     String? details,
     bool? expanded,
+    DateTime? createdAt,
+    DateTime? updatedAt,
   }) {
     return NewTask(
       id: id ?? this.id,
       parentId: parentId ?? this.parentId,
-      done: done ?? this.done,
+      doneAt: normalizedDoneAt(done, doneAt),
       uid: uid ?? this.uid,
       name: name ?? this.name,
       details: normalizedDetails(details),
       expanded: expanded ?? this.expanded,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? DateTime.now(),
     );
   }
 }

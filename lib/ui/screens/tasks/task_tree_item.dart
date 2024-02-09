@@ -43,7 +43,9 @@ class TaskTreeItem extends StatelessWidget {
                 Checkbox(
                   value: task.done,
                   onChanged: (bool? done) {
-                    onUpdateTask(task.copyWith(done: done ?? false));
+                    onUpdateTask(
+                      done == true ? task.markDone() : task.markNotDone(),
+                    );
                   },
                 ),
               ],

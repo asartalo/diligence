@@ -1,12 +1,5 @@
-import 'dart:async';
 import 'task.dart';
 import 'task_commons.dart';
-
-abstract class NodeProvider {
-  FutureOr<List<Task>> getChildren(Task task);
-
-  FutureOr<Task?> getParent(Task task);
-}
 
 class ProvidedTask with TaskCommons implements Task {
   @override
@@ -16,7 +9,10 @@ class ProvidedTask with TaskCommons implements Task {
   final int? parentId;
 
   @override
-  final bool done;
+  final DateTime? doneAt;
+
+  @override
+  bool get done => doneAt != null;
 
   @override
   final String name;
@@ -30,44 +26,47 @@ class ProvidedTask with TaskCommons implements Task {
   @override
   final bool expanded;
 
-  final NodeProvider _nodeProvider;
+  @override
+  final DateTime createdAt;
 
   @override
-  FutureOr<List<Task>> get children => _nodeProvider.getChildren(this);
-
-  @override
-  FutureOr<Task?> get parent => _nodeProvider.getParent(this);
+  final DateTime updatedAt;
 
   ProvidedTask({
     this.id = 0,
     this.parentId,
-    this.done = false,
+    this.doneAt,
     this.name = '',
     this.details,
     this.expanded = false,
     required this.uid,
-    required NodeProvider nodeProvider,
-  }) : _nodeProvider = nodeProvider;
+    required this.createdAt,
+    required this.updatedAt,
+  });
 
   @override
   Task copyWith({
     int? id,
     int? parentId,
     bool? done,
+    DateTime? doneAt,
     String? uid,
     String? name,
     String? details,
     bool? expanded,
+    DateTime? createdAt,
+    DateTime? updatedAt,
   }) {
     return ProvidedTask(
       id: id ?? this.id,
       parentId: parentId ?? this.parentId,
-      done: done ?? this.done,
+      doneAt: normalizedDoneAt(done, doneAt),
       uid: uid ?? this.uid,
       name: name ?? this.name,
       details: normalizedDetails(details),
       expanded: expanded ?? this.expanded,
-      nodeProvider: _nodeProvider,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? DateTime.now(),
     );
   }
 }

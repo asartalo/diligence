@@ -29,9 +29,11 @@ final _allTaskFields = [
   'name',
   'details',
   'parentId',
-  'done',
+  'doneAt',
   'expanded',
   'position',
+  'createdAt',
+  'updatedAt',
 ];
 
 final _unmodifiableFields = ['id', 'uid'];
@@ -75,8 +77,10 @@ final taskFieldMap = {
   'name': (Task task) => task.name,
   'details': (Task task) => task.details,
   'parentId': (Task task) => task.parentId,
-  'done': (Task task) => task.done ? 1 : 0,
+  'doneAt': (Task task) => task.doneAt?.millisecondsSinceEpoch,
   'expanded': (Task task) => task.expanded ? 1 : 0,
+  'createdAt': (Task task) => task.createdAt.millisecondsSinceEpoch,
+  'updatedAt': (Task task) => task.updatedAt.millisecondsSinceEpoch,
 };
 
 Object? _propFromTaskField(String field, Task task) {
@@ -115,7 +119,7 @@ SqliteMigrations migrate() {
 
 final migrations = migrate();
 
-class Diligent implements NodeProvider {
+class Diligent {
   final SqliteDatabase db;
   final bool _isTest;
 
@@ -127,7 +131,9 @@ class Diligent implements NodeProvider {
       : db = SqliteDatabase(path: 'test.db'),
         _isTest = true;
 
-  Future<void> runMigrations() async => migrations.migrate(db);
+  Future<void> runMigrations() async {
+    await migrations.migrate(db);
+  }
 
   Future<void> clearDataForTests() async {
     if (_isTest) {
@@ -184,12 +190,13 @@ class Diligent implements NodeProvider {
     return ProvidedTask(
       id: task.id,
       parentId: task.parentId,
-      done: task.done,
+      doneAt: task.doneAt,
       uid: task.uid,
       name: task.name,
       details: task.details,
       expanded: task.expanded,
-      nodeProvider: this,
+      createdAt: task.createdAt,
+      updatedAt: task.updatedAt,
     );
   }
 
@@ -243,11 +250,14 @@ class Diligent implements NodeProvider {
       id: row['id'] as int,
       name: row['name'] as String,
       parentId: row['parentId'] as int?,
-      done: row['done'] as int == 1,
+      doneAt: row['doneAt'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(row['doneAt'] as int)
+          : null,
       uid: row['uid'] as String,
       expanded: row['expanded'] as int == 1,
       details: row['details'] as String?,
-      nodeProvider: this,
+      createdAt: DateTime.fromMillisecondsSinceEpoch(row['createdAt'] as int),
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(row['updatedAt'] as int),
     );
     if (level != null) {
       return LeveledTask(
@@ -397,7 +407,6 @@ class Diligent implements NodeProvider {
     }
   }
 
-  @override
   FutureOr<List<Task>> getChildren(Task task) async {
     final rows = await db.getAll(
       'SELECT * FROM tasks WHERE parentId = ? ORDER BY position ASC',
@@ -406,7 +415,6 @@ class Diligent implements NodeProvider {
     return rows.map((row) => _taskFromRow(row)).toList();
   }
 
-  @override
   FutureOr<Task?> getParent(Task task) async {
     if (task.parentId == null) return null;
     final rows = await db.getAll(
