@@ -5,7 +5,7 @@ import 'package:sqlite_async/sqlite3.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 import '../models/leveled_task.dart';
 import '../models/new_task.dart';
-import '../models/provided_task.dart';
+import '../models/persisted_task.dart';
 import '../models/task.dart';
 import 'migrations.dart';
 
@@ -186,8 +186,8 @@ class Diligent {
   }
 
   Task _asProvidedTask(Task task) {
-    if (task is ProvidedTask) return task;
-    return ProvidedTask(
+    if (task is PersistedTask) return task;
+    return PersistedTask(
       id: task.id,
       parentId: task.parentId,
       doneAt: task.doneAt,
@@ -246,7 +246,7 @@ class Diligent {
     int childrenCount = 0,
     int position = 0,
   }) {
-    final task = ProvidedTask(
+    final task = PersistedTask(
       id: row['id'] as int,
       name: row['name'] as String,
       parentId: row['parentId'] as int?,

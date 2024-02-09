@@ -1,13 +1,13 @@
-import 'package:diligence/models/provided_task.dart';
+import 'package:diligence/models/persisted_task.dart';
 import 'package:diligence/models/task.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('ProvidedTask', () {
-    late ProvidedTask task;
+    late PersistedTask task;
 
     setUp(() {
-      task = ProvidedTask(
+      task = PersistedTask(
         name: 'Foo',
         details: 'Bar',
         parentId: 1,
@@ -30,7 +30,7 @@ void main() {
     group('with all fields', () {
       late Task copy;
       setUp(() {
-        task = ProvidedTask(
+        task = PersistedTask(
           name: 'Foo',
           details: 'Bar',
           parentId: 1,

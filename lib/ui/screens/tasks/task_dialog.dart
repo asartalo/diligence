@@ -4,7 +4,7 @@ import '../../../models/commands/commands.dart';
 import '../../../models/commands/focus_task_command.dart';
 import '../../../models/decorated_task.dart';
 import '../../../models/new_task.dart';
-import '../../../models/provided_task.dart';
+import '../../../models/persisted_task.dart';
 import '../../../models/task.dart';
 import 'keys.dart' as keys;
 
@@ -80,9 +80,9 @@ class _TaskDialogState extends State<TaskDialog> {
           TextButton(
             key: keys.deleteTaskButton,
             onPressed: () {
-              if (_trueTask is ProvidedTask) {
+              if (_trueTask is PersistedTask) {
                 Navigator.of(context).pop<Command>(
-                  DeleteTaskCommand(payload: _trueTask as ProvidedTask),
+                  DeleteTaskCommand(payload: _trueTask as PersistedTask),
                 );
               }
             },
@@ -112,7 +112,7 @@ class _TaskDialogState extends State<TaskDialog> {
     switch (_trueTask) {
       case final NewTask t:
         command = NewTaskCommand(payload: t);
-      case final ProvidedTask t:
+      case final PersistedTask t:
         command = UpdateTaskCommand(payload: t);
       default:
         command = noOpCommand;

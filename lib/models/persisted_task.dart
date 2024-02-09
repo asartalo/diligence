@@ -1,7 +1,7 @@
 import 'task.dart';
 import 'task_commons.dart';
 
-class ProvidedTask with TaskCommons implements Task {
+class PersistedTask with TaskCommons implements Task {
   @override
   final int id;
 
@@ -32,7 +32,7 @@ class ProvidedTask with TaskCommons implements Task {
   @override
   final DateTime updatedAt;
 
-  ProvidedTask({
+  PersistedTask({
     this.id = 0,
     this.parentId,
     this.doneAt,
@@ -57,7 +57,7 @@ class ProvidedTask with TaskCommons implements Task {
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
-    return ProvidedTask(
+    return PersistedTask(
       id: id ?? this.id,
       parentId: parentId ?? this.parentId,
       doneAt: normalizedDoneAt(done, doneAt),
