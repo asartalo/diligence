@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../../../models/new_task.dart';
 import '../../../models/task.dart';
+import '../../../models/task_node.dart';
 
 class TaskTreeItem extends StatelessWidget {
-  final Task task;
+  final TaskNode taskNode;
   final void Function(Task task) onUpdateTask;
   final void Function(Task task) onRequestTask;
   final void Function(Task task) onToggleExpandTask;
@@ -13,13 +14,15 @@ class TaskTreeItem extends StatelessWidget {
 
   const TaskTreeItem({
     super.key,
-    required this.task,
+    required this.taskNode,
     required this.onUpdateTask,
     required this.onRequestTask,
     required this.onToggleExpandTask,
     required this.level,
     this.childrenCount = 0,
   });
+
+  Task get task => taskNode.task;
 
   @override
   Widget build(BuildContext context) {

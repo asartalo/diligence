@@ -1,9 +1,10 @@
+import 'package:diligence/models/modified_task.dart';
 import 'package:diligence/models/persisted_task.dart';
 import 'package:diligence/models/task.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  group('ProvidedTask', () {
+  group('PersistedTask', () {
     late PersistedTask task;
 
     setUp(() {
@@ -44,9 +45,6 @@ void main() {
           parentId: 2,
           doneAt: nowPlusOne,
           expanded: true,
-          uid: '5678',
-          createdAt: nowPlusOne,
-          updatedAt: nowPlusOne,
         );
       });
 
@@ -56,14 +54,16 @@ void main() {
         expect(copy.parentId, equals(2));
         expect(copy.doneAt, nowPlusOne);
         expect(copy.expanded, isTrue);
-        expect(copy.uid, equals('5678'));
-        expect(copy.createdAt, nowPlusOne);
-        expect(copy.updatedAt, nowPlusOne);
       });
 
       test('should return a new Task with the same id', () {
         expect(copy.id, equals(task.id));
       });
+    });
+
+    test('copy is an instance of ModifiedTask', () {
+      final copy = task.copyWith(name: 'Baz');
+      expect(copy, isA<ModifiedTask>());
     });
 
     test('should not copy `doneAt` field if not specified', () {

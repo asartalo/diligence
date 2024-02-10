@@ -4,9 +4,10 @@ import 'package:flutter/material.dart';
 
 import '../../../models/commands/commands.dart';
 import '../../../models/commands/focus_task_command.dart';
-import '../../../models/leveled_task.dart';
+import '../../../models/decorated_task.dart';
 import '../../../models/new_task.dart';
 import '../../../models/task.dart';
+import '../../../models/task_node.dart';
 import '../../../services/diligent.dart';
 import '../../components/common_screen.dart';
 import 'keys.dart' as keys;
@@ -22,7 +23,7 @@ class TasksPage extends StatefulWidget {
 }
 
 class _TasksPageState extends State<TasksPage> {
-  late List<Task> _tasks;
+  late TaskNodeList _taskNodes;
   late Task _root;
 
   Diligent get diligent => widget.diligent;
@@ -30,7 +31,7 @@ class _TasksPageState extends State<TasksPage> {
   @override
   void initState() {
     super.initState();
-    _tasks = [];
+    _taskNodes = [];
   }
 
   @override
@@ -49,9 +50,9 @@ class _TasksPageState extends State<TasksPage> {
     updateTasks(tasks, root: root);
   }
 
-  void updateTasks(List<Task> tasks, {Task? root}) {
+  void updateTasks(TaskNodeList taskNodes, {Task? root}) {
     setState(() {
-      _tasks = tasks;
+      _taskNodes = taskNodes;
       if (root != null) {
         _root = root;
       }
@@ -76,7 +77,7 @@ class _TasksPageState extends State<TasksPage> {
         child: const Icon(Icons.add),
       ),
       child: TaskTree(
-        tasks: _tasks,
+        taskNodes: _taskNodes,
         onUpdateTask: _handleUpdateTask,
         onReorder: _handleReorder,
         onRequestTask: _handleRequestTask,
@@ -94,12 +95,12 @@ class _TasksPageState extends State<TasksPage> {
     }
   }
 
-  Future<void> _handleToggleExpandTask(Task task) async {
+  Future<void> _handleToggleExpandTask(Task task, int _) async {
     await _expandTask(task, expanded: !task.expanded);
     await updateTaskTree();
   }
 
-  Future<void> _handleRequestTask(Task task) async {
+  Future<void> _handleRequestTask(Task task, int _) async {
     final command = await TaskDialog.open(context, task);
     if (command is NewTaskCommand) {
       final addedTask = await diligent.addTask(command.payload);
@@ -121,16 +122,21 @@ class _TasksPageState extends State<TasksPage> {
 
   Future<void> _handleUpdateTask(Task task, int index) async {
     setState(() {
-      _tasks[index] = task;
+      _taskNodes[index] = _taskNodes[index].updateTask(task);
     });
-    await diligent.updateTask(task);
-    setState(() {
-      _tasks[index] = task;
-    });
+    await diligent.updateTask(trueTask(task));
+    await updateTaskTree();
+  }
+
+  Task trueTask(Task task) {
+    if (task is DecoratedTask) {
+      return task.task;
+    }
+    return task;
   }
 
   Future<void> _expandTask(Task task, {bool expanded = true}) async {
-    await diligent.updateTask(task.copyWith(expanded: expanded));
+    await diligent.updateTask(trueTask(task.copyWith(expanded: expanded)));
   }
 
   Future<void> _expandParent(Task task) async {
@@ -147,35 +153,33 @@ class _TasksPageState extends State<TasksPage> {
   Future<void> _handleReorder(int oldIndex, int newIndex) async {
     int position = newIndex;
     late int? parentId;
-    late LeveledTask referenceTask;
-    if (newIndex > _tasks.length - 1) {
-      referenceTask = _tasks[newIndex - 1] as LeveledTask;
-      position = referenceTask.position + 1;
-      parentId = referenceTask.parentId;
+    late TaskNode referenceNode;
+    if (newIndex > _taskNodes.length - 1) {
+      referenceNode = _taskNodes[newIndex - 1];
+      position = referenceNode.position + 1;
+      parentId = referenceNode.task.parentId;
     } else {
-      referenceTask = _tasks[newIndex] as LeveledTask;
-      position = referenceTask.position;
-      parentId = referenceTask.parentId;
+      referenceNode = _taskNodes[newIndex];
+      position = referenceNode.position;
+      parentId = referenceNode.task.parentId;
     }
-    final task = _tasks.removeAt(oldIndex);
+    final taskNode = _taskNodes.removeAt(oldIndex);
     setState(() {
       // Let's move the element inline so we don't see a flicker
-      _tasks.insert(
+      _taskNodes.insert(
         max(0, oldIndex > newIndex ? newIndex : newIndex - 1),
-        task,
+        taskNode,
       );
     });
 
     if (parentId != null) {
       final parent = await diligent.findTask(parentId);
-      if (task is LeveledTask) {
-        await diligent.moveTask(
-          task,
-          position,
-          parent: parent,
-        );
-        updateTaskTree();
-      }
+      await diligent.moveTask(
+        taskNode.task,
+        position,
+        parent: parent,
+      );
+      updateTaskTree();
     }
   }
 }

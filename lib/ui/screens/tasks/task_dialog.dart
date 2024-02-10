@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../models/commands/commands.dart';
 import '../../../models/commands/focus_task_command.dart';
 import '../../../models/decorated_task.dart';
+import '../../../models/modified_task.dart';
 import '../../../models/new_task.dart';
 import '../../../models/persisted_task.dart';
 import '../../../models/task.dart';
@@ -112,7 +113,7 @@ class _TaskDialogState extends State<TaskDialog> {
     switch (_trueTask) {
       case final NewTask t:
         command = NewTaskCommand(payload: t);
-      case final PersistedTask t:
+      case final ModifiedTask t:
         command = UpdateTaskCommand(payload: t);
       default:
         command = noOpCommand;

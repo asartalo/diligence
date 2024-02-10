@@ -1,16 +1,20 @@
 import 'dart:async';
 import 'dart:developer' as developer;
 import 'dart:math';
+
 import 'package:sqlite_async/sqlite3.dart';
 import 'package:sqlite_async/sqlite_async.dart';
-import '../models/leveled_task.dart';
+
+import '../models/modified_task.dart';
 import '../models/new_task.dart';
 import '../models/persisted_task.dart';
 import '../models/task.dart';
+import '../models/task_node.dart';
 import 'migrations.dart';
 
 typedef VoidCallback = void Function();
 typedef TaskList = List<Task>;
+typedef TaskNodeList = List<TaskNode>;
 
 final initialAreas = [
   NewTask(name: 'Life', details: 'Life goals'),
@@ -212,15 +216,145 @@ class Diligent {
   }
 
   Future<void> updateTask(Task task) async {
-    await db.writeTransaction((tx) async {
-      await _updateTask(task, tx);
+    if (task is ModifiedTask) {
+      await db.writeTransaction((tx) async {
+        await _updateTask(task, tx);
+        await _focusCheck(task, tx);
+        await _toggleTree(task, tx);
+      });
+    } else {
+      throw Exception('Task must be a ModifiedTask');
+    }
+  }
+
+  Future<void> _focusCheck(ModifiedTask task, SqliteWriteContext tx) async {
+    if (task.hasToggledDone()) {
       if (task.done) {
         await _unfocus([task], tx);
       }
-    });
+    }
   }
 
-  Future<void> _updateTask(Task task, SqliteWriteContext tx) async {
+  /// _toggleTree toggles the doneAt field of its ancestors and descendants if
+  /// applicable
+  Future<void> _toggleTree(ModifiedTask task, SqliteWriteContext tx) async {
+    if (task.hasToggledDone()) {
+      await _toggleAncestorsDone(task, tx);
+      await _toggleDescendantsDone(task, tx);
+    }
+  }
+
+  // TODO: There must be a better way to do this using only a few queries
+  Future<void> _toggleAncestorsDone(
+    ModifiedTask task,
+    SqliteWriteContext tx,
+  ) async {
+    final ancestors = await _ancestors(task, tx);
+    final doneAt = task.doneAt;
+    for (final ancestor in ancestors) {
+      if (doneAt != null && await _allChildrenDone(ancestor, tx)) {
+        await tx.execute(
+          '''
+          UPDATE tasks
+          SET doneAt = ?
+          WHERE id = ?
+          ''',
+          [doneAt.millisecondsSinceEpoch, ancestor.id],
+        );
+      } else if (doneAt == null && ancestor.done) {
+        await tx.execute(
+          '''
+          UPDATE tasks
+          SET doneAt = NULL
+          WHERE id = ?
+          ''',
+          [ancestor.id],
+        );
+      }
+    }
+  }
+
+  Future<void> _toggleDescendantsDone(
+    ModifiedTask task,
+    SqliteWriteContext tx,
+  ) async {
+    final descendants = await _descendants(task, tx);
+    final doneAt = task.doneAt;
+    for (final descendant in descendants) {
+      await tx.execute(
+        '''
+        UPDATE tasks
+        SET doneAt = ?
+        WHERE id = ?
+        ''',
+        [doneAt?.millisecondsSinceEpoch, descendant.id],
+      );
+    }
+  }
+
+  Future<bool> _allChildrenDone(Task task, SqliteReadContext tx) async {
+    final result = await tx.get(
+      '''
+      SELECT count(id) as count, count(doneAt) as doneCount
+      FROM tasks
+      WHERE parentId = ?
+      ''',
+      [task.id],
+    );
+    final count = result['count'] as int;
+    final doneCount = result['doneCount'] as int;
+    return count == doneCount;
+  }
+
+  Future<TaskList> ancestors(Task task) async {
+    return _ancestors(task, db);
+  }
+
+  Future<TaskList> _ancestors(Task task, SqliteWriteContext tx) async {
+    final rows = await tx.getAll(
+      _cachedQuery(
+        'ancestors',
+        '''
+        WITH RECURSIVE
+          ancestors AS (
+            SELECT * FROM tasks WHERE id = ?
+            UNION ALL
+            SELECT tasks.* FROM tasks
+            JOIN ancestors ON tasks.id = ancestors.parentId
+          )
+        SELECT * FROM ancestors
+        ''',
+      ),
+      [task.parentId],
+    );
+    return rows.map((row) => _taskFromRow(row)).toList();
+  }
+
+  Future<TaskList> descendants(Task task) async {
+    return _descendants(task, db);
+  }
+
+  Future<TaskList> _descendants(Task task, SqliteWriteContext tx) async {
+    final rows = await tx.getAll(
+      _cachedQuery(
+        'descendants',
+        '''
+        WITH RECURSIVE
+          descendants AS (
+            SELECT * FROM tasks WHERE parentId = ?
+            UNION ALL
+            SELECT tasks.* FROM tasks
+            JOIN descendants ON tasks.parentId = descendants.id
+          )
+        SELECT * FROM descendants
+        ''',
+      ),
+      [task.id],
+    );
+    return rows.map((row) => _taskFromRow(row)).toList();
+  }
+
+  Future<void> _updateTask(ModifiedTask task, SqliteWriteContext tx) async {
     await tx.execute(
       _cachedQuery(
         'updateTask',
@@ -240,12 +374,7 @@ class Diligent {
     );
   }
 
-  Task _taskFromRow(
-    Row row, {
-    int? level,
-    int childrenCount = 0,
-    int position = 0,
-  }) {
+  Task _taskFromRow(Row row) {
     final task = PersistedTask(
       id: row['id'] as int,
       name: row['name'] as String,
@@ -259,20 +388,26 @@ class Diligent {
       createdAt: DateTime.fromMillisecondsSinceEpoch(row['createdAt'] as int),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row['updatedAt'] as int),
     );
-    if (level != null) {
-      return LeveledTask(
-        task: task,
-        level: level,
-        childrenCount: childrenCount,
-        position: position,
-      );
-    }
     return task;
+  }
+
+  TaskNode _taskNodeFromRow(
+    Row row, {
+    required int level,
+    int childrenCount = 0,
+    int position = 0,
+  }) {
+    final task = _taskFromRow(row);
+    return TaskNode(
+      task: task,
+      level: level,
+      childrenCount: childrenCount,
+      position: position,
+    );
   }
 
   Future<void> deleteTask(Task task) async {
     await db.writeTransaction((tx) async {
-      //
       await tx.execute(
         'DELETE FROM tasks WHERE id = ?',
         [task.id],
@@ -425,7 +560,7 @@ class Diligent {
   }
 
   /// Returns a task and its descendants as an ordered list
-  Future<TaskList> subtreeFlat(int id) async {
+  Future<TaskNodeList> subtreeFlat(int id) async {
     final rows = await db.getAll(
       _cachedQuery(
         'subtreeFlat',
@@ -461,7 +596,7 @@ class Diligent {
       [id],
     );
     return rows
-        .map((row) => _taskFromRow(
+        .map((row) => _taskNodeFromRow(
               row,
               level: row['lvl'] as int,
               childrenCount: row['childrenCount'] as int,
@@ -470,7 +605,7 @@ class Diligent {
         .toList();
   }
 
-  Future<TaskList> expandedDescendantsTree(Task task) async {
+  Future<TaskNodeList> expandedDescendantsTree(Task task) async {
     final id = task.id;
     final rows = await db.getAll(
       _cachedQuery(
@@ -508,7 +643,7 @@ class Diligent {
       [id],
     );
     return rows
-        .map((row) => _taskFromRow(
+        .map((row) => _taskNodeFromRow(
               row,
               level: row['lvl'] as int,
               childrenCount: row['childrenCount'] as int,

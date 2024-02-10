@@ -1,3 +1,4 @@
+import 'modified_task.dart';
 import 'task.dart';
 import 'task_commons.dart';
 
@@ -45,7 +46,7 @@ class PersistedTask with TaskCommons implements Task {
   });
 
   @override
-  Task copyWith({
+  ModifiedTask copyWith({
     int? id,
     int? parentId,
     bool? done,
@@ -57,16 +58,13 @@ class PersistedTask with TaskCommons implements Task {
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
-    return PersistedTask(
-      id: id ?? this.id,
+    return ModifiedTask(
+      originalTask: this,
       parentId: parentId ?? this.parentId,
       doneAt: normalizedDoneAt(done, doneAt),
-      uid: uid ?? this.uid,
       name: name ?? this.name,
       details: normalizedDetails(details),
       expanded: expanded ?? this.expanded,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? DateTime.now(),
     );
   }
 }
