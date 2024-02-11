@@ -768,9 +768,11 @@ class Diligent {
       ''',
       tasks.map((task) => [task.id]).toList(),
     );
+    await _normalizeFocusQueuePositions(tx);
+  }
 
+  Future<void> _normalizeFocusQueuePositions(SqliteWriteContext tx) async {
     await tx.execute(
-      // Reorder positions
       '''
       UPDATE focusQueue
       SET position = p.newPosition
@@ -785,6 +787,7 @@ class Diligent {
     );
   }
 
+  // TODO: Is there a better way to do this?
   Future<void> reprioritizeInFocusQueue(Task task, int position) async {
     await db.writeTransaction((tx) async {
       final lengthResult = await tx.get(
@@ -808,6 +811,7 @@ class Diligent {
         ''',
         [realPosition, task.id],
       );
+      await _normalizeFocusQueuePositions(tx);
     });
   }
 }

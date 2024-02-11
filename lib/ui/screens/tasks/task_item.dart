@@ -2,27 +2,26 @@ import 'package:flutter/material.dart';
 
 import '../../../models/new_task.dart';
 import '../../../models/task.dart';
-import '../../../models/task_node.dart';
 
-class TaskTreeItem extends StatelessWidget {
-  final TaskNode taskNode;
-  final void Function(Task task) onUpdateTask;
-  final void Function(Task task) onRequestTask;
-  final void Function(Task task) onToggleExpandTask;
-  final int level;
-  final int childrenCount;
+typedef TaskCallback = void Function(Task task);
 
-  const TaskTreeItem({
+class TaskItem extends StatelessWidget {
+  final Task task;
+  final TaskCallback onUpdateTask;
+  final TaskCallback onRequestTask;
+  final TaskCallback? onToggleExpandTask;
+  final int? level;
+  final int? childrenCount;
+
+  const TaskItem({
     super.key,
-    required this.taskNode,
+    required this.task,
     required this.onUpdateTask,
     required this.onRequestTask,
-    required this.onToggleExpandTask,
-    required this.level,
-    this.childrenCount = 0,
+    this.onToggleExpandTask,
+    this.level,
+    this.childrenCount,
   });
-
-  Task get task => taskNode.task;
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +40,7 @@ class TaskTreeItem extends StatelessWidget {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                SizedBox(width: level * 30),
+                SizedBox(width: level == null ? 0 : level! * 30),
                 expandTaskButton(),
                 Checkbox(
                   value: task.done,
@@ -74,14 +73,17 @@ class TaskTreeItem extends StatelessWidget {
   }
 
   Widget expandTaskButton() {
-    if (childrenCount > 0) {
-      return IconButton(
-        icon: Icon(task.expanded ? Icons.expand_less : Icons.expand_more),
-        onPressed: () {
-          onToggleExpandTask(task);
-        },
-      );
+    if (childrenCount != null) {
+      if (childrenCount! > 0 && onToggleExpandTask != null) {
+        return IconButton(
+          icon: Icon(task.expanded ? Icons.expand_less : Icons.expand_more),
+          onPressed: () {
+            onToggleExpandTask!(task);
+          },
+        );
+      }
+      return const SizedBox(width: 40);
     }
-    return const SizedBox(width: 40);
+    return const SizedBox(width: 0);
   }
 }

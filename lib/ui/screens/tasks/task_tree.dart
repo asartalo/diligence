@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../models/task.dart';
 import '../../../services/diligent.dart';
 import 'keys.dart' as keys;
-import 'task_tree_item.dart';
+import 'task_item.dart';
 
 class TaskTree extends StatelessWidget {
   final TaskNodeList taskNodes;
@@ -32,8 +32,8 @@ class TaskTree extends StatelessWidget {
         return ReorderableDelayedDragStartListener(
           key: Key(task.id.toString()),
           index: index,
-          child: TaskTreeItem(
-            taskNode: taskNode,
+          child: TaskItem(
+            task: task,
             onUpdateTask: (task) => onUpdateTask(task, index),
             onRequestTask: (task) => onRequestTask(task, index),
             onToggleExpandTask: (task) => onToggleExpandTask(task, index),
