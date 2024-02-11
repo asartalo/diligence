@@ -290,6 +290,9 @@ class Diligent {
         [doneAt?.millisecondsSinceEpoch, descendant.id],
       );
     }
+    if (doneAt != null) {
+      await _unfocus(descendants, tx);
+    }
   }
 
   Future<bool> _allChildrenDone(Task task, SqliteReadContext tx) async {

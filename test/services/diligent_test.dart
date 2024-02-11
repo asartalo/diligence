@@ -651,18 +651,30 @@ void main() {
       test(
           'marking a parent node as not done marks all of its children as not done',
           () async {
-        await diligent.updateTask(setupResult['A1']!.markDone());
-        final updatedA1 = await diligent.findTask(setupResult['A1']!.id);
-        await diligent.updateTask(updatedA1!.markNotDone());
         final names = [
           'A1i - leaf',
           'A1ii - leaf',
           'A1iii - leaf',
         ];
+        await markNodesDone(names);
+        final updatedA1 = await diligent.findTask(setupResult['A1']!.id);
+        await diligent.updateTask(updatedA1!.markNotDone());
         for (final name in names) {
           final task = await diligent.findTask(setupResult[name]!.id);
           expect(task!.done, isFalse);
         }
+      });
+
+      test(
+          'marking an ancestor node as done removes child nodes that are focused',
+          () async {
+        await diligent.focus(setupResult['A1i - leaf']!);
+        await markNodesDone(['A']);
+        final updatedA1 = await diligent.findTask(setupResult['A1']!.id);
+        await diligent.updateTask(updatedA1!.markNotDone());
+        final queue =
+            (await diligent.focusQueue()).map((task) => task.name).toList();
+        expect(queue, isNot(contains('A1i - leaf')));
       });
     });
 
