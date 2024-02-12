@@ -530,7 +530,7 @@ void main() {
       });
     });
 
-    group('Marking tasks done in tree structure', () {
+    group('Done logic in tree structure', () {
       late Map<String, Task> setupResult;
 
       setUp(() async {
@@ -676,6 +676,43 @@ void main() {
             (await diligent.focusQueue()).map((task) => task.name).toList();
         expect(queue, isNot(contains('A1i - leaf')));
       });
+
+      test(
+        'adding a child task to a done node marks parent and ancestors as not done',
+        () async {
+          await markNodesDone(['A']);
+          await diligent.addTask(
+            NewTask(name: 'New Task', parent: setupResult['A1']),
+          );
+          final toCheck = ['A1', 'A'];
+          for (final name in toCheck) {
+            final task = await diligent.findTask(setupResult[name]!.id);
+            expect(task!.done, isFalse);
+          }
+        },
+      );
+
+      test(
+        'deleting a not done child task when all siblings are done marks parent as and possibly ancestors done',
+        () async {
+          await markNodesDone(['A']);
+          final a1iLeaf =
+              await diligent.findTask(setupResult['A1i - leaf']!.id);
+          expect(a1iLeaf!.done, isTrue);
+          await diligent.updateTask(a1iLeaf.markNotDone());
+
+          final toCheck = ['A1', 'A'];
+          for (final name in toCheck) {
+            final task = (await diligent.findTask(setupResult[name]!.id))!;
+            expect(task.done, isFalse);
+          }
+          await diligent.deleteTask(setupResult['A1i - leaf']!);
+          for (final name in toCheck) {
+            final task = await diligent.findTask(setupResult[name]!.id);
+            expect(task!.done, isTrue);
+          }
+        },
+      );
     });
 
     group('#ancestors()', () {

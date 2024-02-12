@@ -147,14 +147,17 @@ class Diligent {
   }
 
   Future<Task?> addTask(Task task, {int? position}) async {
-    if (position != null) {
-      await db.writeTransaction((tx) async {
+    late int taskId;
+    Task? newTask;
+    await db.writeTransaction((tx) async {
+      final parentId = task.parentId;
+      if (position != null) {
         await tx.execute(
           '''
           UPDATE tasks SET position = position + 1
           WHERE parentId = ? AND position >= ?
           ''',
-          [task.parentId, position],
+          [parentId, position],
         );
         await tx.execute(
           _cachedQuery(
@@ -169,43 +172,35 @@ class Diligent {
             position,
           ],
         );
-      });
-    } else {
-      await db.execute(
-        _cachedQuery(
-          'taskInsertWithPosition',
-          '''
+      } else {
+        await tx.execute(
+          _cachedQuery(
+            'taskInsertWithPosition',
+            '''
           INSERT INTO tasks (${_newTaskFields.join(', ')}, position)
           SELECT ${_questionMarks(_newTaskFields.length)}, COALESCE(MAX(position) + 1, 0) FROM tasks WHERE parentId = ?
           ''',
-        ),
-        [
-          ..._propsFromTaskFields(_newTaskFields, task),
-          task.parentId,
-        ],
-      );
-    }
-    final result = await db.execute('SELECT last_insert_rowid() as id');
-    return _asProvidedTask(task.copyWith(id: result.first['id'] as int));
+          ),
+          [
+            ..._propsFromTaskFields(_newTaskFields, task),
+            parentId,
+          ],
+        );
+      }
+      final result = await tx.execute('SELECT last_insert_rowid() as id');
+      taskId = result.first['id'] as int;
+      newTask = await _findTask(taskId, tx);
+      if (newTask != null) {
+        await _toggleTree(newTask!, tx);
+      }
+    });
+    return newTask;
   }
 
-  Task _asProvidedTask(Task task) {
-    if (task is PersistedTask) return task;
-    return PersistedTask(
-      id: task.id,
-      parentId: task.parentId,
-      doneAt: task.doneAt,
-      uid: task.uid,
-      name: task.name,
-      details: task.details,
-      expanded: task.expanded,
-      createdAt: task.createdAt,
-      updatedAt: task.updatedAt,
-    );
-  }
+  Future<Task?> findTask(int id) => _findTask(id, db);
 
-  Future<Task?> findTask(int id) async {
-    final rows = await db.getAll('SELECT * FROM tasks WHERE id = ?', [id]);
+  Future<Task?> _findTask(int id, SqliteReadContext tx) async {
+    final rows = await tx.getAll('SELECT * FROM tasks WHERE id = ?', [id]);
     return rows.isEmpty ? null : _taskFromRow(rows.first);
   }
 
@@ -219,8 +214,8 @@ class Diligent {
     if (task is ModifiedTask) {
       await db.writeTransaction((tx) async {
         await _updateTask(task, tx);
+        await _toggleTreeIfToggled(task, tx);
         await _focusCheck(task, tx);
-        await _toggleTree(task, tx);
       });
     } else {
       throw Exception('Task must be a ModifiedTask');
@@ -237,31 +232,35 @@ class Diligent {
 
   /// _toggleTree toggles the doneAt field of its ancestors and descendants if
   /// applicable
-  Future<void> _toggleTree(ModifiedTask task, SqliteWriteContext tx) async {
+  Future<void> _toggleTree(Task task, SqliteWriteContext tx,
+      {DateTime? doneAt}) async {
+    await _toggleAncestorsDone(task, tx, doneAt: doneAt);
+    await _toggleDescendantsDone(task, tx, doneAt: doneAt);
+  }
+
+  Future<void> _toggleTreeIfToggled(ModifiedTask task, SqliteWriteContext tx,
+      {DateTime? doneAt}) async {
     if (task.hasToggledDone()) {
-      await _toggleAncestorsDone(task, tx);
-      await _toggleDescendantsDone(task, tx);
+      await _toggleTree(task, tx, doneAt: doneAt);
     }
   }
 
   // TODO: There must be a better way to do this using only a few queries
-  Future<void> _toggleAncestorsDone(
-    ModifiedTask task,
-    SqliteWriteContext tx,
-  ) async {
+  Future<void> _toggleAncestorsDone(Task task, SqliteWriteContext tx,
+      {DateTime? doneAt}) async {
     final ancestors = await _ancestors(task, tx);
-    final doneAt = task.doneAt;
+    final doneAtTrue = doneAt ?? task.doneAt;
     for (final ancestor in ancestors) {
-      if (doneAt != null && await _allChildrenDone(ancestor, tx)) {
+      if (doneAtTrue != null && await _allChildrenDone(ancestor, tx)) {
         await tx.execute(
           '''
           UPDATE tasks
           SET doneAt = ?
           WHERE id = ?
           ''',
-          [doneAt.millisecondsSinceEpoch, ancestor.id],
+          [doneAtTrue.millisecondsSinceEpoch, ancestor.id],
         );
-      } else if (doneAt == null && ancestor.done) {
+      } else if (doneAtTrue == null && ancestor.done) {
         await tx.execute(
           '''
           UPDATE tasks
@@ -274,12 +273,10 @@ class Diligent {
     }
   }
 
-  Future<void> _toggleDescendantsDone(
-    ModifiedTask task,
-    SqliteWriteContext tx,
-  ) async {
+  Future<void> _toggleDescendantsDone(Task task, SqliteWriteContext tx,
+      {DateTime? doneAt}) async {
     final descendants = await _descendants(task, tx);
-    final doneAt = task.doneAt;
+    final doneAtTrue = doneAt ?? task.doneAt;
     for (final descendant in descendants) {
       await tx.execute(
         '''
@@ -287,10 +284,10 @@ class Diligent {
         SET doneAt = ?
         WHERE id = ?
         ''',
-        [doneAt?.millisecondsSinceEpoch, descendant.id],
+        [doneAtTrue?.millisecondsSinceEpoch, descendant.id],
       );
     }
-    if (doneAt != null) {
+    if (doneAtTrue != null) {
       await _unfocus(descendants, tx);
     }
   }
@@ -419,6 +416,7 @@ class Diligent {
         tx,
         task.parentId,
       );
+      await _toggleTree(task, tx, doneAt: DateTime.now());
     });
   }
 
