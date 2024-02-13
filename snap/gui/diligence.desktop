@@ -2,7 +2,7 @@
 Name=Diligence
 Comment=Diligence is a tree-based task management app that lets you breakdown tasks to actionable tasks lessening overwhelm and minimal next view to keep you on track.
 Exec=diligence
-Icon=${SNAP}/meta/gui/diligence.png # replace name to your app name
+Icon=${SNAP}/meta/gui/diligence.png
 Terminal=false
 Type=Application
 Categories=Productivity
