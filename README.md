@@ -4,31 +4,18 @@ Productivity for the unproductive.
 
 ## Development
 
-Uses [commitlint](https://commitlint.js.org/#/) and
-[husky](https://github.com/typicode/husky)
+At the moment, the desktop app has only been tested on Linux. If you have an instance of the release version of the app running while developing, run the debug mode with the `DILIGENCE_APP_ID_PREFIX` set to something (e.g. "dev") so that it won't conflict with the release version.
 
-Run the following why developing
+See the following example command below to do this on the terminal.
 
 ```sh
-flutter pub run build_runner watch --delete-conflicting-outputs
+DILIGENCE_APP_ID_PREFIX=dev flutter run
 ```
 
-### Getting the Database Version
+This environment variable has already been set on VSCode through the launch options. See `.vscode/launch.json`.
 
-As of the moment, Diligence uses sqflite library. Because of this and if for
-some reason you need to know the database version, just call:
+If you also want to run the integration tests and not want it to interfere with a Diligence desktop app installation, add the app id prefix too:
 
-```dart
-database.getVersion();
+```sh
+DILIGENCE_APP_ID_PREFIX=test flutter test integration_test/all_tests.dart
 ```
-
-If you need to check the version number from the database itself, run this
-query:
-
-```sql
-PRAGMA user_version;
-```
-
-### Running the Emulator
-
-On VSCode, run it through the Run menu.
