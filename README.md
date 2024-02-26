@@ -19,3 +19,17 @@ If you also want to run the integration tests and not want it to interfere with 
 ```sh
 DILIGENCE_APP_ID_PREFIX=test flutter test integration_test/all_tests.dart
 ```
+
+### Testing Builds for Ubuntu
+
+In Ubuntu you can run the following
+
+```sh
+snapcraft
+```
+
+This creates an snap file `diligence_<VERSION>_amd64.snap`. Install it with the following command:
+
+```sh
+sudo snap install ./diligence_<VERSION>_amd64.snap --dangerous
+```
