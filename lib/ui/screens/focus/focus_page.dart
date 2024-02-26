@@ -34,12 +34,7 @@ class _FocusPageState extends State<FocusPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    populateQueue();
-  }
-
-  Future<void> populateQueue() async {
-    final queue = await diligent.focusQueue();
-    updateQueue(queue);
+    updateTasks();
   }
 
   void updateQueue(List<Task> queue) {
@@ -49,7 +44,7 @@ class _FocusPageState extends State<FocusPage> {
   }
 
   Future<void> updateTasks() async {
-    final queue = await diligent.focusQueue();
+    final queue = await diligent.focusQueue(limit: 5);
     updateQueue(queue);
   }
 
@@ -57,12 +52,15 @@ class _FocusPageState extends State<FocusPage> {
   Widget build(BuildContext context) {
     return CommonScreen(
       title: 'Focus',
-      child: FocusQueue(
-        queue: _queue,
-        onReorderQueue: _handleReorderQueue,
-        onRequestTask: _handleRequestTask,
-        onUpdateTask: _handleUpdateTask,
-        onCommand: _handleCommand,
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(64.0, 48.0, 64.0, 0.0),
+        child: FocusQueue(
+          queue: _queue,
+          onReorderQueue: _handleReorderQueue,
+          onRequestTask: _handleRequestTask,
+          onUpdateTask: _handleUpdateTask,
+          onCommand: _handleCommand,
+        ),
       ),
     );
   }

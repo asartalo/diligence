@@ -10,6 +10,8 @@ import 'task_menu_item.dart';
 typedef TaskCallback = void Function(Task task);
 typedef TaskCommandCallback = void Function(Command command);
 
+enum TaskItemStyle { normal, focusOne, focusTwo, focusThree }
+
 class TaskItem extends StatelessWidget {
   final Task task;
   final TaskCallback onUpdateTask;
@@ -19,6 +21,7 @@ class TaskItem extends StatelessWidget {
   final bool focused;
   final int? level;
   final int? childrenCount;
+  final TaskItemStyle style;
 
   const TaskItem({
     super.key,
@@ -30,6 +33,7 @@ class TaskItem extends StatelessWidget {
     this.onToggleExpandTask,
     this.level,
     this.childrenCount,
+    this.style = TaskItemStyle.normal,
   });
 
   @override
@@ -37,7 +41,12 @@ class TaskItem extends StatelessWidget {
     return Material(
       type: MaterialType.transparency,
       child: ListTile(
-        title: Text(task.name),
+        title: Text(
+          task.name,
+          style: TextStyle(
+            fontSize: _getFontSize(),
+          ),
+        ),
         subtitle: taskDetails(),
         onTap: () async {
           onRequestTask(task);
@@ -143,5 +152,16 @@ class TaskItem extends StatelessWidget {
       return const SizedBox(width: 40);
     }
     return const SizedBox(width: 0);
+  }
+
+  double _getFontSize() {
+    switch (style) {
+      case TaskItemStyle.focusOne:
+        return 48;
+      case TaskItemStyle.focusTwo:
+        return 32;
+      default:
+        return 18;
+    }
   }
 }

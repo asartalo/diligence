@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../models/commands/commands.dart';
 import '../../../models/task.dart';
 import '../tasks/task_item.dart';
+import 'keys.dart' as keys;
 
 class FocusQueue extends StatelessWidget {
   final List<Task> queue;
@@ -23,19 +24,35 @@ class FocusQueue extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ReorderableListView.builder(
+      key: keys.focusQueueList,
+      buildDefaultDragHandles: false,
       itemBuilder: (context, index) {
         final task = queue[index];
-        return TaskItem(
+        return ReorderableDelayedDragStartListener(
           key: Key('fQ-${task.id}'),
-          task: task,
-          focused: true,
-          onUpdateTask: (task) => onUpdateTask(task, index),
-          onRequestTask: (task) => onRequestTask(task, index),
-          onCommand: (command) => onCommand(command, index),
+          index: index,
+          child: TaskItem(
+            task: task,
+            focused: true,
+            onUpdateTask: (task) => onUpdateTask(task, index),
+            onRequestTask: (task) => onRequestTask(task, index),
+            onCommand: (command) => onCommand(command, index),
+            style: _getTaskItemStyle(index),
+          ),
         );
       },
       itemCount: queue.length,
       onReorder: onReorderQueue,
     );
+  }
+
+  TaskItemStyle _getTaskItemStyle(int index) {
+    if (index == 0) {
+      return TaskItemStyle.focusOne;
+    } else if (index == 1) {
+      return TaskItemStyle.focusTwo;
+    } else {
+      return TaskItemStyle.focusThree;
+    }
   }
 }
