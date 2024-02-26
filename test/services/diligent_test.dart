@@ -3,6 +3,8 @@ import 'package:diligence/models/task.dart';
 import 'package:diligence/services/diligent.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../helpers/error_matcher.dart';
+
 List<String> taskNames(List<Task?> tasks) {
   final List<String> names = [];
   for (final task in tasks) {
@@ -62,12 +64,7 @@ void main() {
               NewTask(name: 'Foo', parentId: 999),
             ),
             throwsA(
-              allOf(
-                isA<ArgumentError>(),
-                predicate((e) =>
-                    (e! as ArgumentError).message ==
-                    'Parent with id 999 does not exist.'),
-              ),
+              matchesError<ArgumentError>('Parent with id 999 does not exist.'),
             ),
           );
         });
@@ -79,12 +76,7 @@ void main() {
               NewTask(name: ''),
             ),
             throwsA(
-              allOf(
-                isA<ArgumentError>(),
-                predicate((e) =>
-                    (e! as ArgumentError).message ==
-                    'Task name must not be empty.'),
-              ),
+              matchesError<ArgumentError>('Task name must not be empty.'),
             ),
           );
         });
