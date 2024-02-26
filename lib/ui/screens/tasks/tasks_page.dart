@@ -3,12 +3,11 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../../../models/commands/commands.dart';
-import '../../../models/commands/focus_task_command.dart';
-import '../../../models/decorated_task.dart';
 import '../../../models/new_task.dart';
 import '../../../models/task.dart';
 import '../../../models/task_node.dart';
 import '../../../services/diligent.dart';
+import '../../../services/diligent/commander.dart';
 import '../../components/common_screen.dart';
 import 'keys.dart' as keys;
 import 'task_dialog.dart';
@@ -16,7 +15,9 @@ import 'task_tree.dart';
 
 class TasksPage extends StatefulWidget {
   final Diligent diligent;
-  const TasksPage({super.key, required this.diligent});
+  final DiligentCommander commander;
+  TasksPage({super.key, required this.diligent})
+      : commander = DiligentCommander(diligent);
 
   @override
   State<TasksPage> createState() => _TasksPageState();
@@ -82,6 +83,7 @@ class _TasksPageState extends State<TasksPage> {
         onReorder: _handleReorder,
         onRequestTask: _handleRequestTask,
         onToggleExpandTask: _handleToggleExpandTask,
+        onCommand: (command, _) => _handleCommand(command),
       ),
     );
   }
@@ -102,20 +104,17 @@ class _TasksPageState extends State<TasksPage> {
 
   Future<void> _handleRequestTask(Task task, int _) async {
     final command = await TaskDialog.open(context, task);
-    if (command is NewTaskCommand) {
-      final addedTask = await diligent.addTask(command.payload);
-      if (addedTask is Task) {
-        await _expandParent(addedTask);
+    if (command is Command) {
+      await _handleCommand(command);
+    }
+  }
+
+  Future<void> _handleCommand(Command command) async {
+    final result = await widget.commander.handle(command);
+    if (result is Success) {
+      if (command is NewTaskCommand) {
+        await _expandParent(command.payload);
       }
-      await updateTaskTree();
-    } else if (command is UpdateTaskCommand) {
-      await diligent.updateTask(command.payload);
-      await updateTaskTree();
-    } else if (command is DeleteTaskCommand) {
-      await diligent.deleteTask(command.payload);
-      await updateTaskTree();
-    } else if (command is FocusTaskCommand) {
-      await diligent.focus(command.payload);
       await updateTaskTree();
     }
   }
@@ -124,27 +123,20 @@ class _TasksPageState extends State<TasksPage> {
     setState(() {
       _taskNodes[index] = _taskNodes[index].updateTask(task);
     });
-    await diligent.updateTask(trueTask(task));
+    await diligent.updateTask(task);
     await updateTaskTree();
   }
 
-  Task trueTask(Task task) {
-    if (task is DecoratedTask) {
-      return task.task;
-    }
-    return task;
-  }
-
   Future<void> _expandTask(Task task, {bool expanded = true}) async {
-    await diligent.updateTask(trueTask(task.copyWith(expanded: expanded)));
+    await diligent.updateTask(task.copyWith(expanded: expanded));
   }
 
   Future<void> _expandParent(Task task) async {
     final parentId = task.parentId;
     if (parentId is int) {
       final parent = await diligent.findTask(parentId);
-      final expanded = parent!.expanded;
-      if (!expanded) {
+      final expanded = parent?.expanded ?? false;
+      if (!expanded && parent != null) {
         await _expandTask(parent);
       }
     }

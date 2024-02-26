@@ -1,18 +1,20 @@
-import 'decorated_task.dart';
+import 'package:flutter/foundation.dart' show immutable;
+
 import 'task.dart';
 
+@immutable
 class TaskNode {
   final Task task;
   final int level;
   final int childrenCount;
   final int position;
 
-  TaskNode({
-    required Task task,
+  const TaskNode({
+    required this.task,
     required this.level,
     required this.childrenCount,
     required this.position,
-  }) : task = task is DecoratedTask ? task.task : task;
+  });
 
   TaskNode updateTask(Task task) => TaskNode(
         task: task,

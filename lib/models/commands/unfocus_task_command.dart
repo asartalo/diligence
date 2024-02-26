@@ -3,9 +3,9 @@ import '../task.dart';
 import 'command.dart';
 
 @immutable
-class FocusTaskCommand extends CommandPack<Task> {
-  FocusTaskCommand({
-    super.message = 'Task focused',
+class UnfocusTaskCommand extends CommandPack<Task> {
+  UnfocusTaskCommand({
+    super.message = 'Unfocused task',
     required super.payload,
   });
 }

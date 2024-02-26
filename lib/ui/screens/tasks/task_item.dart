@@ -1,15 +1,22 @@
 import 'package:flutter/material.dart';
 
+import '../../../models/commands/commands.dart';
 import '../../../models/new_task.dart';
+import '../../../models/persisted_task.dart';
 import '../../../models/task.dart';
+import 'task_menu.dart';
+import 'task_menu_item.dart';
 
 typedef TaskCallback = void Function(Task task);
+typedef TaskCommandCallback = void Function(Command command);
 
 class TaskItem extends StatelessWidget {
   final Task task;
   final TaskCallback onUpdateTask;
   final TaskCallback onRequestTask;
   final TaskCallback? onToggleExpandTask;
+  final TaskCommandCallback onCommand;
+  final bool focused;
   final int? level;
   final int? childrenCount;
 
@@ -18,6 +25,8 @@ class TaskItem extends StatelessWidget {
     required this.task,
     required this.onUpdateTask,
     required this.onRequestTask,
+    required this.onCommand,
+    this.focused = false,
     this.onToggleExpandTask,
     this.level,
     this.childrenCount,
@@ -30,7 +39,6 @@ class TaskItem extends StatelessWidget {
       child: ListTile(
         title: Text(task.name),
         subtitle: taskDetails(),
-        // hoverColor: Colors.green,
         onTap: () async {
           onRequestTask(task);
         },
@@ -54,14 +62,64 @@ class TaskItem extends StatelessWidget {
             ),
           ],
         ),
-        trailing: IconButton(
-          icon: const Icon(Icons.add),
-          onPressed: () {
-            onRequestTask(NewTask(parent: task));
-          },
+        trailing: TaskItemMenu(
+          menuChildren: taskMenuItems(),
         ),
       ),
     );
+  }
+
+  List<Widget> taskMenuItems() {
+    return [
+      TaskMenuItem(
+        icon: Icons.edit,
+        label: 'Edit',
+        onPressed: () {
+          onRequestTask(task);
+        },
+      ),
+      TaskMenuItem(
+        icon: Icons.add,
+        label: 'Add Task',
+        onPressed: () {
+          onRequestTask(NewTask(parent: task));
+        },
+      ),
+      ...task is PersistedTask
+          ? _taskMenuItemsPersisted(task as PersistedTask)
+          : [],
+    ];
+  }
+
+  List<Widget> _taskMenuItemsPersisted(PersistedTask task) {
+    return [
+      TaskMenuItem(
+        icon: Icons.delete,
+        label: 'Delete',
+        onPressed: () {
+          onCommand(DeleteTaskCommand(payload: task));
+        },
+      ),
+      focusToggle(),
+    ];
+  }
+
+  Widget focusToggle() {
+    return focused
+        ? TaskMenuItem(
+            icon: Icons.visibility_off,
+            onPressed: () {
+              onCommand(UnfocusTaskCommand(payload: task));
+            },
+            label: 'Unfocus',
+          )
+        : TaskMenuItem(
+            icon: Icons.visibility,
+            onPressed: () {
+              onCommand(FocusTaskCommand(payload: task));
+            },
+            label: 'Focus',
+          );
   }
 
   Widget? taskDetails() {

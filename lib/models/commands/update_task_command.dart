@@ -1,7 +1,10 @@
-import '../modified_task.dart';
-import 'base_command.dart';
+import 'package:flutter/foundation.dart' show immutable;
 
-class UpdateTaskCommand extends CommandWithPayload<ModifiedTask> {
+import '../modified_task.dart';
+import 'command.dart';
+
+@immutable
+class UpdateTaskCommand extends CommandPack<ModifiedTask> {
   UpdateTaskCommand({
     super.message = 'Task updated',
     required super.payload,

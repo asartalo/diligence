@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart' show immutable;
 import 'modified_task.dart';
 import 'task.dart';
 import 'task_commons.dart';
 
+@immutable
 class PersistedTask with TaskCommons implements Task {
   @override
   final int id;
@@ -33,7 +35,7 @@ class PersistedTask with TaskCommons implements Task {
   @override
   final DateTime updatedAt;
 
-  PersistedTask({
+  const PersistedTask({
     this.id = 0,
     this.parentId,
     this.doneAt,

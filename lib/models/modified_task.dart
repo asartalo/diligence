@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart' show immutable;
+
 import 'persisted_task.dart';
 import 'task.dart';
 import 'task_commons.dart';
@@ -8,6 +10,7 @@ bool sameTime(DateTime? a, DateTime? b) {
   return a.isAtSameMomentAs(b);
 }
 
+@immutable
 class ModifiedTask with TaskCommons implements Task {
   final PersistedTask originalTask;
   final _modifiedFields = <String>{};

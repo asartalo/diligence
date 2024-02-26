@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../models/commands/commands.dart';
 import '../../../models/task.dart';
 import '../../../services/diligent.dart';
 import 'keys.dart' as keys;
@@ -11,6 +12,7 @@ class TaskTree extends StatelessWidget {
   final void Function(int oldIndex, int newIndex) onReorder;
   final void Function(Task task, int index) onRequestTask;
   final void Function(Task task, int index) onToggleExpandTask;
+  final void Function(Command command, int index) onCommand;
 
   const TaskTree({
     super.key,
@@ -19,6 +21,7 @@ class TaskTree extends StatelessWidget {
     required this.onReorder,
     required this.onRequestTask,
     required this.onToggleExpandTask,
+    required this.onCommand,
   });
 
   @override
@@ -37,6 +40,7 @@ class TaskTree extends StatelessWidget {
             onUpdateTask: (task) => onUpdateTask(task, index),
             onRequestTask: (task) => onRequestTask(task, index),
             onToggleExpandTask: (task) => onToggleExpandTask(task, index),
+            onCommand: (command) => onCommand(command, index),
             level: taskNode.level,
             childrenCount: taskNode.childrenCount,
           ),

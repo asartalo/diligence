@@ -146,10 +146,25 @@ class Diligent {
     }
   }
 
-  Future<Task?> addTask(Task task, {int? position}) async {
+  Future<void> _validateTask(Task task, SqliteReadContext tx) async {
+    if (task.name.isEmpty) {
+      throw ArgumentError('Task name must not be empty.');
+    }
+    if (task.parentId != null) {
+      final parent = await _findTask(task.parentId!, tx);
+      if (parent == null) {
+        throw ArgumentError('Parent with id ${task.parentId} does not exist.');
+      }
+    }
+  }
+
+  Future<Task> addTask(Task task, {int? position}) async {
     late int taskId;
     Task? newTask;
+
     await db.writeTransaction((tx) async {
+      await _validateTask(task, tx);
+
       final parentId = task.parentId;
       if (position != null) {
         await tx.execute(
@@ -194,7 +209,10 @@ class Diligent {
         await _toggleTree(newTask!, tx);
       }
     });
-    return newTask;
+    if (newTask == null) {
+      throw Exception('Task was not created.');
+    }
+    return newTask!;
   }
 
   Future<Task?> findTask(int id) => _findTask(id, db);
@@ -210,15 +228,21 @@ class Diligent {
     return rows.isEmpty ? null : _taskFromRow(rows.first);
   }
 
-  Future<void> updateTask(Task task) async {
+  Future<Task> updateTask(Task task) async {
     if (task is ModifiedTask) {
+      late Task? updatedTask;
       await db.writeTransaction((tx) async {
         await _updateTask(task, tx);
         await _toggleTreeIfToggled(task, tx);
         await _focusCheck(task, tx);
+        updatedTask = await _findTask(task.id, tx);
       });
+      if (updatedTask == null) {
+        throw Exception('Task was not updated.');
+      }
+      return updatedTask!;
     } else {
-      throw Exception('Task must be a ModifiedTask');
+      throw ArgumentError('Task must be a ModifiedTask');
     }
   }
 
@@ -230,6 +254,7 @@ class Diligent {
     }
   }
 
+  // TODO: The interface does not evoke the intent of its usage
   /// _toggleTree toggles the doneAt field of its ancestors and descendants if
   /// applicable
   Future<void> _toggleTree(Task task, SqliteWriteContext tx,
@@ -754,9 +779,7 @@ class Diligent {
   }
 
   Future<void> unfocus(Task task) async {
-    await db.writeTransaction((tx) async {
-      await _unfocus([task], tx);
-    });
+    await _unfocus([task], db);
   }
 
   Future<void> _unfocus(List<Task> tasks, SqliteWriteContext tx) async {

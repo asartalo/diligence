@@ -26,17 +26,110 @@ void main() {
       await diligent.clearDataForTests();
     });
 
+    group('#addTask()', () {
+      group('when successful', () {
+        late Task task;
+
+        setUpAll(() async {
+          task = await diligent.addTask(NewTask(name: 'Foo'));
+        });
+
+        test('it returns the persisted task', () {
+          expect(task.name, equals('Foo'));
+        });
+
+        test('it returns the persisted task with an id', () {
+          expect(task.id, isNotNull);
+        });
+
+        test('it returns the persisted task with a uid', () {
+          expect(task.uid, isNotNull);
+        });
+
+        test('it returns the persisted task with a createdAt', () {
+          expect(task.createdAt, isNotNull);
+        });
+
+        test('it returns the persisted task with an updatedAt', () {
+          expect(task.updatedAt, isNotNull);
+        });
+      });
+
+      group('failure modes', () {
+        test('it throws an error when the parent does not exist', () async {
+          expect(
+            () async => await diligent.addTask(
+              NewTask(name: 'Foo', parentId: 999),
+            ),
+            throwsA(
+              allOf(
+                isA<ArgumentError>(),
+                predicate((e) =>
+                    (e! as ArgumentError).message ==
+                    'Parent with id 999 does not exist.'),
+              ),
+            ),
+          );
+        });
+
+        test('it throws an error when the task name is empty', () async {
+          expect(
+            () async => await diligent.addTask(
+              // ignore: avoid_redundant_argument_values
+              NewTask(name: ''),
+            ),
+            throwsA(
+              allOf(
+                isA<ArgumentError>(),
+                predicate((e) =>
+                    (e! as ArgumentError).message ==
+                    'Task name must not be empty.'),
+              ),
+            ),
+          );
+        });
+      });
+    });
+
+    group('#updateTask()', () {
+      late Task task;
+      late Task updatedTask;
+
+      setUpAll(() async {
+        task = await diligent.addTask(NewTask(name: 'Foo'));
+        updatedTask = await diligent.updateTask(
+          task.copyWith(name: 'Bar'),
+        );
+      });
+
+      test('it updates the task', () async {
+        expect(updatedTask.name, equals('Bar'));
+      });
+
+      test('it updates the task with an updatedAt', () async {
+        expect(updatedTask.updatedAt, isNot(task.updatedAt));
+      });
+
+      test('it does not update the uid', () async {
+        expect(updatedTask.uid, equals(task.uid));
+      });
+
+      test('it does not update the createdAt', () async {
+        expect(updatedTask.createdAt, equals(task.createdAt));
+      });
+    });
+
     group('Basic CRUD', () {
       test('can create a root task', () async {
         final task = await diligent.addTask(NewTask(name: 'Root'));
-        expect(task?.name, equals('Root'));
+        expect(task.name, equals('Root'));
       });
 
       test('persists task', () async {
         final id = (await diligent.addTask(NewTask(
           name: 'Foo',
           details: 'Bar',
-        )))!
+        )))
             .id;
         final task = await diligent.findTask(id);
         expect(task!.name, equals('Foo'));
@@ -46,13 +139,13 @@ void main() {
       test('increments childrenCount when a child task is added', () async {
         final parentTask = await diligent.addTask(NewTask(name: 'Root'));
         await diligent.addTask(NewTask(name: 'Foo', parent: parentTask));
-        final taskNodes = await diligent.subtreeFlat(parentTask!.id);
+        final taskNodes = await diligent.subtreeFlat(parentTask.id);
         expect(taskNodes.first.childrenCount, equals(1));
       });
 
       test('can delete a task', () async {
         final task = await diligent.addTask(NewTask(name: 'Foo'));
-        await diligent.deleteTask(task!);
+        await diligent.deleteTask(task);
         expect(await diligent.findTask(task.id), isNull);
       });
 
@@ -61,8 +154,8 @@ void main() {
         final task = await diligent.addTask(
           NewTask(name: 'Foo', parent: parentTask),
         );
-        await diligent.deleteTask(task!);
-        final taskNodes = await diligent.subtreeFlat(parentTask!.id);
+        await diligent.deleteTask(task);
+        final taskNodes = await diligent.subtreeFlat(parentTask.id);
         expect(taskNodes.first.childrenCount, equals(0));
       });
 
@@ -77,7 +170,7 @@ void main() {
       late Task parentTask;
 
       setUp(() async {
-        parentTask = (await diligent.addTask(NewTask(name: 'Root')))!;
+        parentTask = await diligent.addTask(NewTask(name: 'Root'));
       });
 
       test('node with no children has 0 childCount', () async {
@@ -89,7 +182,7 @@ void main() {
         final task = await diligent
             .addTask(NewTask(name: 'Foo', parentId: parentTask.id));
         final children = await diligent.getChildren(parentTask);
-        expect(children.first.name, equals(task!.name));
+        expect(children.first.name, equals(task.name));
         expect((await diligent.getParent(task))!.name, equals(parentTask.name));
       });
 
@@ -126,7 +219,7 @@ void main() {
         late Task parentTask;
 
         setUp(() async {
-          parentTask = (await diligent.addTask(NewTask(name: 'Root')))!;
+          parentTask = await diligent.addTask(NewTask(name: 'Root'));
           for (final taskName in ['A', 'B', 'C', 'D', 'E']) {
             await diligent.addTask(NewTask(name: taskName, parent: parentTask));
           }
@@ -453,7 +546,7 @@ void main() {
 
     test('it can update a task', () async {
       final task = await diligent.addTask(NewTask(name: 'Foo'));
-      await diligent.updateTask(task!.copyWith(name: 'Bar'));
+      await diligent.updateTask(task.copyWith(name: 'Bar'));
       final updatedTask = await diligent.findTask(task.id);
       expect(updatedTask?.name, equals('Bar'));
     });
@@ -761,11 +854,11 @@ Future<Map<String, Task>> testTreeSetup(Diligent diligent) async {
   final a1 = await diligent.addTask(NewTask(name: 'A1', parent: a));
   final a2 = await diligent.addTask(NewTask(name: 'A2 - leaf', parent: a));
   result['A1ii - leaf'] =
-      (await diligent.addTask(NewTask(name: 'A1ii - leaf', parent: a1)))!;
+      await diligent.addTask(NewTask(name: 'A1ii - leaf', parent: a1));
   result['A3 - leaf'] =
-      (await diligent.addTask(NewTask(name: 'A3 - leaf', parent: a)))!;
+      await diligent.addTask(NewTask(name: 'A3 - leaf', parent: a));
   result['A1iii - leaf'] =
-      (await diligent.addTask(NewTask(name: 'A1iii - leaf', parent: a1)))!;
+      await diligent.addTask(NewTask(name: 'A1iii - leaf', parent: a1));
   final a1ILeaf = await diligent.addTask(
     NewTask(name: 'A1i - leaf', parent: a1),
     position: 0,
@@ -786,16 +879,16 @@ Future<Map<String, Task>> testTreeSetup(Diligent diligent) async {
   await diligent.addTask(NewTask(name: 'B3 - leaf', parent: b));
   await diligent.addTask(NewTask(name: 'B2iii - leaf', parent: b2));
 
-  result['Root'] = root!;
-  result['A'] = a!;
-  result['A1'] = a1!;
-  result['B'] = b!;
-  result['B2'] = b2!;
-  result['C - leaf'] = c!;
-  result['A2 - leaf'] = a2!;
-  result['A1i - leaf'] = a1ILeaf!;
-  result['B1 - leaf'] = b1Leaf!;
-  result['B2i - leaf'] = b2i!;
+  result['Root'] = root;
+  result['A'] = a;
+  result['A1'] = a1;
+  result['B'] = b;
+  result['B2'] = b2;
+  result['C - leaf'] = c;
+  result['A2 - leaf'] = a2;
+  result['A1i - leaf'] = a1ILeaf;
+  result['B1 - leaf'] = b1Leaf;
+  result['B2i - leaf'] = b2i;
 
   return result;
 }

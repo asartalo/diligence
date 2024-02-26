@@ -1,7 +1,10 @@
-import '../new_task.dart';
-import 'base_command.dart';
+import 'package:flutter/foundation.dart' show immutable;
 
-class NewTaskCommand extends CommandWithPayload<NewTask> {
+import '../new_task.dart';
+import 'command.dart';
+
+@immutable
+class NewTaskCommand extends CommandPack<NewTask> {
   NewTaskCommand({
     super.message = 'New task created',
     required super.payload,

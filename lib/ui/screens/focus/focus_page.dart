@@ -2,18 +2,19 @@ import 'dart:math';
 
 import 'package:flutter/widgets.dart';
 
-import '../../../models/commands/delete_task_command.dart';
-import '../../../models/commands/focus_task_command.dart';
-import '../../../models/commands/update_task_command.dart';
+import '../../../models/commands/commands.dart';
 import '../../../models/task.dart';
 import '../../../services/diligent.dart';
+import '../../../services/diligent/commander.dart';
 import '../../components/common_screen.dart';
 import '../tasks/task_dialog.dart';
 import 'focus_queue.dart';
 
 class FocusPage extends StatefulWidget {
   final Diligent diligent;
-  const FocusPage({super.key, required this.diligent});
+  final DiligentCommander commander;
+  FocusPage({super.key, required this.diligent})
+      : commander = DiligentCommander(diligent);
 
   @override
   State<FocusPage> createState() => _FocusPageState();
@@ -61,6 +62,7 @@ class _FocusPageState extends State<FocusPage> {
         onReorderQueue: _handleReorderQueue,
         onRequestTask: _handleRequestTask,
         onUpdateTask: _handleUpdateTask,
+        onCommand: _handleCommand,
       ),
     );
   }
@@ -79,15 +81,8 @@ class _FocusPageState extends State<FocusPage> {
 
   Future<void> _handleRequestTask(Task task, int index) async {
     final command = await TaskDialog.open(context, task);
-    if (command is UpdateTaskCommand) {
-      await diligent.updateTask(command.payload);
-      await updateTasks();
-    } else if (command is DeleteTaskCommand) {
-      await diligent.deleteTask(command.payload);
-      await updateTasks();
-    } else if (command is FocusTaskCommand) {
-      await diligent.focus(command.payload);
-      await updateTasks();
+    if (command is Command) {
+      await _handleCommand(command, index);
     }
   }
 
@@ -97,5 +92,12 @@ class _FocusPageState extends State<FocusPage> {
     });
     await diligent.updateTask(task);
     await updateTasks();
+  }
+
+  Future<void> _handleCommand(Command command, int _) async {
+    final result = await widget.commander.handle(command);
+    if (result is Success) {
+      await updateTasks();
+    }
   }
 }

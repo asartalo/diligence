@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../models/commands/commands.dart';
 import '../../../models/task.dart';
 import '../tasks/task_item.dart';
 
@@ -8,6 +9,7 @@ class FocusQueue extends StatelessWidget {
   final void Function(int oldIndex, int newIndex) onReorderQueue;
   final void Function(Task task, int index) onUpdateTask;
   final void Function(Task task, int index) onRequestTask;
+  final void Function(Command command, int index) onCommand;
 
   const FocusQueue({
     super.key,
@@ -15,6 +17,7 @@ class FocusQueue extends StatelessWidget {
     required this.onReorderQueue,
     required this.onUpdateTask,
     required this.onRequestTask,
+    required this.onCommand,
   });
 
   @override
@@ -25,8 +28,10 @@ class FocusQueue extends StatelessWidget {
         return TaskItem(
           key: Key('fQ-${task.id}'),
           task: task,
+          focused: true,
           onUpdateTask: (task) => onUpdateTask(task, index),
           onRequestTask: (task) => onRequestTask(task, index),
+          onCommand: (command) => onCommand(command, index),
         );
       },
       itemCount: queue.length,
