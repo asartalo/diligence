@@ -5,8 +5,13 @@ import 'command.dart';
 
 @immutable
 class UpdateTaskCommand extends CommandPack<ModifiedTask> {
+  final ModifiedTask task;
+
   UpdateTaskCommand({
     super.message = 'Task updated',
-    required super.payload,
+    required this.task,
   });
+
+  @override
+  ModifiedTask get payload => task;
 }

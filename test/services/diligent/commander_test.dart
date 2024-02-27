@@ -36,7 +36,7 @@ void main() {
 
       group('NewTaskCommand', () {
         final newTask = NewTask(name: 'Foo');
-        final command = NewTaskCommand(payload: newTask);
+        final command = NewTaskCommand(task: newTask);
 
         group('when successful', () {
           setUp(() async {
@@ -86,7 +86,7 @@ void main() {
 
       group('DeleteTaskCommand', () {
         final task = createPersistedTask();
-        final command = DeleteTaskCommand(payload: task);
+        final command = DeleteTaskCommand(task: task);
 
         group('when successful', () {
           setUp(() async {
@@ -129,7 +129,7 @@ void main() {
         final now = DateTime.now();
         final originalTask = createPersistedTask(now: now);
         final task = originalTask.copyWith(name: 'Bar');
-        final command = UpdateTaskCommand(payload: task);
+        final command = UpdateTaskCommand(task: task);
 
         group('when successful', () {
           setUp(() async {
@@ -180,7 +180,7 @@ void main() {
 
       group('FocusTaskCommand', () {
         final task = createPersistedTask();
-        final command = FocusTaskCommand(payload: task);
+        final command = FocusTaskCommand(task: task);
 
         group('when successful', () {
           setUp(() async {
@@ -223,7 +223,7 @@ void main() {
 
       group('UnfocusTaskCommand', () {
         final task = createPersistedTask();
-        final command = UnfocusTaskCommand(payload: task);
+        final command = UnfocusTaskCommand(task: task);
 
         group('when successful', () {
           setUp(() async {

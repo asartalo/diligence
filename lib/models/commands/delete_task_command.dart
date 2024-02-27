@@ -5,8 +5,13 @@ import 'command.dart';
 
 @immutable
 class DeleteTaskCommand extends CommandPack<PersistedTask> {
+  final PersistedTask task;
+
   DeleteTaskCommand({
     super.message = 'Task deleted',
-    required super.payload,
+    required this.task,
   });
+
+  @override
+  PersistedTask get payload => task;
 }

@@ -78,7 +78,7 @@ class _TaskDialogState extends State<TaskDialog> {
             onPressed: () {
               if (_task is PersistedTask) {
                 Navigator.of(context).pop<Command>(
-                  DeleteTaskCommand(payload: _task as PersistedTask),
+                  DeleteTaskCommand(task: _task as PersistedTask),
                 );
               }
             },
@@ -100,16 +100,16 @@ class _TaskDialogState extends State<TaskDialog> {
   }
 
   void _handleFocusTask() {
-    Navigator.of(context).pop<Command>(FocusTaskCommand(payload: _task));
+    Navigator.of(context).pop<Command>(FocusTaskCommand(task: _task));
   }
 
   void submit() {
     late Command command;
     switch (_task) {
       case final NewTask t:
-        command = NewTaskCommand(payload: t);
+        command = NewTaskCommand(task: t);
       case final ModifiedTask t:
-        command = UpdateTaskCommand(payload: t);
+        command = UpdateTaskCommand(task: t);
       default:
         command = noOpCommand;
     }

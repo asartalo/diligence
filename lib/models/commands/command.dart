@@ -10,9 +10,8 @@ abstract class Command {
 
 @immutable
 abstract class CommandPack<T> extends Command {
-  final T payload;
-
-  CommandPack({super.message, required this.payload});
+  T get payload;
+  CommandPack({super.message});
 }
 
 @immutable

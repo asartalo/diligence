@@ -4,8 +4,13 @@ import 'command.dart';
 
 @immutable
 class FocusTaskCommand extends CommandPack<Task> {
+  final Task task;
+
   FocusTaskCommand({
     super.message = 'Task focused',
-    required super.payload,
+    required this.task,
   });
+
+  @override
+  Task get payload => task;
 }

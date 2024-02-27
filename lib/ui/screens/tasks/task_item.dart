@@ -106,7 +106,7 @@ class TaskItem extends StatelessWidget {
         icon: Icons.delete,
         label: 'Delete',
         onPressed: () {
-          onCommand(DeleteTaskCommand(payload: task));
+          onCommand(DeleteTaskCommand(task: task));
         },
       ),
       focusToggle(),
@@ -118,14 +118,14 @@ class TaskItem extends StatelessWidget {
         ? TaskMenuItem(
             icon: Icons.visibility_off,
             onPressed: () {
-              onCommand(UnfocusTaskCommand(payload: task));
+              onCommand(UnfocusTaskCommand(task: task));
             },
             label: 'Unfocus',
           )
         : TaskMenuItem(
             icon: Icons.visibility,
             onPressed: () {
-              onCommand(FocusTaskCommand(payload: task));
+              onCommand(FocusTaskCommand(task: task));
             },
             label: 'Focus',
           );
