@@ -83,6 +83,87 @@ void main() {
       });
     });
 
+    group('#addTasks()', () {
+      test('it adds multiple tasks', () async {
+        final tasks = await diligent.addTasks([
+          NewTask(name: 'Foo'),
+          NewTask(name: 'Bar'),
+        ]);
+        expect(taskNames(tasks), equals(['Foo', 'Bar']));
+      });
+
+      test('it can add multiple tasks to a parent', () async {
+        final parent = await diligent.addTask(NewTask(name: 'Parent'));
+        await diligent.addTasks([
+          NewTask(name: 'Foo', parentId: parent.id),
+          NewTask(name: 'Bar', parentId: parent.id),
+        ]);
+        final tasks = await diligent.getChildren(parent);
+        expect(taskNames(tasks), equals(['Foo', 'Bar']));
+      });
+
+      test('it adds children at the end position by default', () async {
+        final parent = await diligent.addTask(NewTask(name: 'Parent'));
+        await diligent.addTasks([
+          NewTask(name: 'First', parentId: parent.id),
+        ]);
+        await diligent.addTasks([
+          NewTask(name: 'Foo', parentId: parent.id),
+          NewTask(name: 'Bar', parentId: parent.id),
+        ]);
+        final tasks = await diligent.getChildren(parent);
+        expect(taskNames(tasks), equals(['First', 'Foo', 'Bar']));
+      });
+
+      test('it can add children to a position when defined', () async {
+        final parent = await diligent.addTask(NewTask(name: 'Parent'));
+        await diligent.addTasks([
+          NewTask(name: 'A', parentId: parent.id),
+          NewTask(name: 'D', parentId: parent.id),
+          NewTask(name: 'E', parentId: parent.id),
+        ]);
+        await diligent.addTasks([
+          NewTask(name: 'B', parentId: parent.id),
+          NewTask(name: 'C', parentId: parent.id),
+        ], position: 1);
+        final tasks = await diligent.getChildren(parent);
+        expect(taskNames(tasks), equals(['A', 'B', 'C', 'D', 'E']));
+      });
+
+      group('failure modes', () {
+        test('it throws an error when the parent does not exist', () async {
+          expect(
+            () async => await diligent.addTasks([
+              NewTask(name: 'Foo', parentId: 999),
+            ]),
+            throwsA(
+              matchesError<ArgumentError>('Parent with id 999 does not exist.'),
+            ),
+          );
+        });
+
+        // TODO: Think of how we could remove this restriction in the future
+        test(
+          'it restricts to only adding tasks with the same parents at a time',
+          () async {
+            final parent1 = await diligent.addTask(NewTask(name: 'Parent 1'));
+            final parent2 = await diligent.addTask(NewTask(name: 'Parent 2'));
+            expect(
+              () async => await diligent.addTasks([
+                NewTask(name: 'Foo', parentId: parent1.id),
+                NewTask(name: 'Bar', parentId: parent2.id),
+              ]),
+              throwsA(
+                matchesError<ArgumentError>(
+                  'All tasks must have the same parent.',
+                ),
+              ),
+            );
+          },
+        );
+      });
+    });
+
     group('#updateTask()', () {
       late Task task;
       late Task updatedTask;
@@ -519,6 +600,24 @@ void main() {
           ]),
         );
       });
+
+      test(
+        'when tasks are added to a focused task, the children are added to the queue',
+        () async {
+          await diligent.focus(setupResult['A1i - leaf']!);
+          await diligent.addTasks([
+            NewTask(name: 'New Task 1', parent: setupResult['A1i - leaf']),
+            NewTask(name: 'New Task 2', parent: setupResult['A1i - leaf']),
+          ]);
+          expect(
+            taskNames(await diligent.focusQueue()),
+            equals([
+              'New Task 1',
+              'New Task 2',
+            ]),
+          );
+        },
+      );
     });
 
     test('it can find all leaves on a subtree', () async {

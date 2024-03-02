@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer' as developer;
 import 'dart:math';
 
+import 'package:collection/collection.dart';
 import 'package:sqlite_async/sqlite3.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 
@@ -52,17 +53,6 @@ final _modifiableFields = _allTaskFields
 
 final _modifiableNonPositionFields =
     _modifiableFields.where((field) => field != 'position').toList();
-
-final _queryCache = <String, String>{};
-
-String _cachedQuery(String key, String query) {
-  String? value = _queryCache[key];
-  if (value == null) {
-    _queryCache[key] = query;
-    value = query;
-  }
-  return value;
-}
 
 String _prefixedField(String field, {String? prefix}) {
   return prefix is String ? '$prefix.$field' : field;
@@ -146,78 +136,146 @@ class Diligent {
     }
   }
 
-  Future<void> _validateTask(Task task, SqliteReadContext tx) async {
-    if (task.name.isEmpty) {
-      throw ArgumentError('Task name must not be empty.');
+  final _queryCache = <String, String>{};
+
+  String _cachedQuery(String key, String query) {
+    String? value = _queryCache[key];
+    if (value == null) {
+      _queryCache[key] = query;
+      value = query;
     }
-    if (task.parentId != null) {
-      final parent = await _findTask(task.parentId!, tx);
+    return value;
+  }
+
+  Future<void> _validateAddedTasks(
+      List<Task> tasks, SqliteReadContext tx) async {
+    final Set<int?> parentIds = {};
+    for (final task in tasks) {
+      if (task.name.isEmpty) {
+        throw ArgumentError('Task name must not be empty.');
+      }
+      parentIds.add(task.parentId ?? 0);
+    }
+    if (parentIds.length > 1) {
+      throw ArgumentError('All tasks must have the same parent.');
+    }
+    final parentId = parentIds.first;
+    if (parentId != 0) {
+      final parent = await _findTask(parentId, tx);
       if (parent == null) {
-        throw ArgumentError('Parent with id ${task.parentId} does not exist.');
+        throw ArgumentError('Parent with id $parentId does not exist.');
       }
     }
   }
 
-  Future<Task> addTask(Task task, {int? position}) async {
-    late int taskId;
-    Task? newTask;
+  Future<List<Task>> addTasks(List<Task> tasks, {int? position}) async {
+    List<Task> newTasks = [];
 
     await db.writeTransaction((tx) async {
-      await _validateTask(task, tx);
+      await _validateAddedTasks(tasks, tx);
+      final parentId = tasks.first.parentId;
 
-      final parentId = task.parentId;
       if (position != null) {
         await tx.execute(
           '''
-          UPDATE tasks SET position = position + 1
+          UPDATE tasks SET position = position + ?
           WHERE parentId = ? AND position >= ?
           ''',
-          [parentId, position],
+          [tasks.length, parentId, position],
         );
-        await tx.execute(
+        final batchProps = tasks.mapIndexed((int index, task) {
+          return [
+            ..._propsFromTaskFields(_newTaskFields, task),
+            position + index,
+          ];
+        }).toList();
+        await tx.executeBatch(
           _cachedQuery(
-            'taskInsertNoPosition',
+            'tasksInsertWithPosition',
             '''
             INSERT INTO tasks (${_newTaskFields.join(', ')}, position)
             SELECT ${_questionMarks(_newTaskFields.length + 1)}
             ''',
           ),
-          [
-            ..._propsFromTaskFields(_newTaskFields, task),
-            position,
-          ],
+          batchProps,
         );
       } else {
-        await tx.execute(
+        final lastPositionResult = await tx.get(
+          '''
+          SELECT COALESCE(MAX(position) + 1, 0) as lastPosition
+          FROM tasks
+          WHERE parentId = ?
+          ''',
+          [parentId],
+        );
+        final lastPosition = lastPositionResult.isNotEmpty
+            ? lastPositionResult['lastPosition'] as int
+            : 0;
+        final batchProps = tasks.mapIndexed((int index, task) {
+          return [
+            ..._propsFromTaskFields(_newTaskFields, task),
+            lastPosition + index,
+          ];
+        }).toList();
+        await tx.executeBatch(
           _cachedQuery(
-            'taskInsertWithPosition',
+            'tasksInsertNoPosition',
             '''
           INSERT INTO tasks (${_newTaskFields.join(', ')}, position)
-          SELECT ${_questionMarks(_newTaskFields.length)}, COALESCE(MAX(position) + 1, 0) FROM tasks WHERE parentId = ?
+          SELECT ${_questionMarks(_newTaskFields.length)}, ?
           ''',
           ),
-          [
-            ..._propsFromTaskFields(_newTaskFields, task),
-            parentId,
-          ],
+          batchProps,
         );
       }
-      final result = await tx.execute('SELECT last_insert_rowid() as id');
-      taskId = result.first['id'] as int;
-      newTask = await _findTask(taskId, tx);
-      if (newTask != null) {
-        await _toggleTree(newTask!, tx);
+
+      // TODO: Also make sure that NewTask generates uids using tests
+      final uids = _uidsFromTasks(tasks);
+      newTasks = await _findTasksByUids(uids, tx);
+      if (newTasks.length != uids.length) {
+        throw Exception('Not all tasks were created.');
+      }
+      await _toggleTree(newTasks.first, tx);
+
+      final parent = await _findTask(parentId, tx);
+      if (parent is Task && parentId is int && await _isFocused(parentId, tx)) {
+        await _unfocus([parent], tx);
+        await _focus(newTasks, tx);
       }
     });
-    if (newTask == null) {
+    return newTasks;
+  }
+
+  List<String> _uidsFromTasks(List<Task> tasks) {
+    return tasks.map((task) => task.uid).toList();
+  }
+
+  Future<List<Task>> _findTasksByUids(
+    List<String> uids,
+    SqliteWriteContext tx,
+  ) async {
+    final questionMarks = _questionMarks(uids.length);
+    final rows = await tx.getAll(
+      '''
+      SELECT * FROM tasks WHERE uid IN ($questionMarks) ORDER BY position
+      ''',
+      uids,
+    );
+    return rows.map((row) => _taskFromRow(row)).toList();
+  }
+
+  Future<Task> addTask(Task task, {int? position}) async {
+    final newTasks = await addTasks([task], position: position);
+    if (newTasks.isEmpty) {
       throw Exception('Task was not created.');
     }
-    return newTask!;
+    return newTasks.first;
   }
 
   Future<Task?> findTask(int id) => _findTask(id, db);
 
-  Future<Task?> _findTask(int id, SqliteReadContext tx) async {
+  Future<Task?> _findTask(int? id, SqliteReadContext tx) async {
+    if (id == null) return null;
     final rows = await tx.getAll('SELECT * FROM tasks WHERE id = ?', [id]);
     return rows.isEmpty ? null : _taskFromRow(rows.first);
   }
@@ -679,45 +737,42 @@ class Diligent {
   }
 
   Future<TaskList> leaves(Task task) {
-    return _leaves(task, db);
+    return _leaves([task], db);
   }
 
-  Future<TaskList> _leaves(Task task, SqliteReadContext tx) async {
-    final id = task.id;
+  Future<TaskList> _leaves(List<Task> tasks, SqliteReadContext tx) async {
+    final ids = tasks.map((task) => task.id).toList();
     final rows = await tx.getAll(
-      _cachedQuery(
-        'leaves',
-        '''
-          WITH RECURSIVE
-            subtree(lvl, ${_commaFields(_allTaskFields)}) AS (
-              SELECT
-                0 AS lvl,
-                ${_commaFields(_allTaskFields, prefix: 'tasks')}
-              FROM tasks
-              WHERE tasks.parentId = ?
-            UNION ALL
-              SELECT
-                subtree.lvl + 1,
-                ${_commaFields(_allTaskFields, prefix: 'tasks')}
-              FROM
-                subtree
-                JOIN tasks ON tasks.parentId = subtree.id
-              ORDER BY
-                subtree.lvl+1 DESC,
-                tasks.position
-            )
-          SELECT
-            subtree.*,
-            (
-              SELECT count(id)
-              FROM tasks
-              WHERE parentId = subtree.id
-            ) AS childrenCount
-          FROM subtree
-          WHERE childrenCount = 0
+      '''
+        WITH RECURSIVE
+          subtree(lvl, ${_commaFields(_allTaskFields)}) AS (
+            SELECT
+              0 AS lvl,
+              ${_commaFields(_allTaskFields, prefix: 'tasks')}
+            FROM tasks
+            WHERE tasks.parentId IN (${_questionMarks(ids.length)})
+          UNION ALL
+            SELECT
+              subtree.lvl + 1,
+              ${_commaFields(_allTaskFields, prefix: 'tasks')}
+            FROM
+              subtree
+              JOIN tasks ON tasks.parentId = subtree.id
+            ORDER BY
+              subtree.lvl+1 DESC,
+              tasks.position
+          )
+        SELECT
+          subtree.*,
+          (
+            SELECT count(id)
+            FROM tasks
+            WHERE parentId = subtree.id
+          ) AS childrenCount
+        FROM subtree
+        WHERE childrenCount = 0
         ''',
-      ),
-      [id],
+      ids,
     );
     return rows.map((row) => _taskFromRow(row)).toList();
   }
@@ -737,45 +792,66 @@ class Diligent {
 
   Future<void> focus(Task task, {int position = 0}) async {
     await db.writeTransaction((tx) async {
-      final taskLeaves = await _leaves(task, tx);
-      final toAdd = taskLeaves.isEmpty ? [task] : taskLeaves;
+      await _focus([task], tx, position: position);
+    });
+  }
 
-      await _unfocus(toAdd, tx);
+  Future<void> _focus(
+    List<Task> tasks,
+    SqliteWriteContext tx, {
+    int position = 0,
+  }) async {
+    final taskLeaves = await _leaves(tasks, tx);
+    final toAdd = taskLeaves.isEmpty ? tasks : taskLeaves;
 
-      if (position == 0) {
-        await tx.executeBatch(
-          '''
-          INSERT INTO focusQueue (taskId, position) VALUES (?, (
-            SELECT COALESCE(MAX(position) + 1, 0) FROM focusQueue
-          ))
-          ''',
-          toAdd.reversed.map((task) => [task.id]).toList(),
-        );
-      } else {
-        final lengthResult = await tx.get(
-          'SELECT count(taskId) as length FROM focusQueue',
-        );
-        final length = lengthResult['length'] as int;
-        final realPosition = length - position;
-        await tx.execute(
-          '''
-          UPDATE focusQueue
-          SET position = position + ?
-          WHERE position >= ?
-          ''',
-          [toAdd.length + 1, realPosition],
-        );
-        await tx.executeBatch(
-          '''
+    await _unfocus(toAdd, tx);
+
+    if (position == 0) {
+      // get max value of position in focusQueue
+      final result = await tx.get(
+        'SELECT COALESCE(MAX(position) + 1, 0) as position FROM focusQueue',
+      );
+      final maxPosition = result['position'] as int;
+      await tx.executeBatch(
+        '''
+        INSERT INTO focusQueue (taskId, position) VALUES (?, ?)
+        ''',
+        toAdd.reversed
+            .mapIndexed((i, task) => [task.id, i + maxPosition])
+            .toList(),
+      );
+    } else {
+      final lengthResult = await tx.get(
+        'SELECT count(taskId) as length FROM focusQueue',
+      );
+      final length = lengthResult['length'] as int;
+      final realPosition = length - position;
+      await tx.execute(
+        '''
+        UPDATE focusQueue
+        SET position = position + ?
+        WHERE position >= ?
+        ''',
+        [toAdd.length + 1, realPosition],
+      );
+      await tx.executeBatch(
+        '''
           INSERT INTO focusQueue (taskId, position) VALUES (?, ?)
           ''',
-          toAdd.reversed.indexed.map((item) {
-            final (index, task) = item;
-            return [task.id, realPosition + index];
-          }).toList(),
-        );
-      }
-    });
+        toAdd.reversed.indexed.map((item) {
+          final (index, task) = item;
+          return [task.id, realPosition + index];
+        }).toList(),
+      );
+    }
+  }
+
+  Future<bool> _isFocused(int id, SqliteReadContext tx) async {
+    final result = await tx.get(
+      'SELECT count(taskId) as count FROM focusQueue WHERE taskId = ?',
+      [id],
+    );
+    return result['count'] as int > 0;
   }
 
   Future<void> unfocus(Task task) async {
@@ -783,11 +859,11 @@ class Diligent {
   }
 
   Future<void> _unfocus(List<Task> tasks, SqliteWriteContext tx) async {
-    await tx.executeBatch(
+    await tx.execute(
       '''
-      DELETE FROM focusQueue WHERE taskId = ?
+      DELETE FROM focusQueue WHERE taskId IN (${tasks.map((_) => '?').join(', ')})
       ''',
-      tasks.map((task) => [task.id]).toList(),
+      tasks.map((task) => task.id).toList(),
     );
     await _normalizeFocusQueuePositions(tx);
   }
