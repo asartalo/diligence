@@ -740,7 +740,11 @@ class Diligent {
     return _leaves([task], db);
   }
 
-  Future<TaskList> _leaves(List<Task> tasks, SqliteReadContext tx) async {
+  Future<TaskList> _leaves(
+    List<Task> tasks,
+    SqliteReadContext tx, {
+    bool? done,
+  }) async {
     final ids = tasks.map((task) => task.id).toList();
     final rows = await tx.getAll(
       '''
@@ -771,6 +775,7 @@ class Diligent {
           ) AS childrenCount
         FROM subtree
         WHERE childrenCount = 0
+        ${done is bool ? 'AND doneAt IS ${done ? 'NOT' : ''} NULL' : ''}
         ''',
       ids,
     );
@@ -801,7 +806,11 @@ class Diligent {
     SqliteWriteContext tx, {
     int position = 0,
   }) async {
-    final taskLeaves = await _leaves(tasks, tx);
+    final taskLeaves = await _leaves(
+      tasks,
+      tx,
+      done: false,
+    );
     final toAdd = taskLeaves.isEmpty ? tasks : taskLeaves;
 
     await _unfocus(toAdd, tx);

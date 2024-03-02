@@ -494,16 +494,17 @@ void main() {
       });
 
       test(
-          'when adding an ancestor task, it adds its descendant leaf tasks to the queue',
+          'when adding an ancestor task, it adds its descendant leaf tasks that are not doneu to the queue',
           () async {
         await diligent.focus(setupResult['A1i - leaf']!);
+        final task = setupResult['B2ii - leaf']!;
+        await diligent.updateTask(task.markDone());
         await diligent.focus(setupResult['B']!);
         expect(
           taskNames(await diligent.focusQueue()),
           equals([
             'B1 - leaf',
             'B2i - leaf',
-            'B2ii - leaf',
             'B2iii - leaf',
             'B3 - leaf',
             'A1i - leaf',
@@ -966,7 +967,8 @@ Future<Map<String, Task>> testTreeSetup(Diligent diligent) async {
   );
   final b2 = await diligent.addTask(NewTask(name: 'B2', parent: b));
   final b2i = await diligent.addTask(NewTask(name: 'B2i - leaf', parent: b2));
-  await diligent.addTask(NewTask(name: 'B2ii - leaf', parent: b2));
+  result['B2ii - leaf'] =
+      await diligent.addTask(NewTask(name: 'B2ii - leaf', parent: b2));
   await diligent.addTask(NewTask(name: 'B3 - leaf', parent: b));
   await diligent.addTask(NewTask(name: 'B2iii - leaf', parent: b2));
 
