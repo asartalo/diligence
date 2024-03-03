@@ -36,6 +36,7 @@ dependencies:
     git:
       url: https://github.com/asartalo/flutter_dotenv.git
   flutter_markdown: ^0.6.10+2
+  intl: ^0.19.0
   meta: any
   path: ^1.8.3 # any until we resolve integration_test upgrade
   path_provider: ^2.1.2

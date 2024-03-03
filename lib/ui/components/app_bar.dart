@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
+import 'clock_wrap.dart';
 import 'keys.dart' as keys;
 
 AppBar appBar(BuildContext context, String title) {
@@ -9,6 +11,8 @@ AppBar appBar(BuildContext context, String title) {
       color: theme.textTheme.bodyLarge!.color,
     ),
   );
+  final dateFormat = DateFormat('EEEE, MMMM d, y H:mm a');
+
   return AppBar(
     leading: IconButton(
       key: keys.appBarMenuButton,
@@ -25,9 +29,11 @@ AppBar appBar(BuildContext context, String title) {
       Padding(
         padding: const EdgeInsets.only(right: 20.0),
         child: Center(
-          child: Text(
-            'Mon November 23, 2020  5:07 PM',
-            style: theme.textTheme.bodyMedium,
+          child: ClockWrap(
+            clockCallback: (time) => Text(
+              dateFormat.format(time),
+              style: theme.textTheme.bodyMedium,
+            ),
           ),
         ),
       ),
