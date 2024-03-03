@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 
 import '../../../models/commands/commands.dart';
-import '../../../models/task.dart';
 import '../../../services/diligent.dart';
+import '../../../utils/types.dart';
 import 'keys.dart' as keys;
 import 'task_item.dart';
 
 class TaskTree extends StatelessWidget {
   final TaskNodeList taskNodes;
-  final void Function(Task task, int index) onUpdateTask;
-  final void Function(int oldIndex, int newIndex) onReorder;
-  final void Function(Task task, int index) onRequestTask;
-  final void Function(Task task, int index) onToggleExpandTask;
+  final TaskIndexCallback onUpdateTask;
+  final TaskIndexCallback onRequestTask;
+  final TaskIndexCallback onToggleExpandTask;
   final void Function(Command command, int index) onCommand;
+  final void Function(int oldIndex, int newIndex) onReorder;
 
   const TaskTree({
     super.key,

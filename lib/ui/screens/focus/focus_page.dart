@@ -21,7 +21,7 @@ class FocusPage extends StatefulWidget {
 }
 
 class _FocusPageState extends State<FocusPage> {
-  late List<Task> _queue;
+  late TaskList _queue;
 
   Diligent get diligent => widget.diligent;
 
@@ -37,7 +37,7 @@ class _FocusPageState extends State<FocusPage> {
     updateTasks();
   }
 
-  void updateQueue(List<Task> queue) {
+  void updateQueue(TaskList queue) {
     setState(() {
       _queue = queue;
     });

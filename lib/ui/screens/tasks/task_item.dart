@@ -4,11 +4,11 @@ import '../../../models/commands/commands.dart';
 import '../../../models/new_task.dart';
 import '../../../models/persisted_task.dart';
 import '../../../models/task.dart';
+import '../../../utils/types.dart';
 import '../../colors.dart' as colors;
 import 'task_menu.dart';
 import 'task_menu_item.dart';
 
-typedef TaskCallback = void Function(Task task);
 typedef TaskCommandCallback = void Function(Command command);
 
 enum TaskItemStyle { normal, focusOne, focusTwo, focusThree }

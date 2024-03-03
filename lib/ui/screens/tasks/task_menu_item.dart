@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class TaskMenuItem extends StatelessWidget {
   final IconData icon;
-  final void Function() onPressed;
+  final VoidCallback onPressed;
   final String label;
 
   const TaskMenuItem({
