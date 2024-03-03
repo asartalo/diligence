@@ -2,12 +2,22 @@ import 'package:flutter/material.dart';
 
 class TaskItemMenu extends StatelessWidget {
   final List<Widget> menuChildren;
-  const TaskItemMenu({super.key, required this.menuChildren});
+  final VoidCallback? onOpen;
+  final VoidCallback? onClose;
+
+  const TaskItemMenu({
+    super.key,
+    required this.menuChildren,
+    this.onClose,
+    this.onOpen,
+  });
 
   @override
   Widget build(BuildContext context) {
     return MenuAnchor(
       menuChildren: menuChildren,
+      onClose: onClose,
+      onOpen: onOpen,
       style: MenuStyle(
         alignment: Alignment.bottomLeft,
         // minimumSize: MaterialStateProperty.all(const Size(210, 0)),
