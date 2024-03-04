@@ -27,6 +27,7 @@ class FocusQueue extends StatelessWidget {
     return ReorderableListView.builder(
       key: keys.focusQueueList,
       buildDefaultDragHandles: false,
+      shrinkWrap: true,
       itemBuilder: (context, index) {
         final task = queue[index];
         return ReorderableDelayedDragStartListener(
@@ -39,6 +40,8 @@ class FocusQueue extends StatelessWidget {
             onRequestTask: (task) => onRequestTask(task, index),
             onCommand: (command) => onCommand(command, index),
             style: _getTaskItemStyle(index),
+            levelScale: 8.0,
+            level: _marginLeft(index),
           ),
         );
       },
@@ -54,6 +57,17 @@ class FocusQueue extends StatelessWidget {
       return TaskItemStyle.focusTwo;
     } else {
       return TaskItemStyle.focusThree;
+    }
+  }
+
+  int _marginLeft(int index) {
+    switch (_getTaskItemStyle(index)) {
+      case TaskItemStyle.focusOne:
+        return 0;
+      case TaskItemStyle.focusTwo:
+        return 1;
+      default:
+        return 2;
     }
   }
 }

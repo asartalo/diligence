@@ -6,6 +6,7 @@ import '../../../models/persisted_task.dart';
 import '../../../models/task.dart';
 import '../../../utils/types.dart';
 import '../../colors.dart' as colors;
+import '../../components/reveal_on_hover.dart';
 import 'task_menu.dart';
 import 'task_menu_item.dart';
 
@@ -23,6 +24,7 @@ class TaskItem extends StatefulWidget {
   final int? level;
   final int? childrenCount;
   final TaskItemStyle style;
+  final double levelScale;
 
   const TaskItem({
     super.key,
@@ -33,6 +35,7 @@ class TaskItem extends StatefulWidget {
     this.focused = false,
     this.onToggleExpandTask,
     this.level,
+    this.levelScale = 30.0,
     this.childrenCount,
     this.style = TaskItemStyle.normal,
   });
@@ -66,6 +69,7 @@ class _TaskItemState extends State<TaskItem> {
       child: ListTile(
         focusNode: focusNode,
         focusColor: colors.secondaryColor,
+        contentPadding: _getContentPadding(),
         title: Text(
           task.name,
           style: TextStyle(
@@ -82,31 +86,44 @@ class _TaskItemState extends State<TaskItem> {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                SizedBox(width: widget.level == null ? 0 : widget.level! * 30),
+                SizedBox(
+                  width: widget.level == null
+                      ? 0
+                      : widget.level! * widget.levelScale,
+                ),
                 expandTaskButton(),
                 checkbox(),
               ],
             ),
           ],
         ),
-        trailing: TaskItemMenu(
-          onClose: () {
-            focusNode.requestFocus();
-          },
-          menuChildren: taskMenuItems(),
+        trailing: RevealOnHover(
+          child: TaskItemMenu(
+            onClose: () {
+              focusNode.requestFocus();
+            },
+            menuChildren: taskMenuItems(),
+          ),
         ),
       ),
     );
   }
 
   Widget checkbox() {
-    return Checkbox(
-      value: task.done,
-      onChanged: (bool? done) {
-        widget.onUpdateTask(
-          done == true ? task.markDone() : task.markNotDone(),
-        );
-      },
+    return Transform.scale(
+      scale: _getCheckboxScale(),
+      origin: const Offset(9.0, 0),
+      child: RevealOnHover(
+        revealByDefault: task.done,
+        child: Checkbox(
+          value: task.done,
+          onChanged: (bool? done) {
+            widget.onUpdateTask(
+              done == true ? task.markDone() : task.markNotDone(),
+            );
+          },
+        ),
+      ),
     );
   }
 
@@ -174,11 +191,13 @@ class _TaskItemState extends State<TaskItem> {
   Widget expandTaskButton() {
     if (widget.childrenCount != null) {
       if (widget.childrenCount! > 0 && widget.onToggleExpandTask != null) {
-        return IconButton(
-          icon: Icon(task.expanded ? Icons.expand_less : Icons.expand_more),
-          onPressed: () {
-            widget.onToggleExpandTask!(task);
-          },
+        return RevealOnHover(
+          child: IconButton(
+            icon: Icon(task.expanded ? Icons.expand_less : Icons.expand_more),
+            onPressed: () {
+              widget.onToggleExpandTask!(task);
+            },
+          ),
         );
       }
       return const SizedBox(width: 40);
@@ -194,6 +213,30 @@ class _TaskItemState extends State<TaskItem> {
         return 32;
       default:
         return 18;
+    }
+  }
+
+  double _getCheckboxScale() {
+    switch (widget.style) {
+      case TaskItemStyle.focusOne:
+        return 1.5;
+      case TaskItemStyle.focusTwo:
+        return 1.2;
+      default:
+        return 1.0;
+    }
+  }
+
+  EdgeInsets _getContentPadding() {
+    switch (widget.style) {
+      case TaskItemStyle.focusOne:
+        return const EdgeInsets.fromLTRB(30, 16, 8, 16);
+      case TaskItemStyle.focusTwo:
+        return const EdgeInsets.fromLTRB(20, 8, 8, 8);
+      // return const EdgeInsets.symmetric(vertical: 8, horizontal: 8);
+      default:
+        return const EdgeInsets.fromLTRB(14, 2, 8, 2);
+      // return const EdgeInsets.symmetric(vertical: 2, horizontal: 8);
     }
   }
 }

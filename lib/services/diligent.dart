@@ -793,6 +793,16 @@ class Diligent {
     return rows.map(_taskFromRow).toList();
   }
 
+  Future<int> getFocusedCount() async {
+    final result = await db.get(
+      '''
+      SELECT COUNT(focusQueue.taskId) as count
+      FROM focusQueue
+      ''',
+    );
+    return result['count'] as int;
+  }
+
   Future<void> focus(Task task, {int position = 0}) async {
     await db.writeTransaction((tx) async {
       await _focus([task], tx, position: position);

@@ -465,6 +465,12 @@ void main() {
         );
       });
 
+      test('it can get number of tasks on the queue', () async {
+        await focusItems(['A1i - leaf', 'A2 - leaf', 'B1 - leaf']);
+        final count = await diligent.getFocusedCount();
+        expect(count, 3);
+      });
+
       test('it can add a new task to queue on a specific position', () async {
         await focusItems(['A1i - leaf', 'A2 - leaf', 'B1 - leaf']);
         await diligent.focus(setupResult['C - leaf']!, position: 1);
