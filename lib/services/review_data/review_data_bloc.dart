@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
+import '../../utils/maybe.dart';
 import '../review_data_service.dart';
 import '../side_effects.dart';
 
@@ -25,6 +26,7 @@ class ReviewDataBloc extends Bloc<ReviewDataEvent, ReviewDataState> {
 
   Future<ReviewDataState> _dataRequested() async {
     final summaryData = await dataService.getSummaryData(sideEffects.now());
+
     return ReviewDataAvailable(summaryData);
   }
 }

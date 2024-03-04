@@ -10,6 +10,7 @@ Future<CommandResult> newTaskHandler(
   return failsOnException(
     () async {
       final persisted = await diligent.addTask(command.payload);
+
       return SuccessPack(
         message: 'Task "${command.payload.name}" added successfully.',
         payload: persisted,

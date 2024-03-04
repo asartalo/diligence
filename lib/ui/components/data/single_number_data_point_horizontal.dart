@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../theme.dart';
+import '../../diligence_theme.dart';
 import '../easy_card.dart';
 import '../typography/data_title.dart';
 
@@ -19,6 +19,7 @@ class SingleNumberDataPointHorizontal extends StatelessWidget {
   Widget build(BuildContext context) {
     final diligenceTheme = DiligenceTheme.fromTheme(Theme.of(context));
     final textTheme = diligenceTheme.textTheme;
+
     return EasyCard(
       children: [
         Row(

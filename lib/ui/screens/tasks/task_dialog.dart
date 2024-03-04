@@ -34,6 +34,7 @@ class _TaskDialogState extends State<TaskDialog> {
   @override
   Widget build(BuildContext context) {
     final currentTheme = Theme.of(context);
+
     return Theme(
       data: currentTheme.copyWith(
         visualDensity: VisualDensity.standard,
@@ -69,7 +70,7 @@ class _TaskDialogState extends State<TaskDialog> {
                   _task = _task.copyWith(details: str);
                 });
               },
-            )
+            ),
           ],
         ),
         actions: [

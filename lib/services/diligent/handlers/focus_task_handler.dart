@@ -10,6 +10,7 @@ Future<CommandResult> focusTaskHandler(
   return failsOnException(
     () async {
       await diligent.focus(command.payload);
+
       return Success(
         message: 'Task "${command.payload.name}" was focused successfully.',
       );

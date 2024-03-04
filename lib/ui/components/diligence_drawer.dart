@@ -1,14 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'app_link.dart';
 import 'keys.dart' as keys;
-
-class AppLink {
-  final String path;
-  final String title;
-  final Key key;
-
-  const AppLink(this.path, this.title, this.key);
-}
 
 const _links = [
   AppLink(

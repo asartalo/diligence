@@ -9,6 +9,7 @@ Future<CommandResult> deleteTaskHandler(
   return failsOnException(
     () async {
       await diligent.deleteTask(command.payload);
+
       return Success(
         message: 'Task "${command.payload.name}" was deleted successfully.',
       );

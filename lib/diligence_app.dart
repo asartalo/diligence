@@ -3,11 +3,11 @@ import 'package:provider/provider.dart';
 
 import 'diligence_container.dart';
 import 'services/diligent.dart';
+import 'ui/diligence_theme.dart';
 import 'ui/screens/focus/focus_page.dart';
 import 'ui/screens/home/home_page.dart';
 import 'ui/screens/review/review_page.dart';
 import 'ui/screens/tasks/tasks_page.dart';
-import 'ui/theme.dart';
 
 final diligenceTheme = DiligenceTheme.createThemeData();
 

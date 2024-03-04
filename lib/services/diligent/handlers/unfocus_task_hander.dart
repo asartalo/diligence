@@ -10,6 +10,7 @@ Future<CommandResult> unfocusTaskHandler(
   return failsOnException(
     () async {
       await diligent.unfocus(command.payload);
+
       return Success(
         message: 'Task "${command.payload.name}" was unfocused successfully.',
       );

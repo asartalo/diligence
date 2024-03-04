@@ -1,19 +1,5 @@
 part of 'review_data_bloc.dart';
 
-class Maybe<T> {
-  final T? item;
-
-  Maybe(this.item);
-
-  A choice<A>(A Function() ifNull, A Function(T) ifAvailable) {
-    if (item == null) {
-      return ifNull();
-    } else {
-      return ifAvailable(item as T);
-    }
-  }
-}
-
 abstract class ReviewDataState extends Equatable {
   final Maybe<ReviewSummaryData> maybeSummaryData;
   const ReviewDataState(this.maybeSummaryData);

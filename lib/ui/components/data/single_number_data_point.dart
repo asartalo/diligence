@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../theme.dart';
+import '../../diligence_theme.dart';
 import '../easy_card.dart';
 import '../typography/data_title.dart';
 
@@ -21,6 +21,7 @@ class SingleNumberDataPoint extends StatelessWidget {
     final diligenceTheme = DiligenceTheme.fromTheme(Theme.of(context));
     final space = diligenceTheme.lengths.space;
     final textTheme = diligenceTheme.textTheme;
+
     return EasyCard(
       children: [
         Padding(
@@ -41,7 +42,7 @@ class SingleNumberDataPoint extends StatelessWidget {
               DataTitle(title),
             ],
           ),
-        )
+        ),
       ],
     );
   }

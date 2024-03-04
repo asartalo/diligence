@@ -7,9 +7,11 @@ const kDefaultMaxIdleMinutes = 30;
 String getScriptDir() {
   final scriptDir = path.dirname(Platform.script.path);
   final reg = RegExp(r'test$');
+
   if (reg.hasMatch(scriptDir)) {
     return path.dirname(scriptDir);
   }
+
   return scriptDir;
 }
 

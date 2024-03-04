@@ -1,4 +1,4 @@
-import 'package:diligence/app.dart';
+import 'package:diligence/diligence_app.dart';
 import 'package:diligence/diligence_container.dart';
 import 'package:flutter/material.dart';
 

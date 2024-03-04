@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-class TaskItemMenu extends StatelessWidget {
+class TaskMenu extends StatelessWidget {
   final List<Widget> menuChildren;
   final VoidCallback? onOpen;
   final VoidCallback? onClose;
 
-  const TaskItemMenu({
+  const TaskMenu({
     super.key,
     required this.menuChildren,
     this.onClose,

@@ -3,22 +3,8 @@ import 'package:flutter/material.dart';
 import '../utils/detect.dart';
 import './colors.dart' as colors;
 
-class DiligenceTextTheme {
-  final TextTheme textTheme;
-
-  DiligenceTextTheme({required this.textTheme});
-
-  TextStyle get dataTitle {
-    return textTheme.bodyLarge!.copyWith(
-      color: colors.grayText,
-      letterSpacing: 1,
-    );
-  }
-}
-
-class DiligenceLengths {
-  final double space = 20;
-}
+part 'diligence_text_theme.dart';
+part 'diligence_lengths.dart';
 
 class DiligenceTheme {
   final ThemeData themeData;
@@ -41,6 +27,7 @@ class DiligenceTheme {
       );
       themeCache[themeData] = theTheme;
     }
+
     return theTheme;
   }
 
@@ -53,7 +40,8 @@ class DiligenceTheme {
     final visualDensity = isDesktop()
         ? const VisualDensity(
             horizontal: VisualDensity.minimumDensity,
-            vertical: VisualDensity.minimumDensity) // VisualDensity.compact
+            vertical: VisualDensity.minimumDensity,
+          ) // VisualDensity.compact
         : VisualDensity.standard;
 
     return ThemeData(

@@ -1,16 +1,5 @@
 part of '../review_data_service.dart';
 
-@immutable
-class BreakdownItem {
-  final List<int> path;
-  final num value;
-
-  const BreakdownItem({
-    required this.path,
-    required this.value,
-  });
-}
-
 Function listEquals = const ListEquality<int>().equals;
 
 @immutable
@@ -26,15 +15,18 @@ class SummaryBreakdown {
     if (levels.isEmpty) {
       return path;
     }
+
     if (levels.length > path.length) {
       return [];
     }
+
     final subPath = path.sublist(0, levels.length);
     // ignore: avoid_dynamic_calls
     final equal = listEquals(subPath, levels) as bool;
     if (!equal) {
       return [];
     }
+
     return path.sublist(levels.length);
   }
 
@@ -47,6 +39,7 @@ class SummaryBreakdown {
         final value = map[key] ?? 0.0;
         map[key] = value + item.value;
       }
+
       return map;
     });
   }

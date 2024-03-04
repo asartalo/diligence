@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:diligence/config.dart';
+import 'package:diligence/diligence_config.dart';
 import 'package:diligence/services/side_effects.dart';
 import 'package:diligence/utils/interval.dart';
 import 'package:flutter_test/flutter_test.dart';

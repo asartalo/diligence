@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../services/review_data_service.dart';
-import '../../components/data/single_number.dart';
-import '../../components/data/single_number_horizontal.dart';
+import '../../components/data/single_number_data_point.dart';
+import '../../components/data/single_number_data_point_horizontal.dart';
 import '../../layout/even_row.dart';
 
 const basicData = [

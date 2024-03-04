@@ -28,12 +28,14 @@ class ReviewPage extends StatelessWidget {
           final shown = state.maybeSummaryData.choice<Widget>(
             () {
               Provider.of<ReviewDataBloc>(context).requestData();
+
               return renderSpinner();
             },
             (summaryData) {
               return renderContents(context, summaryData);
             },
           );
+
           return shown;
         },
       ),
@@ -53,6 +55,7 @@ class ReviewPage extends StatelessWidget {
 
   Widget renderContents(BuildContext context, ReviewSummaryData summaryData) {
     final theme = Theme.of(context);
+
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(10.0, 0, 10.0, 10.0),
@@ -69,7 +72,7 @@ class ReviewPage extends StatelessWidget {
                   ),
                   Expanded(
                     flex: 4,
-                    child: _aside(summaryData, theme),
+                    child: _aside(summaryData),
                   ),
                 ],
                 10.0,
@@ -81,7 +84,7 @@ class ReviewPage extends StatelessWidget {
     );
   }
 
-  Widget _main(ReviewSummaryData summaryData, ThemeData theme) {
+  Widget _main(ReviewSummaryData summaryData, ThemeData _) {
     return Column(
       children: withGutter(
         [
@@ -105,7 +108,10 @@ class ReviewPage extends StatelessWidget {
               PaddedSection(
                 child: TextButton(
                   key: const Key('btnSaveLog'),
-                  onPressed: () {},
+                  onPressed: () {
+                    // ignore: avoid_print
+                    print('TODO');
+                  },
                   child: const Text('Save Log'),
                 ),
               ),
@@ -117,7 +123,9 @@ class ReviewPage extends StatelessWidget {
     );
   }
 
-  Widget _aside(ReviewSummaryData summaryData, ThemeData theme) {
+  Widget _aside(
+    ReviewSummaryData _,
+  ) {
     final tasks = [
       'Rough design 45mins',
       'My goal is to find inspiration, how to layout statistics and journal',

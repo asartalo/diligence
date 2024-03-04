@@ -5,6 +5,7 @@ mixin TaskCommons implements Task {
     if (str is String && str.trim().isEmpty) {
       return null;
     }
+
     return str ?? details;
   }
 
@@ -17,15 +18,19 @@ mixin TaskCommons implements Task {
         return dt;
       }
     }
+
     if (doneIntent == done) {
       if (dt is DateTime && dt != doneAt) {
         return dt;
       }
+
       return doneAt;
     }
+
     if (doneIntent == true) {
       return DateTime.now();
     }
+
     return null;
   }
 

@@ -10,9 +10,7 @@ import '../../components/reveal_on_hover.dart';
 import 'task_menu.dart';
 import 'task_menu_item.dart';
 
-typedef TaskCommandCallback = void Function(Command command);
-
-enum TaskItemStyle { normal, focusOne, focusTwo, focusThree }
+part 'task_item_style.dart';
 
 class TaskItem extends StatefulWidget {
   final Task task;
@@ -77,7 +75,7 @@ class _TaskItemState extends State<TaskItem> {
           ),
         ),
         subtitle: taskDetails(),
-        onTap: () async {
+        onTap: () {
           widget.onRequestTask(task);
         },
         leading: Column(
@@ -98,7 +96,7 @@ class _TaskItemState extends State<TaskItem> {
           ],
         ),
         trailing: RevealOnHover(
-          child: TaskItemMenu(
+          child: TaskMenu(
             onClose: () {
               focusNode.requestFocus();
             },
@@ -182,9 +180,11 @@ class _TaskItemState extends State<TaskItem> {
 
   Widget? taskDetails() {
     final details = task.details;
+
     if (details is String) {
       return Text(details);
     }
+
     return null;
   }
 
@@ -200,8 +200,10 @@ class _TaskItemState extends State<TaskItem> {
           ),
         );
       }
+
       return const SizedBox(width: 40);
     }
+
     return const SizedBox(width: 0);
   }
 

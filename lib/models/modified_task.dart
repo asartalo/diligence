@@ -7,6 +7,7 @@ import 'task_commons.dart';
 bool sameTime(DateTime? a, DateTime? b) {
   if (a == null && b == null) return true;
   if (a == null || b == null) return false;
+
   return a.isAtSameMomentAs(b);
 }
 

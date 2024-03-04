@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-import '../config.dart';
+import '../diligence_config.dart';
 
 abstract class SideEffects {
   DateTime now();
@@ -35,6 +35,7 @@ class DevSideEffects extends SideEffects {
     if (config.today == null) {
       return realNow;
     }
+
     return _toDate(realNow, config.today!);
   }
 }

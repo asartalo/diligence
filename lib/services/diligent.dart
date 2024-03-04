@@ -62,6 +62,9 @@ String _commaFields(List<String> fields, {String? prefix}) {
       .join(', ');
 }
 
+final _commaAllTaskFields = _commaFields(_allTaskFields);
+final _commaFieldsAllTaskFields = _commaFields(_allTaskFields, prefix: 'tasks');
+
 // Define a map for task fields
 final taskFieldMap = {
   'id': (Task task) => task.id.toString(),
@@ -77,9 +80,11 @@ final taskFieldMap = {
 
 Object? _propFromTaskField(String field, Task task) {
   final mapping = taskFieldMap[field];
+
   if (mapping == null) {
     throw Exception('Unknown field: $field');
   }
+
   return mapping(task);
 }
 
@@ -100,12 +105,14 @@ String _questionMarks(int count) {
 SqliteMigrations migrate() {
   final SqliteMigrations migrations = SqliteMigrations();
   int i = 0;
+
   for (final migrationQuery in migrationQueries) {
     i += 1;
     migrations.add(SqliteMigration(i, (tx) async {
       await tx.execute(migrationQuery);
     }));
   }
+
   return migrations;
 }
 
@@ -144,6 +151,7 @@ class Diligent {
       _queryCache[key] = query;
       value = query;
     }
+
     return value;
   }
 
@@ -212,6 +220,7 @@ class Diligent {
         await _focus(newTasks, tx);
       }
     });
+
     return newTasks;
   }
 
@@ -224,6 +233,7 @@ class Diligent {
       ''',
       [parentId],
     );
+
     return lastPositionResult.isNotEmpty
         ? lastPositionResult['lastPosition'] as int
         : 0;
@@ -236,9 +246,11 @@ class Diligent {
     // TODO: Also make sure that NewTask generates uids using tests
     final uids = _uidsFromTasks(tasks);
     final newTasks = await _findTasksByUids(uids, tx);
+
     if (newTasks.length != uids.length) {
       throw Exception('Not all tasks were created.');
     }
+
     return newTasks;
   }
 
@@ -257,14 +269,17 @@ class Diligent {
       ''',
       uids,
     );
+
     return rows.map(_taskFromRow).toList();
   }
 
   Future<Task> addTask(Task task, {int? position}) async {
     final newTasks = await addTasks([task], position: position);
+
     if (newTasks.isEmpty) {
       throw Exception('Task was not created.');
     }
+
     return newTasks.first;
   }
 
@@ -273,31 +288,36 @@ class Diligent {
   Future<Task?> _findTask(int? id, SqliteReadContext tx) async {
     if (id == null) return null;
     final rows = await tx.getAll('SELECT * FROM tasks WHERE id = ?', [id]);
+
     return rows.isEmpty ? null : _taskFromRow(rows.first);
   }
 
   Future<Task?> findTaskByName(String name) async {
-    final rows = await db.getAll('SELECT * FROM tasks WHERE UPPER(name) LIKE ?',
-        ["%${name.toUpperCase()}%"]);
+    final rows = await db.getAll(
+      'SELECT * FROM tasks WHERE UPPER(name) LIKE ?',
+      ["%${name.toUpperCase()}%"],
+    );
+
     return rows.isEmpty ? null : _taskFromRow(rows.first);
   }
 
   Future<Task> updateTask(Task task) async {
-    if (task is ModifiedTask) {
-      late Task? updatedTask;
-      await db.writeTransaction((tx) async {
-        await _updateTask(task, tx);
-        await _toggleTreeIfToggled(task, tx);
-        await _focusCheck(task, tx);
-        updatedTask = await _findTask(task.id, tx);
-      });
-      if (updatedTask == null) {
-        throw Exception('Task was not updated.');
-      }
-      return updatedTask!;
-    } else {
+    if (task is! ModifiedTask) {
       throw ArgumentError('Task must be a ModifiedTask');
     }
+
+    late Task? updatedTask;
+    await db.writeTransaction((tx) async {
+      await _updateTask(task, tx);
+      await _toggleTreeIfToggled(task, tx);
+      await _focusCheck(task, tx);
+      updatedTask = await _findTask(task.id, tx);
+    });
+    if (updatedTask == null) {
+      throw Exception('Task was not updated.');
+    }
+
+    return updatedTask!;
   }
 
   Future<void> _focusCheck(ModifiedTask task, SqliteWriteContext tx) async {
@@ -311,14 +331,20 @@ class Diligent {
   // TODO: The interface does not evoke the intent of its usage
   /// _toggleTree toggles the doneAt field of its ancestors and descendants if
   /// applicable
-  Future<void> _toggleTree(Task task, SqliteWriteContext tx,
-      {DateTime? doneAt}) async {
+  Future<void> _toggleTree(
+    Task task,
+    SqliteWriteContext tx, {
+    DateTime? doneAt,
+  }) async {
     await _toggleAncestorsDone(task, tx, doneAt: doneAt);
     await _toggleDescendantsDone(task, tx, doneAt: doneAt);
   }
 
-  Future<void> _toggleTreeIfToggled(ModifiedTask task, SqliteWriteContext tx,
-      {DateTime? doneAt}) async {
+  Future<void> _toggleTreeIfToggled(
+    ModifiedTask task,
+    SqliteWriteContext tx, {
+    DateTime? doneAt,
+  }) async {
     if (task.hasToggledDone()) {
       await _toggleTree(task, tx, doneAt: doneAt);
     }
@@ -358,13 +384,20 @@ class Diligent {
           SET doneAt = ?
           WHERE id = ?
           ''',
-        [doneAtEpoch, id],
+        [
+          doneAtEpoch,
+          id,
+        ],
       );
 
-  Future<void> _toggleDescendantsDone(Task task, SqliteWriteContext tx,
-      {DateTime? doneAt}) async {
+  Future<void> _toggleDescendantsDone(
+    Task task,
+    SqliteWriteContext tx, {
+    DateTime? doneAt,
+  }) async {
     final descendants = await _descendants(task, tx);
     final doneAtTrue = doneAt ?? task.doneAt;
+
     for (final descendant in descendants) {
       await tx.execute(
         '''
@@ -391,12 +424,11 @@ class Diligent {
     );
     final count = result['count'] as int;
     final doneCount = result['doneCount'] as int;
+
     return count == doneCount;
   }
 
-  Future<TaskList> ancestors(Task task) async {
-    return _ancestors(task, db);
-  }
+  Future<TaskList> ancestors(Task task) => _ancestors(task, db);
 
   Future<TaskList> _ancestors(Task task, SqliteWriteContext tx) async {
     final rows = await tx.getAll(
@@ -415,12 +447,11 @@ class Diligent {
       ),
       [task.parentId],
     );
+
     return rows.map(_taskFromRow).toList();
   }
 
-  Future<TaskList> descendants(Task task) async {
-    return _descendants(task, db);
-  }
+  Future<TaskList> descendants(Task task) => _descendants(task, db);
 
   Future<TaskList> _descendants(Task task, SqliteWriteContext tx) async {
     final rows = await tx.getAll(
@@ -439,6 +470,7 @@ class Diligent {
       ),
       [task.id],
     );
+
     return rows.map(_taskFromRow).toList();
   }
 
@@ -476,6 +508,7 @@ class Diligent {
       createdAt: DateTime.fromMillisecondsSinceEpoch(row['createdAt'] as int),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row['updatedAt'] as int),
     );
+
     return task;
   }
 
@@ -486,6 +519,7 @@ class Diligent {
     int position = 0,
   }) {
     final task = _taskFromRow(row);
+
     return TaskNode(
       task: task,
       level: level,
@@ -596,7 +630,9 @@ class Diligent {
   }
 
   Future<(int, int)> _getTaskPositionInfo(
-      Task task, SqliteReadContext tx) async {
+    Task task,
+    SqliteReadContext tx,
+  ) async {
     final positions = await tx.get(
       '''
       WITH siblings AS (
@@ -610,14 +646,17 @@ class Diligent {
       ''',
       [task.parentId, task.id],
     );
+
     return (positions['oldPosition'] as int, positions['peers'] as int);
   }
 
   Future<void> initialAreas(TaskList areas) async {
     final root = await findTask(1);
+
     if (root != null) {
       return;
     }
+
     await addTask(NewTask(name: 'Root', id: 1, uid: 'root', expanded: true));
     for (final area in areas) {
       await addTask(area.copyWith(parentId: 1));
@@ -629,6 +668,7 @@ class Diligent {
       'SELECT * FROM tasks WHERE parentId = ? ORDER BY position ASC',
       [task.id],
     );
+
     return rows.map(_taskFromRow).toList();
   }
 
@@ -638,6 +678,7 @@ class Diligent {
       'SELECT * FROM tasks WHERE id = ?',
       [task.parentId],
     );
+
     return rows.isEmpty ? null : _taskFromRow(rows.first);
   }
 
@@ -648,10 +689,10 @@ class Diligent {
         'subtreeFlat',
         '''
           WITH RECURSIVE
-            subtree(lvl, ${_commaFields(_allTaskFields)}) AS (
+            subtree(lvl, $_commaAllTaskFields) AS (
               SELECT
                 0 AS lvl,
-                ${_commaFields(_allTaskFields)}
+                $_commaAllTaskFields
               FROM tasks
               WHERE id = ?
             UNION ALL
@@ -677,6 +718,7 @@ class Diligent {
       ),
       [id],
     );
+
     return rows
         .map((row) => _taskNodeFromRow(
               row,
@@ -694,16 +736,16 @@ class Diligent {
         'expandedDescendantsTree',
         '''
           WITH RECURSIVE
-            subtree(lvl, ${_commaFields(_allTaskFields)}) AS (
+            subtree(lvl, $_commaAllTaskFields) AS (
               SELECT
                 0 AS lvl,
-                ${_commaFields(_allTaskFields, prefix: 'tasks')}
+                $_commaFieldsAllTaskFields
               FROM tasks
               WHERE tasks.parentId = ?
             UNION ALL
               SELECT
                 subtree.lvl + 1,
-                ${_commaFields(_allTaskFields, prefix: 'tasks')}
+                $_commaFieldsAllTaskFields
               FROM
                 subtree
                 JOIN tasks ON tasks.parentId = subtree.id
@@ -724,6 +766,7 @@ class Diligent {
       ),
       [id],
     );
+
     return rows
         .map((row) => _taskNodeFromRow(
               row,
@@ -744,19 +787,23 @@ class Diligent {
     bool? done,
   }) async {
     final ids = tasks.map(_getTaskId).toList();
+    String doneClause = '';
+    if (done is bool) {
+      doneClause = 'AND doneAt IS ${done ? 'NOT' : ''} NULL';
+    }
     final rows = await tx.getAll(
       '''
         WITH RECURSIVE
-          subtree(lvl, ${_commaFields(_allTaskFields)}) AS (
+          subtree(lvl, $_commaAllTaskFields) AS (
             SELECT
               0 AS lvl,
-              ${_commaFields(_allTaskFields, prefix: 'tasks')}
+              $_commaFieldsAllTaskFields
             FROM tasks
             WHERE tasks.parentId IN (${_questionMarks(ids.length)})
           UNION ALL
             SELECT
               subtree.lvl + 1,
-              ${_commaFields(_allTaskFields, prefix: 'tasks')}
+              $_commaFieldsAllTaskFields
             FROM
               subtree
               JOIN tasks ON tasks.parentId = subtree.id
@@ -773,10 +820,11 @@ class Diligent {
           ) AS childrenCount
         FROM subtree
         WHERE childrenCount = 0
-        ${done is bool ? 'AND doneAt IS ${done ? 'NOT' : ''} NULL' : ''}
+        $doneClause
         ''',
       ids,
     );
+
     return rows.map(_taskFromRow).toList();
   }
 
@@ -790,6 +838,7 @@ class Diligent {
       ${limit != null && limit > 0 ? 'LIMIT $limit' : ''}
       ''',
     );
+
     return rows.map(_taskFromRow).toList();
   }
 
@@ -800,6 +849,7 @@ class Diligent {
       FROM focusQueue
       ''',
     );
+
     return result['count'] as int;
   }
 
@@ -855,6 +905,7 @@ class Diligent {
           ''',
         toAdd.indexed.map((item) {
           final (index, task) = item;
+
           return [task.id, realPosition + index];
         }).toList(),
       );
@@ -867,6 +918,7 @@ class Diligent {
       'SELECT count(taskId) as count FROM focusQueue WHERE taskId = ?',
       [id],
     );
+
     return result['count'] as int > 0;
   }
 

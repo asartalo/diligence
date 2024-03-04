@@ -26,9 +26,11 @@ class DiligentCommander {
 
   Future<CommandResult> handle(Command command) async {
     final handler = handlers[command.runtimeType];
+
     if (handler != null) {
       return await handler(diligent, command);
     }
+
     return Fail(message: 'Unknown command: ${command.runtimeType}');
   }
 }

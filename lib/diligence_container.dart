@@ -9,7 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
-import 'config.dart';
+import 'diligence_config.dart';
 import 'services/diligent.dart';
 import 'services/review_data/review_data_bloc.dart';
 import 'services/review_data_service.dart';
@@ -58,6 +58,7 @@ class DiligenceContainer {
     final diligent = test ? Diligent.forTests() : Diligent(path: pathToDb);
     await diligent.runMigrations();
     await diligent.initialAreas(initialAreas);
+
     return DiligenceContainer(
       config: config,
       diligent: diligent,
@@ -74,6 +75,7 @@ class DiligenceContainer {
     if (!await directory.exists()) {
       await directory.create(recursive: true);
     }
+
     return path.join(directory.path, dbName());
   }
 }

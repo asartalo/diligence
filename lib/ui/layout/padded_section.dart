@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../theme.dart';
+import '../diligence_theme.dart';
 
 class PaddedSection extends StatelessWidget {
   final Widget child;
@@ -11,6 +11,7 @@ class PaddedSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final diligenceTheme = DiligenceTheme.fromTheme(Theme.of(context));
     final space = diligenceTheme.lengths.space;
+
     return Padding(
       padding: EdgeInsets.all(space),
       child: child,

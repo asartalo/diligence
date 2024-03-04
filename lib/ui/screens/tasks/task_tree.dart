@@ -32,6 +32,7 @@ class TaskTree extends StatelessWidget {
       itemBuilder: (context, index) {
         final taskNode = taskNodes[index];
         final task = taskNode.task;
+
         return ReorderableDelayedDragStartListener(
           key: Key(task.id.toString()),
           index: index,

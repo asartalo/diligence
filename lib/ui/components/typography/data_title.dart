@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../theme.dart';
+import '../../diligence_theme.dart';
 
 class DataTitle extends StatelessWidget {
   final String text;
@@ -9,6 +9,7 @@ class DataTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final diligenceTheme = DiligenceTheme.fromTheme(Theme.of(context));
+
     return Text(
       text.toUpperCase(),
       style: diligenceTheme.text.dataTitle,

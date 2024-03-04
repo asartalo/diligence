@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../models/commands/commands.dart';
 import '../../../models/task.dart';
 import '../../../services/diligent.dart';
-import '../../../services/diligent/commander.dart';
+import '../../../services/diligent/diligent_commander.dart';
 import '../../components/common_screen.dart';
 import '../../components/reveal_on_hover.dart';
 import '../tasks/task_dialog.dart';
@@ -67,10 +67,18 @@ class _FocusPageState extends State<FocusPage> {
           children: [
             FocusQueue(
               queue: _queue,
-              onReorderQueue: _handleReorderQueue,
-              onRequestTask: _handleRequestTask,
-              onUpdateTask: _handleUpdateTask,
-              onCommand: _handleCommand,
+              onReorderQueue: (oldIndex, newIndex) {
+                _handleReorderQueue(oldIndex, newIndex);
+              },
+              onRequestTask: (task, index) {
+                _handleRequestTask(task, index);
+              },
+              onUpdateTask: (task, index) {
+                _handleUpdateTask(task, index);
+              },
+              onCommand: (command, index) {
+                _handleCommand(command, index);
+              },
             ),
             _moreSection(),
           ],
@@ -114,25 +122,29 @@ class _FocusPageState extends State<FocusPage> {
   }
 
   Widget _moreSection() {
-    if (_queueSize > 5) {
-      return Container(
-        margin: const EdgeInsets.only(top: 16.0),
-        child: RevealOnHover(
-          child: TextButton(
-            onPressed: () async {
-              setState(() {
-                _limit = _limit == 0 ? 5 : 0;
-              });
-              await updateTasks();
-            },
-            child: Text(
-              _limit == 0 ? 'Show Less' : 'Show More',
-            ),
+    return _queueSize > 5 ? _moreButton() : const SizedBox.shrink();
+  }
+
+  Widget _moreButton() {
+    return Container(
+      margin: const EdgeInsets.only(top: 16.0),
+      child: RevealOnHover(
+        child: TextButton(
+          onPressed: () {
+            _toggleLimit();
+          },
+          child: Text(
+            _limit == 0 ? 'Show Less' : 'Show More',
           ),
         ),
-      );
-    } else {
-      return const SizedBox.shrink();
-    }
+      ),
+    );
+  }
+
+  Future<void> _toggleLimit() async {
+    setState(() {
+      _limit = _limit == 0 ? 5 : 0;
+    });
+    await updateTasks();
   }
 }

@@ -9,7 +9,8 @@ const defaultColors = [
 ];
 
 typedef DataToPieChartSectionData = PieChartSectionData Function(
-    MapEntry<String, double>);
+  MapEntry<String, double>,
+);
 
 class EasyPieChart extends StatelessWidget {
   final double radius;
@@ -36,8 +37,10 @@ class EasyPieChart extends StatelessWidget {
   DataToPieChartSectionData _dataMapper() {
     int i = -1;
     final colorsCount = defaultColors.length;
+
     return (entry) {
       i += 1;
+
       return PieChartSectionData(
         value: entry.value,
         color: defaultColors[i % colorsCount],

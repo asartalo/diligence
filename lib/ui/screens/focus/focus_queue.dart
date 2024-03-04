@@ -30,6 +30,7 @@ class FocusQueue extends StatelessWidget {
       shrinkWrap: true,
       itemBuilder: (context, index) {
         final task = queue[index];
+
         return ReorderableDelayedDragStartListener(
           key: Key('fQ-${task.id}'),
           index: index,

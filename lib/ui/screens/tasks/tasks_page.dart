@@ -7,7 +7,7 @@ import '../../../models/new_task.dart';
 import '../../../models/task.dart';
 import '../../../models/task_node.dart';
 import '../../../services/diligent.dart';
-import '../../../services/diligent/commander.dart';
+import '../../../services/diligent/diligent_commander.dart';
 import '../../components/common_screen.dart';
 import 'keys.dart' as keys;
 import 'task_dialog.dart';
@@ -73,17 +73,29 @@ class _TasksPageState extends State<TasksPage> {
       title: 'Tasks',
       floatingActionButton: FloatingActionButton(
         key: keys.addTaskFloatingButton,
-        onPressed: _handleAddTaskFloatingButtonPressed,
+        onPressed: () {
+          _handleAddTaskFloatingButtonPressed();
+        },
         tooltip: 'Add Task',
         child: const Icon(Icons.add),
       ),
       child: TaskTree(
         taskNodes: _taskNodes,
-        onUpdateTask: _handleUpdateTask,
-        onReorder: _handleReorder,
-        onRequestTask: _handleRequestTask,
-        onToggleExpandTask: _handleToggleExpandTask,
-        onCommand: (command, _) => _handleCommand(command),
+        onUpdateTask: (task, index) {
+          _handleUpdateTask(task, index);
+        },
+        onReorder: (task, index) {
+          _handleReorder(task, index);
+        },
+        onRequestTask: (task, index) {
+          _handleRequestTask(task, index);
+        },
+        onToggleExpandTask: (task, index) {
+          _handleToggleExpandTask(task, index);
+        },
+        onCommand: (command, _) {
+          _handleCommand(command);
+        },
       ),
     );
   }
