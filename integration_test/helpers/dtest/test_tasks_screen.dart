@@ -3,11 +3,11 @@ import 'package:diligence/ui/screens/tasks/task_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'dtest_base.dart';
+import 'dtest.dart';
 
 @immutable
 class TestTasksScreenTest {
-  final DtestBase dtest;
+  final Dtest dtest;
 
   Finder get taskList => find.byKey(keys.mainTaskList);
 
@@ -89,6 +89,15 @@ class TestTasksScreenTest {
     String? details,
   }) async {
     await tapTaskMenuEdit(currentName);
+    await inputTaskDetails(name: name, details: details);
+  }
+
+  Future<void> editTaskViaTaskView(
+    String currentName, {
+    String? name,
+    String? details,
+  }) async {
+    await showTask(currentName);
     await inputTaskDetails(name: name, details: details);
   }
 
