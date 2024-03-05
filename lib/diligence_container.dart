@@ -51,7 +51,7 @@ class DiligenceContainer {
     await dot_env.load(fileName: envFile);
     final config = DiligenceConfig.fromEnv(dot_env.env);
     final pathToDb = await dbPath();
-    if (!kReleaseMode) {
+    if (!kReleaseMode && config.showDbPath) {
       // ignore: avoid_print
       print('Database path: $pathToDb');
     }

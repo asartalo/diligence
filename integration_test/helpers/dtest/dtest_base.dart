@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 class DtestBase {
   final WidgetTester tester;
 
+  DtestBase get me => this;
+
   DtestBase(this.tester);
 
   Future<void> tapByStringKey(String strKey) => tapByKey(Key(strKey));

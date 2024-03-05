@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'keys.dart' as keys;
+
 class TaskMenu extends StatelessWidget {
   final List<Widget> menuChildren;
   final VoidCallback? onOpen;
@@ -15,13 +17,12 @@ class TaskMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MenuAnchor(
+      key: keys.taskMenu,
       menuChildren: menuChildren,
       onClose: onClose,
       onOpen: onOpen,
       style: MenuStyle(
         alignment: Alignment.bottomLeft,
-        // minimumSize: MaterialStateProperty.all(const Size(210, 0)),
-        // maximumSize: MaterialStateProperty.all(const Size(210, 200)),
         backgroundColor: MaterialStateProperty.all(Colors.white),
       ),
       alignmentOffset: const Offset(-60.0, 0.0),

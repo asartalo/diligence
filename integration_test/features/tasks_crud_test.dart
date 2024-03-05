@@ -1,4 +1,3 @@
-import 'package:diligence/ui/screens/tasks/keys.dart' as keys;
 import 'package:flutter_test/flutter_test.dart';
 
 import '../helpers/dtest/dtest.dart';
@@ -6,67 +5,45 @@ import '../helpers/dtest/dtest.dart';
 Future<void> main() async {
   integrationTest('Tasks CRUD', () {
     testApp('Adding a task', (dtest) async {
-      await dtest.navigateToTasksPage();
-      await dtest.tapByKey(keys.addTaskFloatingButton);
-      await dtest.enterTextByKey(keys.taskNameField, 'First Task');
-      await dtest.enterTextByKey(keys.taskDetailsField, 'Some details');
-      await dtest.tapByKey(keys.saveTaskButton);
-      final taskList = find.byKey(keys.mainTaskList);
-      expect(
-        find.descendant(
-          of: taskList,
-          matching: find.text('First Task'),
-        ),
-        findsOneWidget,
+      final ts = await dtest.navigateToTasksPage();
+      await ts.createTaskOnCurrentAncestor(
+        'First Task',
+        details: 'Some details',
       );
-      expect(
-        find.descendant(
-          of: taskList,
-          matching: find.text('Some details'),
-        ),
-        findsOneWidget,
-      );
+      ts.expectTaskExistsOnTaskList('First Task', details: 'Some details');
+    });
+
+    testApp('Adding child tasks', (dtest) async {
+      final ts = await dtest.navigateToTasksPage();
+      await ts.addChildTask('First Work Task', parent: 'Work');
+      await ts.addChildTask('Second Work Task', parent: 'Work');
+      await ts.addChildTask('First Life Task', parent: 'Life');
+      await ts.addChildTask('Foo', parent: 'First Life Task');
+      await ts.addChildTask('Second Life Task', parent: 'Life');
+      ts.expectTaskIsChildOfParent('Foo', parent: 'First Life Task');
+      ts.expectTaskIsChildOfParent('Second Life Task', parent: 'Life');
     });
 
     testApp('Updating a task', (dtest) async {
-      await dtest.navigateToTasksPage();
-      await dtest.tapByKey(keys.addTaskFloatingButton);
-      await dtest.enterTextByKey(keys.taskNameField, 'My Task');
-      await dtest.tapByKey(keys.saveTaskButton);
-      final taskList = find.byKey(keys.mainTaskList);
-      final task = find.descendant(
-        of: taskList,
-        matching: find.text('My Task'),
-      );
-      await dtest.tapElement(task);
-      await dtest.enterTextByKey(keys.taskNameField, 'Renamed Task');
-      await dtest.tapByKey(keys.saveTaskButton);
-
-      expect(
-        find.descendant(
-          of: taskList,
-          matching: find.text('Renamed Task'),
-        ),
-        findsOneWidget,
-      );
+      final ts = await dtest.navigateToTasksPage();
+      await ts.createTaskOnCurrentAncestor('My Task');
+      await ts.editTask('My Task', name: 'Renamed Task');
+      ts.expectTaskExistsOnTaskList('Renamed Task');
     });
 
-    testApp('Deleting a task', (dtest) async {
-      await dtest.navigateToTasksPage();
-      await dtest.tapByKey(keys.addTaskFloatingButton);
-      await dtest.enterTextByKey(keys.taskNameField, 'First Task');
-      await dtest.tapByKey(keys.saveTaskButton);
-      final taskList = find.byKey(keys.mainTaskList);
-      final task = find.descendant(
-        of: taskList,
-        matching: find.text('First Task'),
-      );
-      await dtest.tapElement(task);
-      await dtest.tapByKey(keys.deleteTaskButton);
-      expect(
-        find.descendant(of: taskList, matching: find.text('First Task')),
-        findsNothing,
-      );
+    testApp('Deleting a task via task view', (dtest) async {
+      final ts = await dtest.navigateToTasksPage();
+      await ts.createTaskOnCurrentAncestor('First Task');
+      ts.expectTaskExistsOnTaskList('First Task');
+      await ts.deleteTaskViaTaskView('First Task');
+      ts.expectTaskDoesNotExistOnTaskList('First Task');
+    });
+
+    testApp('Deleting a task via menu', (dtest) async {
+      final ts = await dtest.navigateToTasksPage();
+      await ts.addChildTask('First Life Task', parent: 'Life');
+      await ts.deleteTask('First Life Task');
+      ts.expectTaskDoesNotExistOnTaskList('First Life Task');
     });
   });
 }

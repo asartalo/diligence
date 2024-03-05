@@ -7,6 +7,7 @@ import '../../../models/task.dart';
 import '../../../utils/types.dart';
 import '../../colors.dart' as colors;
 import '../../components/reveal_on_hover.dart';
+import 'keys.dart' as keys;
 import 'task_menu.dart';
 import 'task_menu_item.dart';
 
@@ -63,6 +64,7 @@ class _TaskItemState extends State<TaskItem> {
   @override
   Widget build(BuildContext context) {
     return Material(
+      key: keys.taskItem,
       type: MaterialType.transparency,
       child: ListTile(
         focusNode: focusNode,
@@ -70,6 +72,7 @@ class _TaskItemState extends State<TaskItem> {
         contentPadding: _getContentPadding(),
         title: Text(
           task.name,
+          key: keys.taskItemName,
           style: TextStyle(
             fontSize: _getFontSize(),
           ),
@@ -128,6 +131,7 @@ class _TaskItemState extends State<TaskItem> {
   List<Widget> taskMenuItems() {
     return [
       TaskMenuItem(
+        key: keys.taskMenuEdit,
         icon: Icons.edit,
         label: 'Edit',
         onPressed: () {
@@ -135,6 +139,7 @@ class _TaskItemState extends State<TaskItem> {
         },
       ),
       TaskMenuItem(
+        key: keys.taskMenuAdd,
         icon: Icons.add,
         label: 'Add Task',
         onPressed: () {
@@ -150,6 +155,7 @@ class _TaskItemState extends State<TaskItem> {
   List<Widget> _taskMenuItemsPersisted(PersistedTask task) {
     return [
       TaskMenuItem(
+        key: keys.taskMenuDelete,
         icon: Icons.delete,
         label: 'Delete',
         onPressed: () {
@@ -163,6 +169,7 @@ class _TaskItemState extends State<TaskItem> {
   Widget focusToggle() {
     return widget.focused
         ? TaskMenuItem(
+            key: keys.taskMenuFocus,
             icon: Icons.visibility_off,
             onPressed: () {
               widget.onCommand(UnfocusTaskCommand(task: task));
@@ -170,6 +177,7 @@ class _TaskItemState extends State<TaskItem> {
             label: 'Unfocus',
           )
         : TaskMenuItem(
+            key: keys.taskMenuUnfocus,
             icon: Icons.visibility,
             onPressed: () {
               widget.onCommand(FocusTaskCommand(task: task));
@@ -182,7 +190,7 @@ class _TaskItemState extends State<TaskItem> {
     final details = task.details;
 
     if (details is String) {
-      return Text(details);
+      return Text(details, key: keys.taskItemDetails);
     }
 
     return null;
