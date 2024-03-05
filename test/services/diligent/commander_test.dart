@@ -6,6 +6,10 @@ import 'package:diligence/services/diligent/diligent_commander.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+// ignore_for_file: no-empty-block
+// ignore_for_file: avoid-redundant-async
+// ignore_for_file: prefer-match-file-name
+
 class MockDiligent extends Mock implements Diligent {}
 
 class UnknownCommand extends Command {}
@@ -22,6 +26,7 @@ void main() {
 
     PersistedTask createPersistedTask({DateTime? now}) {
       final nowReally = now ?? DateTime.now();
+
       return PersistedTask(
         id: 1,
         name: 'Foo',
@@ -99,8 +104,10 @@ void main() {
           });
 
           test('it returns a success message', () {
-            expect(result.message,
-                'Task "${task.name}" was deleted successfully.');
+            expect(
+              result.message,
+              'Task "${task.name}" was deleted successfully.',
+            );
           });
         });
 

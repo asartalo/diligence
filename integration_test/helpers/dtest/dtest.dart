@@ -5,7 +5,9 @@ import 'package:integration_test/integration_test.dart';
 
 import '../../app.dart' as app;
 import 'dtest_base.dart';
-import 'navigation.dart';
+import 'dtest_navigation.dart';
+
+// ignore_for_file: avoid-dynamic
 
 void integrationTest(String description, void Function() fn) {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -37,8 +39,14 @@ void testApp(
   dynamic tags,
   bool? skip,
 }) {
-  testWidgets(description, (widgetTester) async {
-    await app.main();
-    return callback(Dtest(widgetTester));
-  }, tags: tags, skip: skip);
+  testWidgets(
+    description,
+    (widgetTester) async {
+      await app.main();
+
+      return callback(Dtest(widgetTester));
+    },
+    tags: tags,
+    skip: skip,
+  );
 }

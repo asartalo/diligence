@@ -8,8 +8,9 @@ class DtestBase {
 
   Future<void> tapByStringKey(String strKey) => tapByKey(Key(strKey));
 
-  Future<void> tapByKey(Key key) async {
+  Future<void> tapByKey(Key key) {
     final element = find.byKey(key);
+
     return tapElement(element);
   }
 

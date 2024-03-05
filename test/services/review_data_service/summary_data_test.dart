@@ -1,7 +1,7 @@
 import 'package:diligence/services/review_data_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-Future<void> main() async {
+void main() {
   late ReviewSummaryData summaryData;
 
   setUp(() {

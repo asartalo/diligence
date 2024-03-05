@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart' show immutable;
 import 'package:flutter_test/flutter_test.dart';
 
+// ignore_for_file: avoid-dynamic
+
 @immutable
 class ErrorMatcher<T extends Error> extends Matcher {
   final String message;
@@ -24,8 +26,12 @@ class ErrorMatcher<T extends Error> extends Matcher {
     Map matchState,
     bool verbose,
   ) {
-    final described =
-        super.describeMismatch(item, mismatchDescription, matchState, verbose);
+    final described = super.describeMismatch(
+      item,
+      mismatchDescription,
+      matchState,
+      verbose,
+    );
     if (item is! T) {
       described.add('is not of type $T');
     }
@@ -33,6 +39,7 @@ class ErrorMatcher<T extends Error> extends Matcher {
     if (!item.toString().contains(message)) {
       described.add('does not contain message: $message');
     }
+
     return described;
   }
 }

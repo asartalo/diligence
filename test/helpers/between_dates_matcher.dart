@@ -19,10 +19,19 @@ class BetweenDatesMatcher extends Matcher {
   }
 
   @override
-  Description describeMismatch(covariant DateTime item,
-      Description mismatchDescription, Map matchState, bool verbose) {
-    final described =
-        super.describeMismatch(item, mismatchDescription, matchState, verbose);
+  Description describeMismatch(
+    covariant DateTime item,
+    Description mismatchDescription,
+    Map matchState,
+    bool verbose,
+  ) {
+    final described = super.describeMismatch(
+      item,
+      mismatchDescription,
+      matchState,
+      verbose,
+    );
+
     if (!item.isBefore(after)) {
       described.add('$item is not before $after');
     }
@@ -30,6 +39,7 @@ class BetweenDatesMatcher extends Matcher {
     if (!item.isAfter(before)) {
       described.add('$item is not after $before');
     }
+
     return described;
   }
 }

@@ -12,6 +12,7 @@ List<String> taskNames(List<Task?> tasks) {
       names.add(task.name);
     }
   }
+
   return names;
 }
 
@@ -112,6 +113,7 @@ void main() {
           NewTask(name: 'Bar', parentId: parent.id),
         ]);
         final tasks = await diligent.getChildren(parent);
+
         expect(taskNames(tasks), equals(['First', 'Foo', 'Bar']));
       });
 
@@ -122,11 +124,15 @@ void main() {
           NewTask(name: 'D', parentId: parent.id),
           NewTask(name: 'E', parentId: parent.id),
         ]);
-        await diligent.addTasks([
-          NewTask(name: 'B', parentId: parent.id),
-          NewTask(name: 'C', parentId: parent.id),
-        ], position: 1);
+        await diligent.addTasks(
+          [
+            NewTask(name: 'B', parentId: parent.id),
+            NewTask(name: 'C', parentId: parent.id),
+          ],
+          position: 1,
+        );
         final tasks = await diligent.getChildren(parent);
+
         expect(taskNames(tasks), equals(['A', 'B', 'C', 'D', 'E']));
       });
 
@@ -175,19 +181,19 @@ void main() {
         );
       });
 
-      test('it updates the task', () async {
+      test('it updates the task', () {
         expect(updatedTask.name, equals('Bar'));
       });
 
-      test('it updates the task with an updatedAt', () async {
+      test('it updates the task with an updatedAt', () {
         expect(updatedTask.updatedAt, isNot(task.updatedAt));
       });
 
-      test('it does not update the uid', () async {
+      test('it does not update the uid', () {
         expect(updatedTask.uid, equals(task.uid));
       });
 
-      test('it does not update the createdAt', () async {
+      test('it does not update the createdAt', () {
         expect(updatedTask.createdAt, equals(task.createdAt));
       });
     });
@@ -372,17 +378,19 @@ void main() {
           );
         });
 
-        test('it can move task to a different node to a different position',
-            () async {
-          final task = setupResult['B2']!;
-          final newParent = setupResult['A1']!;
-          await diligent.moveTask(task, 2, parent: newParent);
-          final newSiblings = await diligent.getChildren(newParent);
-          expect(
-            taskNames(newSiblings),
-            equals(['A1i - leaf', 'A1ii - leaf', 'B2', 'A1iii - leaf']),
-          );
-        });
+        test(
+          'it can move task to a different node to a different position',
+          () async {
+            final task = setupResult['B2']!;
+            final newParent = setupResult['A1']!;
+            await diligent.moveTask(task, 2, parent: newParent);
+            final newSiblings = await diligent.getChildren(newParent);
+            expect(
+              taskNames(newSiblings),
+              equals(['A1i - leaf', 'A1ii - leaf', 'B2', 'A1iii - leaf']),
+            );
+          },
+        );
       });
     });
 
@@ -500,84 +508,93 @@ void main() {
       });
 
       test(
-          'when adding an ancestor task, it adds its descendant leaf tasks that are not doneu to the queue',
-          () async {
-        await diligent.focus(setupResult['A1i - leaf']!);
-        final task = setupResult['B2ii - leaf']!;
-        await diligent.updateTask(task.markDone());
-        await diligent.focus(setupResult['B']!);
-        expect(
-          taskNames(await diligent.focusQueue()),
-          equals([
-            'B1 - leaf',
-            'B2i - leaf',
-            'B2iii - leaf',
-            'B3 - leaf',
-            'A1i - leaf',
-          ]),
-        );
-      });
+        'when adding an ancestor task, it adds its descendant leaf tasks that are not doneu to the queue',
+        () async {
+          await diligent.focus(setupResult['A1i - leaf']!);
+          final task = setupResult['B2ii - leaf']!;
+          await diligent.updateTask(task.markDone());
+          await diligent.focus(setupResult['B']!);
+          expect(
+            taskNames(await diligent.focusQueue()),
+            equals([
+              'B1 - leaf',
+              'B2i - leaf',
+              'B2iii - leaf',
+              'B3 - leaf',
+              'A1i - leaf',
+            ]),
+          );
+        },
+      );
 
       test(
-          'when adding an ancestor task with position, it adds its descendant leaf tasks to the queue on that position',
-          () async {
-        await focusItems(['A1i - leaf', 'C - leaf']);
-        await diligent.focus(setupResult['B']!, position: 1);
-        expect(
-          taskNames(await diligent.focusQueue()),
-          equals([
-            'C - leaf',
-            'B1 - leaf',
-            'B2i - leaf',
-            'B2ii - leaf',
-            'B2iii - leaf',
-            'B3 - leaf',
-            'A1i - leaf',
-          ]),
-        );
-      });
+        'when adding an ancestor task with position, it adds its descendant leaf tasks to the queue on that position',
+        () async {
+          await focusItems(['A1i - leaf', 'C - leaf']);
+          await diligent.focus(setupResult['B']!, position: 1);
+          expect(
+            taskNames(await diligent.focusQueue()),
+            equals([
+              'C - leaf',
+              'B1 - leaf',
+              'B2i - leaf',
+              'B2ii - leaf',
+              'B2iii - leaf',
+              'B3 - leaf',
+              'A1i - leaf',
+            ]),
+          );
+        },
+      );
 
-      test('when a task is deleted, it is also unfocused', () async {
-        final task = setupResult['C - leaf']!;
-        await diligent.focus(setupResult['A1i - leaf']!);
-        await diligent.focus(task);
-        await diligent.deleteTask(task);
-        expect(
-          taskNames(await diligent.focusQueue()),
-          equals([
-            'A1i - leaf',
-          ]),
-        );
-      });
+      test(
+        'when a task is deleted, it is also unfocused',
+        () async {
+          final task = setupResult['C - leaf']!;
+          await diligent.focus(setupResult['A1i - leaf']!);
+          await diligent.focus(task);
+          await diligent.deleteTask(task);
+          expect(
+            taskNames(await diligent.focusQueue()),
+            equals([
+              'A1i - leaf',
+            ]),
+          );
+        },
+      );
 
-      test('when a task is marked as done, it is removed from the queue',
-          () async {
-        final task = setupResult['C - leaf']!;
-        await diligent.focus(setupResult['A1i - leaf']!);
-        await diligent.focus(task);
-        await diligent.updateTask(task.copyWith(doneAt: DateTime.now()));
-        expect(
-          taskNames(await diligent.focusQueue()),
-          equals([
-            'A1i - leaf',
-          ]),
-        );
-      });
+      test(
+        'when a task is marked as done, it is removed from the queue',
+        () async {
+          final task = setupResult['C - leaf']!;
+          await diligent.focus(setupResult['A1i - leaf']!);
+          await diligent.focus(task);
+          await diligent.updateTask(task.copyWith(doneAt: DateTime.now()));
+          expect(
+            taskNames(await diligent.focusQueue()),
+            equals([
+              'A1i - leaf',
+            ]),
+          );
+        },
+      );
 
-      test('when a task is focused again it is moved to the top of the queue',
-          () async {
-        final task = setupResult['C - leaf']!;
-        await diligent.focus(task);
-        await diligent.focus(setupResult['A1i - leaf']!);
-        await diligent.focus(task);
-        expect(
-          taskNames(await diligent.focusQueue()),
-          equals([
-            'C - leaf',
-            'A1i - leaf',
-          ]),
-        );
-      });
+      test(
+        'when a task is focused again it is moved to the top of the queue',
+        () async {
+          final task = setupResult['C - leaf']!;
+          await diligent.focus(task);
+          await diligent.focus(setupResult['A1i - leaf']!);
+          await diligent.focus(task);
+          expect(
+            taskNames(await diligent.focusQueue()),
+            equals([
+              'C - leaf',
+              'A1i - leaf',
+            ]),
+          );
+        },
+      );
 
       test('focusQueue can limit result', () async {
         await focusItems(['B', 'C - leaf']);
@@ -690,35 +707,37 @@ void main() {
         setupResult = await testTreeSetup(diligent);
       });
 
-      test('it returns subtree starting from descendants including of root',
-          () async {
-        final rootTask = setupResult['Root'];
-        if (rootTask == null) {
-          fail('Unexpected result. testTreeSetup() did not work.');
-        }
-        final TaskNodeList taskNodes =
-            await diligent.expandedDescendantsTree(rootTask);
-        final nameList = <String>[];
-        for (final taskNode in taskNodes) {
-          nameList.add(taskNode.task.name);
-        }
-        expect(
-          nameList,
-          equals(
-            [
-              'A',
-              'A1',
-              'A2 - leaf',
-              'A3 - leaf',
-              'B',
-              'B1 - leaf',
-              'B2',
-              'B3 - leaf',
-              'C - leaf',
-            ],
-          ),
-        );
-      });
+      test(
+        'it returns subtree starting from descendants including of root',
+        () async {
+          final rootTask = setupResult['Root'];
+          if (rootTask == null) {
+            fail('Unexpected result. testTreeSetup() did not work.');
+          }
+          final TaskNodeList taskNodes =
+              await diligent.expandedDescendantsTree(rootTask);
+          final nameList = <String>[];
+          for (final taskNode in taskNodes) {
+            nameList.add(taskNode.task.name);
+          }
+          expect(
+            nameList,
+            equals(
+              [
+                'A',
+                'A1',
+                'A2 - leaf',
+                'A3 - leaf',
+                'B',
+                'B1 - leaf',
+                'B2',
+                'B3 - leaf',
+                'C - leaf',
+              ],
+            ),
+          );
+        },
+      );
     });
 
     group('Done logic in tree structure', () {
@@ -735,138 +754,149 @@ void main() {
       }
 
       test(
-          'marking a single leaf node as done while its siblings are not done does not affect ancestors',
-          () async {
-        final task = setupResult['A1i - leaf']!;
-        await diligent.updateTask(task.markDone());
-        final a1 = await diligent.findTask(setupResult['A1']!.id);
-        final a = await diligent.findTask(setupResult['A']!.id);
-        expect(a1!.done, isFalse);
-        expect(a!.done, isFalse);
-      });
+        'marking a single leaf node as done while its siblings are not done does not affect ancestors',
+        () async {
+          final task = setupResult['A1i - leaf']!;
+          await diligent.updateTask(task.markDone());
+          final a1 = await diligent.findTask(setupResult['A1']!.id);
+          final a = await diligent.findTask(setupResult['A']!.id);
+          expect(a1!.done, isFalse);
+          expect(a!.done, isFalse);
+        },
+      );
 
       test(
-          'marking a single leaf node when its siblings are all done marks its parent as done',
-          () async {
-        await markNodesDone([
-          'A1i - leaf',
-          'A1ii - leaf',
-          'A1iii - leaf',
-        ]);
+        'marking a single leaf node when its siblings are all done marks its parent as done',
+        () async {
+          await markNodesDone([
+            'A1i - leaf',
+            'A1ii - leaf',
+            'A1iii - leaf',
+          ]);
 
-        final a1 = await diligent.findTask(setupResult['A1']!.id);
-        expect(a1!.done, isTrue);
-      });
-
-      test(
-          'marking a single leaf node when its siblings and aunts/uncles are all done marks its parent and grandparent as done',
-          () async {
-        await markNodesDone([
-          'A1i - leaf',
-          'A1ii - leaf',
-          'A1iii - leaf',
-          'A2 - leaf',
-          'A3 - leaf',
-        ]);
-        final a = await diligent.findTask(setupResult['A']!.id);
-        expect(a!.done, isTrue);
-      });
+          final a1 = await diligent.findTask(setupResult['A1']!.id);
+          expect(a1!.done, isTrue);
+        },
+      );
 
       test(
-          'marking a single leaf node when its siblings are all done but not all aunts/uncles only marks its parent as done',
-          () async {
-        await markNodesDone([
-          'A1i - leaf',
-          'A1ii - leaf',
-          'A1iii - leaf',
-          'A2 - leaf',
-        ]);
-        final a = await diligent.findTask(setupResult['A']!.id);
-        final a1 = await diligent.findTask(setupResult['A1']!.id);
-        expect(a!.done, isFalse);
-        expect(a1!.done, isTrue);
-      });
+        'marking a single leaf node when its siblings and aunts/uncles are all done marks its parent and grandparent as done',
+        () async {
+          await markNodesDone([
+            'A1i - leaf',
+            'A1ii - leaf',
+            'A1iii - leaf',
+            'A2 - leaf',
+            'A3 - leaf',
+          ]);
+          final a = await diligent.findTask(setupResult['A']!.id);
+          expect(a!.done, isTrue);
+        },
+      );
 
       test(
-          'marking a single leaf node not done when its parent is done marks its parent as not done',
-          () async {
-        await diligent.updateTask(setupResult['A1']!.markDone());
-        final updatedA1i =
-            await diligent.findTask(setupResult['A1i - leaf']!.id);
-        await diligent.updateTask(updatedA1i!.markNotDone());
-        final a1 = await diligent.findTask(setupResult['A1']!.id);
-        expect(a1!.done, isFalse);
-      });
+        'marking a single leaf node when its siblings are all done but not all aunts/uncles only marks its parent as done',
+        () async {
+          await markNodesDone([
+            'A1i - leaf',
+            'A1ii - leaf',
+            'A1iii - leaf',
+            'A2 - leaf',
+          ]);
+          final a = await diligent.findTask(setupResult['A']!.id);
+          final a1 = await diligent.findTask(setupResult['A1']!.id);
+          expect(a!.done, isFalse);
+          expect(a1!.done, isTrue);
+        },
+      );
 
       test(
-          'marking a single leaf node not done when its ancestors are done marks them as not done too',
-          () async {
-        await diligent.updateTask(setupResult['A']!.markDone());
-        final updatedA1i =
-            await diligent.findTask(setupResult['A1i - leaf']!.id);
-        await diligent.updateTask(updatedA1i!.markNotDone());
-        final ancestors = ['A1', 'A'];
-        for (final ancestor in ancestors) {
-          final task = await diligent.findTask(setupResult[ancestor]!.id);
-          expect(task!.done, isFalse);
-        }
-      });
-
-      test('marking a parent node as done marks all of its children as done',
-          () async {
-        await diligent.updateTask(setupResult['A1']!.markDone());
-        final names = ['A1i - leaf', 'A1ii - leaf', 'A1iii - leaf'];
-        for (final name in names) {
-          final task = await diligent.findTask(setupResult[name]!.id);
-          expect(task!.done, isTrue);
-        }
-      });
+        'marking a single leaf node not done when its parent is done marks its parent as not done',
+        () async {
+          await diligent.updateTask(setupResult['A1']!.markDone());
+          final updatedA1i =
+              await diligent.findTask(setupResult['A1i - leaf']!.id);
+          await diligent.updateTask(updatedA1i!.markNotDone());
+          final a1 = await diligent.findTask(setupResult['A1']!.id);
+          expect(a1!.done, isFalse);
+        },
+      );
 
       test(
-          'marking an ancestor node as done marks all of its descendants as done',
-          () async {
-        await diligent.updateTask(setupResult['A']!.markDone());
-        final names = [
-          'A1i - leaf',
-          'A1ii - leaf',
-          'A1iii - leaf',
-          'A2 - leaf',
-          'A3 - leaf',
-        ];
-        for (final name in names) {
-          final task = await diligent.findTask(setupResult[name]!.id);
-          expect(task!.done, isTrue);
-        }
-      });
+        'marking a single leaf node not done when its ancestors are done marks them as not done too',
+        () async {
+          await diligent.updateTask(setupResult['A']!.markDone());
+          final updatedA1i =
+              await diligent.findTask(setupResult['A1i - leaf']!.id);
+          await diligent.updateTask(updatedA1i!.markNotDone());
+          final ancestors = ['A1', 'A'];
+          for (final ancestor in ancestors) {
+            final task = await diligent.findTask(setupResult[ancestor]!.id);
+            expect(task!.done, isFalse);
+          }
+        },
+      );
 
       test(
-          'marking a parent node as not done marks all of its children as not done',
-          () async {
-        final names = [
-          'A1i - leaf',
-          'A1ii - leaf',
-          'A1iii - leaf',
-        ];
-        await markNodesDone(names);
-        final updatedA1 = await diligent.findTask(setupResult['A1']!.id);
-        await diligent.updateTask(updatedA1!.markNotDone());
-        for (final name in names) {
-          final task = await diligent.findTask(setupResult[name]!.id);
-          expect(task!.done, isFalse);
-        }
-      });
+        'marking a parent node as done marks all of its children as done',
+        () async {
+          await diligent.updateTask(setupResult['A1']!.markDone());
+          final names = ['A1i - leaf', 'A1ii - leaf', 'A1iii - leaf'];
+          for (final name in names) {
+            final task = await diligent.findTask(setupResult[name]!.id);
+            expect(task!.done, isTrue);
+          }
+        },
+      );
 
       test(
-          'marking an ancestor node as done removes child nodes that are focused',
-          () async {
-        await diligent.focus(setupResult['A1i - leaf']!);
-        await markNodesDone(['A']);
-        final updatedA1 = await diligent.findTask(setupResult['A1']!.id);
-        await diligent.updateTask(updatedA1!.markNotDone());
-        final queue =
-            (await diligent.focusQueue()).map((task) => task.name).toList();
-        expect(queue, isNot(contains('A1i - leaf')));
-      });
+        'marking an ancestor node as done marks all of its descendants as done',
+        () async {
+          await diligent.updateTask(setupResult['A']!.markDone());
+          final names = [
+            'A1i - leaf',
+            'A1ii - leaf',
+            'A1iii - leaf',
+            'A2 - leaf',
+            'A3 - leaf',
+          ];
+          for (final name in names) {
+            final task = await diligent.findTask(setupResult[name]!.id);
+            expect(task!.done, isTrue);
+          }
+        },
+      );
+
+      test(
+        'marking a parent node as not done marks all of its children as not done',
+        () async {
+          final names = [
+            'A1i - leaf',
+            'A1ii - leaf',
+            'A1iii - leaf',
+          ];
+          await markNodesDone(names);
+          final updatedA1 = await diligent.findTask(setupResult['A1']!.id);
+          await diligent.updateTask(updatedA1!.markNotDone());
+          for (final name in names) {
+            final task = await diligent.findTask(setupResult[name]!.id);
+            expect(task!.done, isFalse);
+          }
+        },
+      );
+
+      test(
+        'marking an ancestor node as done removes child nodes that are focused',
+        () async {
+          await diligent.focus(setupResult['A1i - leaf']!);
+          await markNodesDone(['A']);
+          final updatedA1 = await diligent.findTask(setupResult['A1']!.id);
+          await diligent.updateTask(updatedA1!.markNotDone());
+          final queue =
+              (await diligent.focusQueue()).map((task) => task.name).toList();
+          expect(queue, isNot(contains('A1i - leaf')));
+        },
+      );
 
       test(
         'adding a child task to a done node marks parent and ancestors as not done',
