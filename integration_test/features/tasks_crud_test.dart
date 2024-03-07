@@ -1,5 +1,3 @@
-import 'package:flutter_test/flutter_test.dart';
-
 import '../helpers/dtest/dtest.dart';
 
 Future<void> main() async {

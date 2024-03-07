@@ -1,7 +1,9 @@
 import 'dart:io';
 
+import 'package:diligence/models/new_task.dart';
 import 'package:diligence/ui/components/keys.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
@@ -10,6 +12,18 @@ import 'dtest_base.dart';
 import 'test_tasks_screen.dart';
 
 // ignore_for_file: avoid-dynamic
+
+class TestSetupTaskParam {
+  final String name;
+  final String? details;
+  final String? parent;
+
+  const TestSetupTaskParam(
+    this.name, {
+    this.details,
+    this.parent,
+  });
+}
 
 void integrationTest(String description, void Function() fn) {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -30,7 +44,7 @@ void integrationTest(String description, void Function() fn) {
 }
 
 class Dtest extends DtestBase {
-  Dtest(super.tester);
+  Dtest(super.tester, {required super.container});
 
   Future<void> tapOnMenuBarItem(Key key) async {
     await pumpAndSettle();
@@ -48,6 +62,78 @@ class Dtest extends DtestBase {
     expect(find.text('Tasks'), findsOneWidget);
     return TestTasksScreenTest(this);
   }
+
+  Future<void> setUpInitialTasks(List<TestSetupTaskParam> taskParams) async {
+    final byParent = <String, List<TestSetupTaskParam>>{};
+    // gather tasks by parent
+    for (final taskParam in taskParams) {
+      byParent[taskParam.parent ?? ''] ??= <TestSetupTaskParam>[];
+      byParent[taskParam.parent ?? '']!.add(taskParam);
+    }
+
+    for (final children in byParent.entries) {
+      final parent = await diligent.findTaskByName(children.key);
+      final parentId = parent?.id;
+      await diligent.addTasks(
+        children.value.map((child) {
+          return NewTask(
+            name: child.name,
+            details: child.details,
+            parentId: parentId,
+          );
+        }).toList(),
+      );
+    }
+  }
+
+  Future<void> expandTasks(List<String> taskNames) async {
+    for (final taskName in taskNames) {
+      final task = await diligent.findTaskByName(taskName);
+      if (task != null) {
+        await diligent.updateTask(task.copyWith(expanded: true));
+      }
+    }
+  }
+
+  Future<void> longPressThenDrag(
+    Offset start,
+    Offset end, {
+    Duration? duration,
+  }) async {
+    final TestGesture gesture = await tester.startGesture(start);
+    // Long press first
+    await tester.pump(kLongPressTimeout + kPressTimeout);
+
+    // Sometimes the drag does not work so duration is needed because there are
+    // intervening events that have to fire first somehow.
+    // TODO: Investigate why this is the case and report it if necessary
+    if (duration is Duration) {
+      const frequency = 60.0;
+      final int intervals = duration.inMicroseconds * frequency ~/ 1E6;
+      final offset = end - start;
+
+      final List<Duration> timeStamps = <Duration>[
+        for (int t = 0; t <= intervals; t += 1) duration * t ~/ intervals,
+      ];
+      final List<Offset> offsets = <Offset>[
+        start,
+        for (int t = 0; t <= intervals; t += 1)
+          start + offset * (t / intervals),
+      ];
+      await tester.pump(kLongPressTimeout + kPressTimeout);
+
+      for (int i = 0; i < timeStamps.length; i++) {
+        await gesture.moveTo(offsets[i]);
+        await tester.pump();
+      }
+    } else {
+      await gesture.moveTo(end);
+      await tester.pump();
+    }
+
+    await gesture.up();
+    await tester.pumpAndSettle();
+  }
 }
 
 typedef TestAppCallback = Future<void> Function(Dtest dtest);
@@ -61,9 +147,9 @@ void testApp(
   testWidgets(
     description,
     (widgetTester) async {
-      await app.main();
+      final container = await app.main();
 
-      return callback(Dtest(widgetTester));
+      return callback(Dtest(widgetTester, container: container));
     },
     tags: tags,
     skip: skip,

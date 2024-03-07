@@ -1,12 +1,15 @@
+import 'package:diligence/diligence_container.dart';
+import 'package:diligence/services/diligent.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class DtestBase {
   final WidgetTester tester;
+  final DiligenceContainer container;
 
-  DtestBase get me => this;
+  Diligent get diligent => container.diligent;
 
-  DtestBase(this.tester);
+  DtestBase(this.tester, {required this.container});
 
   Future<void> tapByStringKey(String strKey) => tapByKey(Key(strKey));
 

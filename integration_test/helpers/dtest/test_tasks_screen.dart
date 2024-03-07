@@ -10,6 +10,7 @@ class TestTasksScreenTest {
   final Dtest dtest;
 
   Finder get taskList => find.byKey(keys.mainTaskList);
+  WidgetTester get tester => dtest.tester;
 
   const TestTasksScreenTest(this.dtest);
 
@@ -111,6 +112,28 @@ class TestTasksScreenTest {
     await dtest.tapByKey(keys.deleteTaskButton);
   }
 
+  Future<void> moveTask(
+    String name, {
+    required String to,
+    Duration? duration,
+  }) async {
+    final task = findTaskItem(name);
+    final destination = findTaskItem(to);
+    final fromCoords = tester.getCenter(task);
+    final toCoords = tester.getCenter(destination);
+    await dtest.longPressThenDrag(
+      fromCoords,
+      toCoords.translate(
+        0,
+        // Offset so we make sure to get past the destination
+        fromCoords.dy > toCoords.dy ? 5 : -5,
+      ),
+      duration: duration,
+    );
+  }
+
+  // Expectations
+
   void expectTaskExistsOnTaskList(
     String name, {
     String? details,
@@ -144,16 +167,20 @@ class TestTasksScreenTest {
     );
   }
 
-  void expectTaskIsChildOfParent(String name, {required String parent}) {
-    final taskItems = dtest.tester.widgetList<TaskItem>(find.descendant(
+  Iterable<TaskItem> _taskItemsOnTaskList() {
+    return dtest.tester.widgetList<TaskItem>(find.descendant(
       of: taskList,
       matching: find.byType(TaskItem),
     ));
+  }
 
+  void expectTaskIsChildOfParent(String name, {required String parent}) {
+    final taskItems = _taskItemsOnTaskList();
     TaskItem? parentTaskItem;
     TaskItem? childTaskItem;
     int? parentLevel;
     int? childLevel;
+
     for (final taskItem in taskItems) {
       final currentLevel = taskItem.level;
       if (parentLevel is int) {
@@ -187,5 +214,25 @@ class TestTasksScreenTest {
     if (childLevel is! int || parentLevel is! int) {
       fail('Did not find appropriate levels for parent and child tasks');
     }
+  }
+
+  String _spacesPerLevel(int level) {
+    return '  ' * level;
+  }
+
+  void expectTaskLayout(List<String> expected) {
+    final taskItems = _taskItemsOnTaskList();
+    final List<String> actual = [];
+
+    for (final taskItem in taskItems) {
+      final level = taskItem.level;
+      if (level is int) {
+        actual.add('${_spacesPerLevel(level)}${taskItem.task.name}');
+      } else {
+        actual.add(taskItem.task.name);
+      }
+    }
+
+    expect(actual, expected);
   }
 }
