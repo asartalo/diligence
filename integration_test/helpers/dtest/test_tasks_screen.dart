@@ -3,16 +3,15 @@ import 'package:diligence/ui/screens/tasks/task_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'dtest.dart';
+import 'test_screen.dart';
+import 'test_screen_task_item_actions.dart';
 
 @immutable
-class TestTasksScreenTest {
-  final Dtest dtest;
-
+class TestTasksScreen extends TestScreen with TestScreenTaskItemActions {
+  @override
   Finder get taskList => find.byKey(keys.mainTaskList);
-  WidgetTester get tester => dtest.tester;
 
-  const TestTasksScreenTest(this.dtest);
+  const TestTasksScreen(super.dtest);
 
   // Creates a task on the current ancestor
   //
@@ -29,59 +28,9 @@ class TestTasksScreenTest {
     await dtest.tapByKey(keys.saveTaskButton);
   }
 
-  Future<void> inputTaskDetails({
-    String? name,
-    String? details,
-  }) async {
-    if (name is String) {
-      await dtest.enterTextByKey(keys.taskNameField, name);
-    }
-    if (details is String) {
-      await dtest.enterTextByKey(keys.taskDetailsField, details);
-    }
-    await dtest.tapByKey(keys.saveTaskButton);
-  }
-
-  Future<void> tapTaskMenuItem(String name, Key key) async {
-    final task = findTaskItem(name);
-    final menuButton = find.descendant(
-      of: task,
-      matching: find.byKey(keys.taskMenu),
-    );
-    await dtest.tapElement(menuButton);
-    final button = find.descendant(
-      of: task,
-      matching: find.byKey(key),
-    );
-    await dtest.tapElement(button);
-  }
-
-  Future<void> tapTaskMenuAdd(String name) =>
-      tapTaskMenuItem(name, keys.taskMenuAdd);
-
-  Future<void> tapTaskMenuDelete(String name) =>
-      tapTaskMenuItem(name, keys.taskMenuDelete);
-
-  Future<void> tapTaskMenuEdit(String name) =>
-      tapTaskMenuItem(name, keys.taskMenuEdit);
-
   Future<void> addChildTask(String name, {required String parent}) async {
     await tapTaskMenuAdd(parent);
     await inputTaskDetails(name: name);
-  }
-
-  Finder findTaskItem(String name) {
-    final taskNameText = find.descendant(
-      of: taskList,
-      matching: find.text(name),
-    );
-
-    return find.ancestor(of: taskNameText, matching: find.byKey(keys.taskItem));
-  }
-
-  Future<void> showTask(String name) async {
-    final task = findTaskItem(name);
-    await dtest.tapElement(task);
   }
 
   Future<void> editTask(
@@ -108,32 +57,14 @@ class TestTasksScreenTest {
   }
 
   Future<void> deleteTask(String name) async {
-    await showTask(name);
-    await dtest.tapByKey(keys.deleteTaskButton);
+    await tapTaskMenuDelete(name);
   }
 
-  Future<void> moveTask(
-    String name, {
-    required String to,
-    Duration? duration,
-  }) async {
-    final task = findTaskItem(name);
-    final destination = findTaskItem(to);
-    final fromCoords = tester.getCenter(task);
-    final toCoords = tester.getCenter(destination);
-    await dtest.longPressThenDrag(
-      fromCoords,
-      toCoords.translate(
-        0,
-        // Offset so we make sure to get past the destination
-        fromCoords.dy > toCoords.dy ? 5 : -5,
-      ),
-      duration: duration,
-    );
+  Future<void> focusTask(String name) async {
+    await tapTaskMenuFocus(name);
   }
 
   // Expectations
-
   void expectTaskExistsOnTaskList(
     String name, {
     String? details,

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:diligence/models/new_task.dart';
+import 'package:diligence/services/diligent.dart';
 import 'package:diligence/ui/components/keys.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
@@ -9,6 +10,7 @@ import 'package:integration_test/integration_test.dart';
 
 import '../../app.dart' as app;
 import 'dtest_base.dart';
+import 'test_focus_screen.dart';
 import 'test_tasks_screen.dart';
 
 // ignore_for_file: avoid-dynamic
@@ -17,11 +19,13 @@ class TestSetupTaskParam {
   final String name;
   final String? details;
   final String? parent;
+  final bool? done;
 
   const TestSetupTaskParam(
     this.name, {
     this.details,
     this.parent,
+    this.done,
   });
 }
 
@@ -57,10 +61,16 @@ class Dtest extends DtestBase {
     expect(find.text('Review'), findsOneWidget);
   }
 
-  Future<TestTasksScreenTest> navigateToTasksPage() async {
+  Future<TestTasksScreen> navigateToTasksPage() async {
     await tapOnMenuBarItem(drawerLinkTasks);
     expect(find.text('Tasks'), findsOneWidget);
-    return TestTasksScreenTest(this);
+    return TestTasksScreen(this);
+  }
+
+  Future<TestFocusScreen> navigateToFocusPage() async {
+    await tapOnMenuBarItem(drawerLinkFocus);
+    expect(find.text('Focus'), findsOneWidget);
+    return TestFocusScreen(this);
   }
 
   Future<void> setUpInitialTasks(List<TestSetupTaskParam> taskParams) async {
@@ -80,10 +90,19 @@ class Dtest extends DtestBase {
             name: child.name,
             details: child.details,
             parentId: parentId,
+            doneAt: child.done != null ? DateTime.now() : null,
           );
         }).toList(),
       );
     }
+  }
+
+  Future<void> setUpFocusedTasks(List<String> taskNames) async {
+    final TaskList tasks = [];
+    for (final taskName in taskNames) {
+      tasks.add((await diligent.findTaskByName(taskName))!);
+    }
+    await diligent.focusTasks(tasks);
   }
 
   Future<void> expandTasks(List<String> taskNames) async {

@@ -169,7 +169,7 @@ class _TaskItemState extends State<TaskItem> {
   Widget focusToggle() {
     return widget.focused
         ? TaskMenuItem(
-            key: keys.taskMenuFocus,
+            key: keys.taskMenuUnfocus,
             icon: Icons.visibility_off,
             onPressed: () {
               widget.onCommand(UnfocusTaskCommand(task: task));
@@ -177,7 +177,7 @@ class _TaskItemState extends State<TaskItem> {
             label: 'Unfocus',
           )
         : TaskMenuItem(
-            key: keys.taskMenuUnfocus,
+            key: keys.taskMenuFocus,
             icon: Icons.visibility,
             onPressed: () {
               widget.onCommand(FocusTaskCommand(task: task));

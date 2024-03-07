@@ -18,8 +18,18 @@ Future<void> main() async {
       await ts.addChildTask('First Life Task', parent: 'Life');
       await ts.addChildTask('Foo', parent: 'First Life Task');
       await ts.addChildTask('Second Life Task', parent: 'Life');
-      ts.expectTaskIsChildOfParent('Foo', parent: 'First Life Task');
-      ts.expectTaskIsChildOfParent('Second Life Task', parent: 'Life');
+      ts.expectTaskLayout([
+        'Life',
+        '  First Life Task',
+        '    Foo',
+        '  Second Life Task',
+        'Work',
+        '  First Work Task',
+        '  Second Work Task',
+        'Projects',
+        'Miscellaneous',
+        'Inbox',
+      ]);
     });
 
     testApp('Updating a task via menu', (dtest) async {

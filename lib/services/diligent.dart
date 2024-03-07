@@ -859,6 +859,12 @@ class Diligent {
     });
   }
 
+  Future<void> focusTasks(TaskList tasks, {int position = 0}) async {
+    await db.writeTransaction((tx) async {
+      await _focus(tasks, tx, position: position);
+    });
+  }
+
   Future<void> _focus(
     TaskList tasks,
     SqliteWriteContext tx, {
