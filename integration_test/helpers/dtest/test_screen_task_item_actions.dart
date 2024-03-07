@@ -1,5 +1,6 @@
 import 'package:diligence/ui/screens/tasks/keys.dart' as tkeys;
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'test_screen.dart';
@@ -81,5 +82,14 @@ mixin TestScreenTaskItemActions on TestScreen {
       await dtest.enterTextByKey(tkeys.taskDetailsField, details);
     }
     await dtest.tapByKey(tkeys.saveTaskButton);
+  }
+
+  Future<void> toggleExpand(String name) async {
+    final task = findTaskItem(name);
+    final expandToggle = find.descendant(
+      of: task,
+      matching: find.byKey(tkeys.taskExpandButton),
+    );
+    await dtest.tapElement(expandToggle);
   }
 }

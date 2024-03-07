@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 const Key addTaskFloatingButton = Key('addTaskFloatingButton');
+const Key taskExpandButton = Key('taskExpandButton');
 const Key taskNameField = Key('taskDialogTaskNameField');
 const Key taskDetailsField = Key('taskDialogDetailsField');
 const Key saveTaskButton = Key('taskDialogSaveButton');

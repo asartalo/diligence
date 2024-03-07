@@ -201,6 +201,7 @@ class _TaskItemState extends State<TaskItem> {
       if (widget.childrenCount! > 0 && widget.onToggleExpandTask != null) {
         return RevealOnHover(
           child: IconButton(
+            key: keys.taskExpandButton,
             icon: Icon(task.expanded ? Icons.expand_less : Icons.expand_more),
             onPressed: () {
               widget.onToggleExpandTask!(task);
