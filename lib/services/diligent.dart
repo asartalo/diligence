@@ -213,7 +213,7 @@ class Diligent {
       );
 
       newTasks = await _getPersistedTasks(tasks, tx);
-      await _toggleTree(newTasks.first, tx);
+      await _toggleSubtree(newTasks.first, tx);
 
       if (parentId is int && await _isFocused(parentId, tx)) {
         await _unfocusByIds([parentId], tx);
@@ -331,22 +331,28 @@ class Diligent {
   // TODO: The interface does not evoke the intent of its usage
   /// _toggleTree toggles the doneAt field of its ancestors and descendants if
   /// applicable
-  Future<void> _toggleTree(
+  Future<void> _toggleSubtree(
     Task task,
     SqliteWriteContext tx, {
-    DateTime? doneAt,
+    bool forceDescendants = false,
+    bool startAtTask = false,
   }) async {
-    await _toggleAncestorsDone(task, tx, doneAt: doneAt);
-    await _toggleDescendantsDone(task, tx, doneAt: doneAt);
+    await _toggleAncestorsDone(
+      task,
+      tx,
+      startAtTask: startAtTask,
+    );
+    if (forceDescendants) {
+      await _toggleDescendantsDone(task, tx);
+    }
   }
 
   Future<void> _toggleTreeIfToggled(
     ModifiedTask task,
-    SqliteWriteContext tx, {
-    DateTime? doneAt,
-  }) async {
+    SqliteWriteContext tx,
+  ) async {
     if (task.hasToggledDone()) {
-      await _toggleTree(task, tx, doneAt: doneAt);
+      await _toggleSubtree(task, tx, forceDescendants: true);
     }
   }
 
@@ -354,21 +360,29 @@ class Diligent {
   Future<void> _toggleAncestorsDone(
     Task task,
     SqliteWriteContext tx, {
-    DateTime? doneAt,
+    bool startAtTask = false,
   }) async {
-    final ancestors = await _ancestors(task, tx);
-    final doneAtTrue = doneAt ?? task.doneAt;
+    final ancestors = await _ancestors(
+      task,
+      tx,
+      includeTaskAsAncestor: startAtTask,
+    );
     for (final ancestor in ancestors) {
+      final doneAt = await _allChildrenDone(ancestor, tx);
       if (
           // ancestor is done and task is not done
-          (doneAtTrue == null && ancestor.done) ||
+          (doneAt == null && ancestor.done) ||
               // ancestor is not done and all children are done
-              (doneAtTrue != null && await _allChildrenDone(ancestor, tx))) {
+              (doneAt is DateTime &&
+                  (doneAt.millisecondsSinceEpoch !=
+                      ancestor.doneAt?.millisecondsSinceEpoch))) {
         await _toggleDoneById(
-          doneAtTrue?.millisecondsSinceEpoch,
+          doneAt?.millisecondsSinceEpoch,
           ancestor.id,
           tx,
         );
+      } else {
+        break;
       }
     }
   }
@@ -390,13 +404,9 @@ class Diligent {
         ],
       );
 
-  Future<void> _toggleDescendantsDone(
-    Task task,
-    SqliteWriteContext tx, {
-    DateTime? doneAt,
-  }) async {
+  Future<void> _toggleDescendantsDone(Task task, SqliteWriteContext tx) async {
     final descendants = await _descendants(task, tx);
-    final doneAtTrue = doneAt ?? task.doneAt;
+    final doneAt = task.doneAt;
 
     for (final descendant in descendants) {
       await tx.execute(
@@ -405,18 +415,20 @@ class Diligent {
         SET doneAt = ?
         WHERE id = ?
         ''',
-        [doneAtTrue?.millisecondsSinceEpoch, descendant.id],
+        [doneAt?.millisecondsSinceEpoch, descendant.id],
       );
     }
-    if (doneAtTrue != null) {
+    if (doneAt != null) {
       await _unfocus(descendants, tx);
     }
   }
 
-  Future<bool> _allChildrenDone(Task task, SqliteReadContext tx) async {
+  Future<DateTime?> _allChildrenDone(Task task, SqliteReadContext tx) async {
     final result = await tx.get(
       '''
-      SELECT count(id) as count, count(doneAt) as doneCount
+      SELECT COUNT(id) as count,
+        COUNT(doneAt) as doneCount,
+        MAX(COALESCE(doneAt, 0)) as latestDoneAt
       FROM tasks
       WHERE parentId = ?
       ''',
@@ -424,13 +436,23 @@ class Diligent {
     );
     final count = result['count'] as int;
     final doneCount = result['doneCount'] as int;
+    final doneAtEpoch =
+        result['latestDoneAt'] == null ? 0 : result['latestDoneAt'] as int;
+    final doneAt = doneAtEpoch > 0
+        ? DateTime.fromMillisecondsSinceEpoch(doneAtEpoch)
+        : null;
 
-    return count == doneCount;
+    return count == doneCount ? doneAt : null;
   }
 
   Future<TaskList> ancestors(Task task) => _ancestors(task, db);
 
-  Future<TaskList> _ancestors(Task task, SqliteWriteContext tx) async {
+  Future<TaskList> _ancestors(
+    Task task,
+    SqliteWriteContext tx, {
+    bool includeTaskAsAncestor = false,
+  }) async {
+    final id = includeTaskAsAncestor ? task.id : task.parentId;
     final rows = await tx.getAll(
       _cachedQuery(
         'ancestors',
@@ -445,7 +467,7 @@ class Diligent {
         SELECT * FROM ancestors
         ''',
       ),
-      [task.parentId],
+      [id],
     );
 
     return rows.map(_taskFromRow).toList();
@@ -532,7 +554,10 @@ class Diligent {
     await db.writeTransaction((tx) async {
       await tx.execute('DELETE FROM tasks WHERE id = ?', [task.id]);
       await _reorderChildren(tx, task.parentId);
-      await _toggleTree(task, tx, doneAt: DateTime.now());
+      final parent = await _findTask(task.parentId, tx);
+      if (parent is Task) {
+        await _toggleSubtree(task, tx);
+      }
     });
   }
 
@@ -556,7 +581,7 @@ class Diligent {
   }
 
   Future<void> moveTask(Task task, int position, {Task? parent}) async {
-    if (parent is Task) {
+    if (parent is Task && parent.id != task.parentId) {
       await _moveTaskToAnotherParent(task, parent, position);
     } else {
       await _moveTaskWithinSiblings(task, position);
@@ -586,7 +611,12 @@ class Diligent {
         [parent.id, position, task.id],
       );
 
-      _reorderChildren(tx, task.parentId);
+      await _toggleSubtree(parent, tx, startAtTask: true);
+      await _reorderChildren(tx, task.parentId);
+      final oldParent = await _findTask(task.parentId, tx);
+      if (oldParent is Task) {
+        await _toggleSubtree(oldParent, tx, startAtTask: true);
+      }
     });
   }
 

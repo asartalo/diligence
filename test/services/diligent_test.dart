@@ -934,6 +934,47 @@ void main() {
           }
         },
       );
+
+      test(
+        'moving a not done task to a done parent marks the new parent as not done',
+        () async {
+          await markNodesDone(['B2']);
+          final b2Id = setupResult['B2']!.id;
+          expect((await diligent.findTask(b2Id))!.done, isTrue);
+
+          final a1iLeaf =
+              await diligent.findTask(setupResult['A1i - leaf']!.id);
+          expect(a1iLeaf!.done, isFalse);
+
+          await diligent.moveTask(a1iLeaf, 0, parent: setupResult['B2']);
+          final task = (await diligent.findTask(b2Id))!;
+          expect(task.done, isFalse);
+
+          // Make sure all other children are still done
+          final toCheck = ['B2i - leaf', 'B2ii - leaf', 'B2iii - leaf'];
+          for (final name in toCheck) {
+            final task = (await diligent.findTask(setupResult[name]!.id))!;
+            expect(task.done, isTrue);
+          }
+        },
+      );
+
+      test(
+        'moving a not done task that has all siblings done to another parent marks that parent as done',
+        () async {
+          await markNodesDone(['B2i - leaf', 'B2iii - leaf']);
+          final b2ii =
+              (await diligent.findTask(setupResult['B2ii - leaf']!.id))!;
+
+          await diligent.moveTask(b2ii, 0, parent: setupResult['A1']);
+
+          final toCheck = ['B2i - leaf', 'B2iii - leaf', 'B2'];
+          for (final name in toCheck) {
+            final task = (await diligent.findTask(setupResult[name]!.id))!;
+            expect(task.done, isTrue);
+          }
+        },
+      );
     });
 
     group('#ancestors()', () {
@@ -955,6 +996,32 @@ void main() {
   });
 }
 
+class _Tts {
+  final String name;
+  final String? parent;
+  final bool expanded;
+  final int? position;
+
+  const _Tts(this.name, {this.parent, this.expanded = false, this.position});
+}
+
+Future<Task> _setupTestTask(
+  Diligent diligent,
+  _Tts tts,
+) async {
+  final parentTask =
+      tts.parent != null ? await diligent.findTaskByName(tts.parent!) : null;
+  final task = await diligent.addTask(
+    NewTask(
+      name: tts.name,
+      parent: parentTask,
+      expanded: tts.expanded,
+    ),
+    position: tts.position,
+  );
+  return task;
+}
+
 /// The following test tree represents the following structure:
 ///
 /// Root
@@ -973,51 +1040,29 @@ void main() {
 ///     - B2iii - leaf
 ///   - B3 - leaf
 /// - C - leaf
+List<_Tts> _testTree = const [
+  _Tts('Root'),
+  _Tts('A', parent: 'Root', expanded: true),
+  _Tts('A1', parent: 'A'),
+  _Tts('A2 - leaf', parent: 'A'),
+  _Tts('A1ii - leaf', parent: 'A1'),
+  _Tts('A3 - leaf', parent: 'A'),
+  _Tts('A1iii - leaf', parent: 'A1'),
+  _Tts('A1i - leaf', parent: 'A1', position: 0),
+  _Tts('C - leaf', parent: 'Root'),
+  _Tts('B', parent: 'root', expanded: true, position: 1),
+  _Tts('B1 - leaf', parent: 'B', expanded: true),
+  _Tts('B2', parent: 'B'),
+  _Tts('B2i - leaf', parent: 'B2'),
+  _Tts('B2ii - leaf', parent: 'B2'),
+  _Tts('B3 - leaf', parent: 'B'),
+  _Tts('B2iii - leaf', parent: 'B2'),
+];
+
 Future<Map<String, Task>> testTreeSetup(Diligent diligent) async {
   final Map<String, Task> result = {};
-  final root = await diligent.addTask(NewTask(name: 'Root'));
-  final a = await diligent.addTask(
-    NewTask(name: 'A', parent: root, expanded: true),
-  );
-  final a1 = await diligent.addTask(NewTask(name: 'A1', parent: a));
-  final a2 = await diligent.addTask(NewTask(name: 'A2 - leaf', parent: a));
-  result['A1ii - leaf'] =
-      await diligent.addTask(NewTask(name: 'A1ii - leaf', parent: a1));
-  result['A3 - leaf'] =
-      await diligent.addTask(NewTask(name: 'A3 - leaf', parent: a));
-  result['A1iii - leaf'] =
-      await diligent.addTask(NewTask(name: 'A1iii - leaf', parent: a1));
-  final a1ILeaf = await diligent.addTask(
-    NewTask(name: 'A1i - leaf', parent: a1),
-    position: 0,
-  );
-
-  final c = await diligent.addTask(NewTask(name: 'C - leaf', parent: root));
-
-  final b = await diligent.addTask(
-    NewTask(name: 'B', parent: root, expanded: true),
-    position: 1,
-  );
-  final b1Leaf = await diligent.addTask(
-    NewTask(name: 'B1 - leaf', parent: b, expanded: true),
-  );
-  final b2 = await diligent.addTask(NewTask(name: 'B2', parent: b));
-  final b2i = await diligent.addTask(NewTask(name: 'B2i - leaf', parent: b2));
-  result['B2ii - leaf'] =
-      await diligent.addTask(NewTask(name: 'B2ii - leaf', parent: b2));
-  await diligent.addTask(NewTask(name: 'B3 - leaf', parent: b));
-  await diligent.addTask(NewTask(name: 'B2iii - leaf', parent: b2));
-
-  result['Root'] = root;
-  result['A'] = a;
-  result['A1'] = a1;
-  result['B'] = b;
-  result['B2'] = b2;
-  result['C - leaf'] = c;
-  result['A2 - leaf'] = a2;
-  result['A1i - leaf'] = a1ILeaf;
-  result['B1 - leaf'] = b1Leaf;
-  result['B2i - leaf'] = b2i;
-
+  for (final tts in _testTree) {
+    result[tts.name] = await _setupTestTask(diligent, tts);
+  }
   return result;
 }
