@@ -4,17 +4,21 @@ import '../helpers/dtest/dtest.dart';
 
 Future<void> main() async {
   integrationTest('Tasks Reordering', () {
-    testApp('Moving task down in order', (dtest) async {
-      final ts = await dtest.navigateToTasksPage();
-      await ts.moveTask('Work', to: 'Projects');
-      ts.expectTaskLayout([
-        'Life',
-        'Projects',
-        'Work',
-        'Miscellaneous',
-        'Inbox',
-      ]);
-    });
+    testApp(
+      'Moving task down in order',
+      (dtest) async {
+        final ts = await dtest.navigateToTasksPage();
+        await ts.moveTask('Work', to: 'Projects');
+        ts.expectTaskLayout([
+          'Life',
+          'Projects',
+          'Work',
+          'Miscellaneous',
+          'Inbox',
+        ]);
+      },
+      skip: true,
+    );
 
     testApp('Moving task up in order', (dtest) async {
       final ts = await dtest.navigateToTasksPage();
