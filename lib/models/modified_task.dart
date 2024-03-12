@@ -102,7 +102,7 @@ class ModifiedTask with TaskCommons implements Task {
     if (expanded != original.expanded) _modifiedFields.add('expanded');
   }
 
-  Set modifiedFields() {
+  Set<String> modifiedFields() {
     return _modifiedFields;
   }
 

@@ -9,6 +9,7 @@ class CommonScreen extends StatelessWidget {
   final Widget? floatingActionButton;
 
   const CommonScreen({
+    super.key,
     required this.title,
     required this.child,
     this.floatingActionButton,

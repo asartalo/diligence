@@ -22,7 +22,7 @@ class BetweenDatesMatcher extends Matcher {
   Description describeMismatch(
     covariant DateTime item,
     Description mismatchDescription,
-    Map matchState,
+    Map<dynamic, dynamic> matchState,
     bool verbose,
   ) {
     final described = super.describeMismatch(

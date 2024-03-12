@@ -9,7 +9,9 @@ class SingleNumberDataPoint extends StatelessWidget {
   final num number;
   final IconData icon;
   final Color color;
+
   const SingleNumberDataPoint({
+    super.key,
     required this.title,
     required this.number,
     this.icon = Icons.check,

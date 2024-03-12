@@ -7,6 +7,7 @@ class EvenRow extends StatelessWidget {
   final double gutter;
 
   const EvenRow({
+    super.key,
     required this.children,
     this.gutter = 0.0,
   });

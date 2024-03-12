@@ -124,7 +124,7 @@ class Diligent {
   final SqliteDatabase db;
   final bool _isTest;
 
-  Diligent({path = 'diligence.db'})
+  Diligent({String path = 'diligence.db'})
       : db = SqliteDatabase(path: path),
         _isTest = false;
 

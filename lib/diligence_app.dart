@@ -14,7 +14,7 @@ final diligenceTheme = DiligenceTheme.createThemeData();
 class DiligenceApp extends StatelessWidget {
   final DiligenceContainer container;
 
-  const DiligenceApp(this.container);
+  const DiligenceApp(this.container, {super.key});
 
   // This widget is the root of your application.
   @override

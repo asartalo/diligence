@@ -6,6 +6,7 @@ class EasyCard extends StatelessWidget {
   final double padding;
 
   const EasyCard({
+    super.key,
     required this.children,
     this.align = alignCenter,
     this.padding = 20.0,

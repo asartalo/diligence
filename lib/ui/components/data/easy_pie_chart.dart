@@ -17,7 +17,7 @@ class EasyPieChart extends StatelessWidget {
   final Map<String, double> data;
   List<Color> get colors => defaultColors;
 
-  const EasyPieChart(this.data, {this.radius = 200});
+  const EasyPieChart(this.data, {super.key, this.radius = 200});
 
   @override
   Widget build(BuildContext context) {

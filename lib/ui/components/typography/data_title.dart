@@ -4,7 +4,7 @@ import '../../diligence_theme.dart';
 
 class DataTitle extends StatelessWidget {
   final String text;
-  const DataTitle(this.text);
+  const DataTitle(this.text, {super.key});
 
   @override
   Widget build(BuildContext context) {

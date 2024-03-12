@@ -23,7 +23,7 @@ class ErrorMatcher<T extends Error> extends Matcher {
   Description describeMismatch(
     covariant dynamic item,
     Description mismatchDescription,
-    Map matchState,
+    Map<dynamic, dynamic> matchState,
     bool verbose,
   ) {
     final described = super.describeMismatch(
