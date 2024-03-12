@@ -26,7 +26,7 @@ class DiligenceApp extends StatelessWidget {
         theme: diligenceTheme,
         initialRoute: '/',
         routes: {
-          '/': (context) => const HomePage(),
+          '/': (context) => HomePage(),
           '/tasks': (context) =>
               TasksPage(diligent: Provider.of<Diligent>(context)),
           '/focus': (context) =>

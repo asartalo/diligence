@@ -1,13 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 typedef ClockCallback = Widget Function(DateTime time);
 
 class ClockWrap extends StatefulWidget {
-  final ClockCallback clockCallback;
-  const ClockWrap({super.key, required this.clockCallback});
+  final ClockCallback builder;
+  const ClockWrap({super.key, required this.builder});
 
   @override
   State<ClockWrap> createState() => _ClockWrapState();
@@ -16,7 +15,6 @@ class ClockWrap extends StatefulWidget {
 class _ClockWrapState extends State<ClockWrap> {
   late Timer timer;
   late DateTime time;
-  final dateFormat = DateFormat('EEEE, MMMM d, y H:mm a');
 
   @override
   void initState() {
@@ -33,6 +31,6 @@ class _ClockWrapState extends State<ClockWrap> {
 
   @override
   Widget build(BuildContext context) {
-    return widget.clockCallback(time);
+    return widget.builder(time);
   }
 }

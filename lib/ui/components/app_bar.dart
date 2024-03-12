@@ -11,7 +11,7 @@ AppBar appBar(BuildContext context, String title) {
       color: theme.textTheme.bodyLarge!.color,
     ),
   );
-  final dateFormat = DateFormat('EEEE, MMMM d, y H:mm a');
+  final dateFormat = DateFormat('EEEE, MMMM d, y').add_jm();
 
   return AppBar(
     leading: IconButton(
@@ -30,7 +30,7 @@ AppBar appBar(BuildContext context, String title) {
         padding: const EdgeInsets.only(right: 20.0),
         child: Center(
           child: ClockWrap(
-            clockCallback: (time) => Text(
+            builder: (time) => Text(
               dateFormat.format(time),
               style: theme.textTheme.bodyMedium,
             ),
