@@ -1,33 +1,41 @@
 import 'package:flutter/material.dart';
 
+import '../../diligence_config.dart';
 import 'app_link.dart';
 import 'keys.dart' as keys;
 
-const _links = [
-  AppLink(
-    '/',
-    'Home',
-    keys.drawerLinkHome,
-  ),
-  AppLink(
-    '/tasks',
-    'Tasks',
-    keys.drawerLinkTasks,
-  ),
-  AppLink(
-    '/focus',
-    'Focus',
-    keys.drawerLinkFocus,
-  ),
-  AppLink(
-    '/review',
-    'Review Link',
-    keys.drawerLinkReview,
-  ),
-];
+List<AppLink> _getLinks(DiligenceConfig config) {
+  return [
+    const AppLink(
+      '/',
+      'Home',
+      keys.drawerLinkHome,
+    ),
+    const AppLink(
+      '/tasks',
+      'Tasks',
+      keys.drawerLinkTasks,
+    ),
+    const AppLink(
+      '/focus',
+      'Focus',
+      keys.drawerLinkFocus,
+    ),
+    if (config.showReviewPage) ...[
+      const AppLink(
+        '/review',
+        'Review Link',
+        keys.drawerLinkReview,
+      ),
+    ],
+  ];
+}
 
 class DiligenceDrawer extends StatelessWidget {
-  const DiligenceDrawer({super.key});
+  final List<AppLink> _links;
+
+  DiligenceDrawer({super.key, required DiligenceConfig config})
+      : _links = _getLinks(config);
 
   @override
   Widget build(BuildContext context) => Drawer(

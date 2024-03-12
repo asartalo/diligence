@@ -49,8 +49,8 @@ class DiligenceContainer {
     bool test = false,
   }) async {
     await dot_env.load(fileName: envFile);
-    final config = DiligenceConfig.fromEnv(dot_env.env);
-    final pathToDb = await dbPath();
+    final config = getConfig(test);
+    final pathToDb = await dbPath(test);
     if (!kReleaseMode && config.showDbPath) {
       // ignore: avoid_print
       print('Database path: $pathToDb');
@@ -65,17 +65,31 @@ class DiligenceContainer {
     );
   }
 
+  static DiligenceConfig getConfig(bool test) {
+    if (test) {
+      return DiligenceConfig.fromEnv(
+        dot_env.env,
+        showDbPath: true,
+        showReviewPage: true,
+      );
+    }
+
+    return DiligenceConfig.fromEnv(dot_env.env);
+  }
+
   static Future<Directory> getApplicationDirectory() =>
       Platform.isIOS ? getLibraryDirectory() : getApplicationSupportDirectory();
 
-  static String dbName() => kReleaseMode ? 'diligence.db' : 'diligence_dev.db';
+  static String dbName(bool test) => test
+      ? 'diligence_test.db'
+      : (kReleaseMode ? 'diligence.db' : 'diligence_dev.db');
 
-  static Future<String> dbPath() async {
+  static Future<String> dbPath(bool test) async {
     final directory = await getApplicationDirectory();
     if (!await directory.exists()) {
       await directory.create(recursive: true);
     }
 
-    return path.join(directory.path, dbName());
+    return path.join(directory.path, dbName(test));
   }
 }

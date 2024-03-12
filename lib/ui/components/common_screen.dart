@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../../diligence_config.dart';
 import './app_bar.dart';
 import 'diligence_drawer.dart';
 
@@ -32,7 +34,11 @@ class CommonScreen extends StatelessWidget {
         builder: (BuildContext context) => child,
       ),
       floatingActionButton: floatingActionButton,
-      drawer: Builder(builder: (context) => const DiligenceDrawer()),
+      drawer: Builder(
+        builder: (context) => DiligenceDrawer(
+          config: Provider.of<DiligenceConfig>(context),
+        ),
+      ),
     );
   }
 }
