@@ -42,6 +42,13 @@ class _FocusPageState extends State<FocusPage> {
     updateTasks();
   }
 
+  @override
+  void setState(VoidCallback fn) {
+    if (mounted) {
+      super.setState(fn);
+    }
+  }
+
   void updateQueue(TaskList queue, int queueSize) {
     setState(() {
       _queue = queue;

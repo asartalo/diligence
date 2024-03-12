@@ -41,6 +41,13 @@ class _TasksPageState extends State<TasksPage> {
     populateTasks();
   }
 
+  @override
+  void setState(VoidCallback fn) {
+    if (mounted) {
+      super.setState(fn);
+    }
+  }
+
   Future<void> populateTasks() async {
     final root = await diligent.findTask(1);
     // TODO: Find a way to guarantee root task is always present.
