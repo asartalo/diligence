@@ -15,14 +15,16 @@ Future<bool> commitMsg() async {
   if (!result.valid) {
     print('COMMIT MESSAGE ERROR: ${result.message}');
   }
+
   return result.valid;
 }
 
 Future<bool> preCommit() async {
   print('Running dart analyzer...');
   var valid = true;
+
   try {
-    final result = await Process.run('dartanalyzer', ['lib']);
+    final result = await Process.run('dart', ['analyze', 'lib']);
     if (result.exitCode != 0) {
       valid = false;
       print(result.stdout);
@@ -31,5 +33,6 @@ Future<bool> preCommit() async {
     valid = false;
     print(e);
   }
+
   return valid;
 }

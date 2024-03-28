@@ -2,7 +2,11 @@ cmake_minimum_required(VERSION 3.10)
 project(runner LANGUAGES CXX)
 
 set(BINARY_NAME "diligence")
-set(APPLICATION_ID "com.example.diligence")
+IF(DEFINED ENV{DILIGENCE_APP_ID_PREFIX})
+  set(APPLICATION_ID "com.brainchildprojects.diligence-$ENV{DILIGENCE_APP_ID_PREFIX}")
+ELSE()
+  set(APPLICATION_ID "com.brainchildprojects.diligence")
+ENDIF()
 
 cmake_policy(SET CMP0063 NEW)
 

@@ -1,8 +1,24 @@
+// Diligence - A Task Management App
+//
+// Copyright (C) 2024 Wayne Duran <asartalo@gmail.com>
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License as published by the Free Software
+// Foundation, either version 3 of the License, or (at your option) any later
+// version.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along with
+// this program. If not, see <https://www.gnu.org/licenses/>.
+
 import 'package:flutter/material.dart';
 
 import '../../../services/review_data_service.dart';
-import '../../components/data/single_number.dart';
-import '../../components/data/single_number_horizontal.dart';
+import '../../components/data/single_number_data_point.dart';
+import '../../components/data/single_number_data_point_horizontal.dart';
 import '../../layout/even_row.dart';
 
 const basicData = [
@@ -16,7 +32,7 @@ const basicData = [
 class MainSummarySection extends StatelessWidget {
   final ReviewSummaryData summaryData;
 
-  const MainSummarySection({required this.summaryData});
+  const MainSummarySection({super.key, required this.summaryData});
 
   @override
   Widget build(BuildContext context) {

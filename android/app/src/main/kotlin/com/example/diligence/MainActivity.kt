@@ -1,4 +1,4 @@
-package com.example.diligence
+package com.brainchildprojects.diligence
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -54,9 +54,20 @@ app.*.map.json
 # dotenv
 .env
 
+# testing
+/test/tmp
+
 # coverage
 /coverage
+
+# database
+/*.db
+/*.db-shm
+/*.db-wal
 
 # Releasing
 NEWVERSION.txt
 SUMMARY.md
+
+# Ubuntu snap
+/*.snap

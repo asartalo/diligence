@@ -2,20 +2,34 @@
 
 Productivity for the unproductive.
 
-# Development
+## Development
 
-Uses [commitlint](https://commitlint.js.org/#/) and [husky](https://github.com/typicode/husky)
+At the moment, the desktop app has only been tested on Linux. If you have an instance of the release version of the app running while developing, run the debug mode with the `DILIGENCE_APP_ID_PREFIX` set to something (e.g. "dev") so that it won't conflict with the release version.
 
-## Getting the Database Version
+See the following example command below to do this on the terminal.
 
-As of the moment, Diligence uses sqflite library. Because of this and if for some reason you need to know the database version, just call:
-
-```dart
-database.getVersion();
+```sh
+DILIGENCE_APP_ID_PREFIX=dev flutter run
 ```
 
-If you need to check the version number from the database itself, run this query:
+This environment variable has already been set on VSCode through the launch options. See `.vscode/launch.json`.
 
-```sql
-PRAGMA user_version;
+If you also want to run the integration tests and not want it to interfere with a Diligence desktop app installation, add the app id prefix too:
+
+```sh
+DILIGENCE_APP_ID_PREFIX=test flutter test integration_test/all_tests.dart
+```
+
+### Testing Builds for Ubuntu
+
+In Ubuntu you can run the following
+
+```sh
+snapcraft
+```
+
+This creates an snap file `diligence_<VERSION>_amd64.snap`. Install it with the following command:
+
+```sh
+sudo snap install ./diligence_<VERSION>_amd64.snap --dangerous
 ```

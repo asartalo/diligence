@@ -1,13 +1,29 @@
-import 'package:diligence/app.dart';
-import 'package:diligence/container.dart';
+// Diligence - A Task Management App
+//
+// Copyright (C) 2024 Wayne Duran <asartalo@gmail.com>
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License as published by the Free Software
+// Foundation, either version 3 of the License, or (at your option) any later
+// version.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along with
+// this program. If not, see <https://www.gnu.org/licenses/>.
+
+import 'package:diligence/diligence_app.dart';
+import 'package:diligence/diligence_container.dart';
 import 'package:flutter/material.dart';
 
-Future<void> main() async {
-  // This line enables the extension
-  // enableFlutterDriverExtension();
-
+Future<DiligenceContainer> main() async {
   // Call the `main()` function of your app or call `runApp` with any widget you
   // are interested in testing.
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(DiligenceApp(await DiligenceContainer.start(test: true)));
+  final container = await DiligenceContainer.start(test: true);
+  runApp(DiligenceApp(container));
+
+  return container;
 }

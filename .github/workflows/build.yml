@@ -41,36 +41,47 @@ jobs:
           java-version: '12.x'
 
       # Setup the flutter environment.
-      - uses: subosito/flutter-action@v1
+      - uses: subosito/flutter-action@v2
         with:
-          channel: 'dev' # 'beta' # 'dev', 'alpha', default to: 'stable'
+          channel: 'stable' # 'beta' # 'dev', 'alpha', default to: 'stable'
           # flutter-version: '1.12.x' # you can also specify exact version of flutter
 
       # Generate a temporary .env file
-      - run: touch .env
+      - run: echo "DILIGENCE_DEV_TODAY=2020-12-30" > .env
 
       # Get flutter dependencies.
       - run: flutter pub get
 
       # Check for any formatting issues in the code.
-      - run: flutter format --set-exit-if-changed .
+      - run: dart format --set-exit-if-changed .
 
       # Statically analyze the Dart code for any errors.
       - run: flutter analyze .
 
       # Run widget tests for our flutter project.
-      - run: flutter test --coverage
+      - run: flutter test --no-pub --coverage --coverage-path=./coverage/lcov.base.info
 
-      - run: pub global activate coverage
 
-      - name: Prepare coverage
-        run: format_coverage --lcov --in=coverage --out=lcov.info --packages=.packages --report-on=lib --report-on=packages
+      - name: Patch for linux build
+        run: |
+          flutter doctor
+          sudo apt-get update -y
+          sudo apt-get install -y ninja-build libgtk-3-dev lcov
+          flutter doctor
+
+      # Run integration tests
+      - run: xvfb-run flutter test -d linux --no-pub --coverage --merge-coverage integration_test/all_tests.dart
+
+      # - run: dart pub global activate coverage
+
+      # - name: Prepare coverage
+      #   run: format_coverage --lcov --in=coverage --out=lcov.info --packages=.packages --report-on=lib --report-on=packages
 
       - name: Upload coverage
-        uses: coverallsapp/github-action@v1.1.2
+        uses: coverallsapp/github-action@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: lcov.info
+          file: coverage/lcov.info
 
   release:
     name: Release
