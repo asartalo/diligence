@@ -90,8 +90,8 @@ class Dtest extends DtestBase {
   }
 
   Future<void> navigateToSettingsPage() async {
-    await tapOnMenuBarItem(drawerLinkReview);
-    expect(find.text('Settings'), findsOneWidget);
+    await tapOnMenuBarItem(drawerLinkSettings);
+    expect(find.text('Settings'), findsAtLeast(1));
   }
 
   Future<void> setUpInitialTasks(List<TestSetupTaskParam> taskParams) async {

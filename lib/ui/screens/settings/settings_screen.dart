@@ -25,15 +25,31 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final headingStyle = theme.textTheme.headlineLarge!.merge(
+      const TextStyle(
+        fontSize: 32.0,
+        fontWeight: FontWeight.w300,
+      ),
+    );
+
     return CommonScreen(
       title: 'Settings',
       child: Container(
         margin: const EdgeInsets.fromLTRB(64.0, 48.0, 64.0, 0.0),
-        child: ListView(
+        child: Column(
           children: [
-            ListTile(
-              title: const Text('Database Path'),
-              subtitle: Text(diligent.path),
+            Text('Settings', style: headingStyle),
+            const SizedBox(height: 32.0),
+            Expanded(
+              child: ListView(
+                children: [
+                  ListTile(
+                    title: const Text('Database Path'),
+                    subtitle: Text(diligent.path),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
