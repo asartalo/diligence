@@ -20,10 +20,10 @@ import 'package:provider/provider.dart';
 import 'diligence_container.dart';
 import 'services/diligent.dart';
 import 'ui/diligence_theme.dart';
-import 'ui/screens/focus/focus_page.dart';
-import 'ui/screens/home/home_page.dart';
-import 'ui/screens/review/review_page.dart';
-import 'ui/screens/tasks/tasks_page.dart';
+import 'ui/screens/focus/focus_screen.dart';
+import 'ui/screens/home/home_screen.dart';
+import 'ui/screens/review/review_screen.dart';
+import 'ui/screens/tasks/tasks_screen.dart';
 
 final diligenceTheme = DiligenceTheme.createThemeData();
 
@@ -42,12 +42,12 @@ class DiligenceApp extends StatelessWidget {
         theme: diligenceTheme,
         initialRoute: '/',
         routes: {
-          '/': (context) => HomePage(),
+          '/': (context) => HomeScreen(),
           '/tasks': (context) =>
-              TasksPage(diligent: Provider.of<Diligent>(context)),
+              TasksScreen(diligent: Provider.of<Diligent>(context)),
           '/focus': (context) =>
-              FocusPage(diligent: Provider.of<Diligent>(context)),
-          '/review': (context) => const ReviewPage(title: 'Diligence'),
+              FocusScreen(diligent: Provider.of<Diligent>(context)),
+          '/review': (context) => const ReviewScreen(title: 'Diligence'),
         },
       ),
     );

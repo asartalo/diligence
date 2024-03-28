@@ -29,17 +29,17 @@ import 'keys.dart' as keys;
 import 'task_dialog.dart';
 import 'task_tree.dart';
 
-class TasksPage extends StatefulWidget {
+class TasksScreen extends StatefulWidget {
   final Diligent diligent;
   final DiligentCommander commander;
-  TasksPage({super.key, required this.diligent})
+  TasksScreen({super.key, required this.diligent})
       : commander = DiligentCommander(diligent);
 
   @override
-  State<TasksPage> createState() => _TasksPageState();
+  State<TasksScreen> createState() => _TasksScreenState();
 }
 
-class _TasksPageState extends State<TasksPage> {
+class _TasksScreenState extends State<TasksScreen> {
   late TaskNodeList _taskNodes;
   late Task _root;
 

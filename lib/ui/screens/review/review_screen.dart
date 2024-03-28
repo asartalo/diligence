@@ -30,8 +30,8 @@ import '../../layout/gutter.dart';
 import '../../layout/padded_section.dart';
 import 'main_summary_section.dart';
 
-class ReviewPage extends StatelessWidget {
-  const ReviewPage({required this.title, super.key});
+class ReviewScreen extends StatelessWidget {
+  const ReviewScreen({required this.title, super.key});
 
   final String title;
 

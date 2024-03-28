@@ -27,17 +27,17 @@ import '../../components/reveal_on_hover.dart';
 import '../tasks/task_dialog.dart';
 import 'focus_queue.dart';
 
-class FocusPage extends StatefulWidget {
+class FocusScreen extends StatefulWidget {
   final Diligent diligent;
   final DiligentCommander commander;
-  FocusPage({super.key, required this.diligent})
+  FocusScreen({super.key, required this.diligent})
       : commander = DiligentCommander(diligent);
 
   @override
-  State<FocusPage> createState() => _FocusPageState();
+  State<FocusScreen> createState() => _FocusScreenState();
 }
 
-class _FocusPageState extends State<FocusPage> {
+class _FocusScreenState extends State<FocusScreen> {
   late TaskList _queue;
   late int _queueSize;
   late int _limit;

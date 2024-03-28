@@ -20,11 +20,11 @@ import 'package:intl/intl.dart';
 import '../../components/clock_wrap.dart';
 import '../../components/common_screen.dart';
 
-class HomePage extends StatelessWidget {
+class HomeScreen extends StatelessWidget {
   final timeFormat = DateFormat.jm();
   final dateFormat = DateFormat('EEEE, MMMM d, y');
 
-  HomePage({super.key});
+  HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
