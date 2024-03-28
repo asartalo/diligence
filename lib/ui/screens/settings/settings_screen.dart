@@ -14,14 +14,30 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 
-// Drawer
-const Key drawerLinkHome = Key('drawerLinkHome');
-const Key drawerLinkTasks = Key('drawerLinkTasks');
-const Key drawerLinkFocus = Key('drawerLinkFocus');
-const Key drawerLinkReview = Key('drawerLinkReview');
-const Key drawerLinkSettings = Key('drawerLinkSettings');
+import '../../../services/diligent.dart';
+import '../../components/common_screen.dart';
 
-// App Bar
-const Key appBarMenuButton = Key('appBarMenuButton');
+class SettingsScreen extends StatelessWidget {
+  final Diligent diligent;
+  const SettingsScreen({super.key, required this.diligent});
+
+  @override
+  Widget build(BuildContext context) {
+    return CommonScreen(
+      title: 'Settings',
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(64.0, 48.0, 64.0, 0.0),
+        child: ListView(
+          children: [
+            ListTile(
+              title: const Text('Database Path'),
+              subtitle: Text(diligent.path),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

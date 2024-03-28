@@ -89,6 +89,11 @@ class Dtest extends DtestBase {
     return TestFocusScreen(this);
   }
 
+  Future<void> navigateToSettingsPage() async {
+    await tapOnMenuBarItem(drawerLinkReview);
+    expect(find.text('Settings'), findsOneWidget);
+  }
+
   Future<void> setUpInitialTasks(List<TestSetupTaskParam> taskParams) async {
     final byParent = <String, List<TestSetupTaskParam>>{};
     // gather tasks by parent
@@ -184,6 +189,7 @@ void testApp(
     (widgetTester) async {
       final container = await app.main();
 
+      await widgetTester.pumpAndSettle();
       return callback(Dtest(widgetTester, container: container));
     },
     tags: tags,

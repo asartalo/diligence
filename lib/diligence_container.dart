@@ -60,6 +60,9 @@ class DiligenceContainer {
     return kReleaseMode ? ProductionSideEffects() : DevSideEffects(config);
   }
 
+  static bool showDbPath(DiligenceConfig config) =>
+      !kReleaseMode && config.showDbPath;
+
   static Future<DiligenceContainer> start({
     String envFile = '.env',
     bool test = false,
@@ -67,7 +70,7 @@ class DiligenceContainer {
     await dot_env.load(fileName: envFile);
     final config = getConfig(test);
     final pathToDb = await dbPath(test);
-    if (!kReleaseMode && config.showDbPath) {
+    if (showDbPath(config)) {
       // ignore: avoid_print
       print('Database path: $pathToDb');
     }

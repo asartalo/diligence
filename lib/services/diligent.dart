@@ -136,16 +136,21 @@ int _getTaskId(Task task) => task.id;
 
 final migrations = migrate();
 
+const _testDbPath = 'test.db';
+const _defaultDbPath = 'diligence.db';
+
 class Diligent {
   final SqliteDatabase db;
+  final String path;
   final bool _isTest;
 
-  Diligent({String path = 'diligence.db'})
+  Diligent({this.path = _defaultDbPath})
       : db = SqliteDatabase(path: path),
         _isTest = false;
 
   Diligent.forTests()
-      : db = SqliteDatabase(path: 'test.db'),
+      : path = _testDbPath,
+        db = SqliteDatabase(path: _testDbPath),
         _isTest = true;
 
   Future<void> runMigrations() async {

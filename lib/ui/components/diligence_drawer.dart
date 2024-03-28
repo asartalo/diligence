@@ -44,6 +44,11 @@ List<AppLink> _getLinks(DiligenceConfig config) {
         keys.drawerLinkReview,
       ),
     ],
+    const AppLink(
+      '/settings',
+      'Settings',
+      keys.drawerLinkSettings,
+    ),
   ];
 }
 

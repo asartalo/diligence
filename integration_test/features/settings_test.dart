@@ -14,14 +14,17 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter_test/flutter_test.dart';
 
-// Drawer
-const Key drawerLinkHome = Key('drawerLinkHome');
-const Key drawerLinkTasks = Key('drawerLinkTasks');
-const Key drawerLinkFocus = Key('drawerLinkFocus');
-const Key drawerLinkReview = Key('drawerLinkReview');
-const Key drawerLinkSettings = Key('drawerLinkSettings');
+import '../helpers/dtest/dtest.dart';
 
-// App Bar
-const Key appBarMenuButton = Key('appBarMenuButton');
+Future<void> main() async {
+  integrationTest('Settings', () {
+    testApp(
+      'Going to the settings page',
+      (dtest) async {
+        await dtest.navigateToSettingsPage();
+      },
+    );
+  });
+}

@@ -23,6 +23,7 @@ import 'ui/diligence_theme.dart';
 import 'ui/screens/focus/focus_screen.dart';
 import 'ui/screens/home/home_screen.dart';
 import 'ui/screens/review/review_screen.dart';
+import 'ui/screens/settings/settings_screen.dart';
 import 'ui/screens/tasks/tasks_screen.dart';
 
 final diligenceTheme = DiligenceTheme.createThemeData();
@@ -48,6 +49,8 @@ class DiligenceApp extends StatelessWidget {
           '/focus': (context) =>
               FocusScreen(diligent: Provider.of<Diligent>(context)),
           '/review': (context) => const ReviewScreen(title: 'Diligence'),
+          '/settings': (context) =>
+              SettingsScreen(diligent: Provider.of<Diligent>(context)),
         },
       ),
     );
