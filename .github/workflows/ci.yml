@@ -1,12 +1,85 @@
-name: Release
+name: Continuous Integration and Delivery
+
 on:
   push:
-    branches:
-      - release
+    branches: ["*"]
+  pull_request:
+    branches: ["*"]
+
 jobs:
+  commitlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: wagoid/commitlint-github-action@v2
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    needs: commitlint
+    outputs:
+      branch: ${{ steps.branchinfo.outputs.branch }}
+
+    steps:
+      - name: Store the branch name
+        id: branchinfo
+        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+
+      - name: Check if we were able to save branch info
+        run: echo ${{ steps.branchinfo.outputs.branch }}
+
+      - uses: actions/checkout@v3
+
+        # Setup Java environment in order to build the Android app.
+      - uses: actions/setup-java@v1
+        with:
+          java-version: "12.x"
+
+      # Setup the flutter environment.
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: "stable" # 'beta' # 'dev', 'alpha', default to: 'stable'
+          # flutter-version: '1.12.x' # you can also specify exact version of flutter
+
+      # Generate a temporary .env file
+      - run: echo "DILIGENCE_DEV_TODAY=2020-12-30" > .env
+
+      # Get flutter dependencies.
+      - run: flutter pub get
+
+      - name: Code Formatting
+        run: dart format --set-exit-if-changed .
+
+      - name: Static Analysis
+        run: flutter analyze .
+
+      - name: Unit Tests
+        run: flutter test --no-pub --coverage --coverage-path=./coverage/lcov.base.info
+
+      - name: Patch for linux build
+        run: |
+          flutter doctor
+          sudo apt-get update -y
+          sudo apt-get install -y ninja-build libgtk-3-dev lcov
+          flutter doctor
+
+      - name: Run Integration Tests
+        run: xvfb-run flutter test -d linux --no-pub --coverage --merge-coverage integration_test/all_tests.dart
+
+      - name: Upload coverage
+        uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          file: coverage/lcov.info
+
   release:
     name: Release
     runs-on: ubuntu-latest
+    needs: test
+    if: ${{ needs.test.outputs.branch == 'release' }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
