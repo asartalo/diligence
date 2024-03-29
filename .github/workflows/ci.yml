@@ -134,7 +134,7 @@ jobs:
         if: steps.releaseInfo.outputs.shouldRelease == 'yes'
         run: |
           touch .env
-          flutter build linux
+          flutter build linux --release
 
       - name: Commit Release
         if: steps.releaseInfo.outputs.shouldRelease == 'yes'
@@ -148,7 +148,9 @@ jobs:
 
       - name: Gzip
         if: steps.releaseInfo.outputs.shouldRelease == 'yes'
-        run: cd build/linux && tar -czvf release-${{ steps.releaseInfo.outputs.version }}.tar.gz release
+        run: |
+          cd build/linux/x64/
+          tar -czvf release-${{ steps.releaseInfo.outputs.version }}.tar.gz release
 
       - name: Create Release
         if: steps.releaseInfo.outputs.shouldRelease == 'yes'
