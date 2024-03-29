@@ -104,7 +104,7 @@ jobs:
 
       - name: Prepare release
         run: |
-          release_tools prepare_release -w
+          release_tools prepare_release -wn
           cat VERSION.txt || echo "No Release"
 
       - name: Get Release Info
@@ -113,9 +113,11 @@ jobs:
           if [ -e VERSION.txt ]
           then
             shouldRelease="yes"
+            releaseVersionNoBuild=$(cat VERSION-NO-BUILD.txt)
             releaseVersion=$(cat VERSION.txt)
             summary=$(cat RELEASE_SUMMARY.txt)
-            echo "version=${releaseVersion}" >> $GITHUB_OUTPUT
+            echo "versionWithBuild=${releaseVersion}" >> $GITHUB_OUTPUT
+            echo "version=${releaseVersionNoBuild}" >> $GITHUB_OUTPUT
             {
               echo 'summary<<EOF'
               echo summary
@@ -160,6 +162,7 @@ jobs:
           token: ${{ secrets.PAT }}
           tag: ${{ steps.releaseInfo.outputs.version }}
           name: Release ${{ steps.releaseInfo.outputs.version }}
+          commit: release
           artifacts: build/**/release-*.tar.gz
           body: |
             Changes in this Release
