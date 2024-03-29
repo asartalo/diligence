@@ -145,6 +145,10 @@ jobs:
           git commit -m "chore(release): prepare release for ${{ steps.releaseInfo.outputs.version }}"
           git push
 
+      - name: Gzip
+        if: steps.releaseInfo.outputs.shouldRelease == 'yes'
+        run: cd build/linux && tar -czvf release-${{ steps.releaseInfo.outputs.version }}.tar.gz release
+
       - name: Create Release
         if: steps.releaseInfo.outputs.shouldRelease == 'yes'
         id: createRelease
@@ -153,6 +157,7 @@ jobs:
           token: ${{ secrets.PAT }}
           tag: ${{ steps.releaseInfo.outputs.version }}
           name: Release ${{ steps.releaseInfo.outputs.version }}
+          artifacts: build/linux/release-*.tar.gz
           body: |
             Changes in this Release
 
@@ -160,19 +165,3 @@ jobs:
 
           draft: false
           prerelease: false
-
-      - name: Gzip
-        if: steps.releaseInfo.outputs.shouldRelease == 'yes'
-        run: cd build/linux && tar -czvf release.tar.gz release
-
-      - name: Upload Release Asset
-        if: steps.releaseInfo.outputs.shouldRelease == 'yes'
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.createRelease.outputs.upload_url }}
-          asset_path: ./build/linux/release.tar.gz
-          asset_name: release.tar.gz
-          asset_content_type: application/gzip
