@@ -150,7 +150,7 @@ jobs:
         if: steps.releaseInfo.outputs.shouldRelease == 'yes'
         run: |
           cd build/linux/x64/
-          tar -czvf release-${{ steps.releaseInfo.outputs.version }}.tar.gz release
+          tar -czvf release-linux-x64-${{ steps.releaseInfo.outputs.version }}.tar.gz release
 
       - name: Create Release
         if: steps.releaseInfo.outputs.shouldRelease == 'yes'
@@ -160,7 +160,7 @@ jobs:
           token: ${{ secrets.PAT }}
           tag: ${{ steps.releaseInfo.outputs.version }}
           name: Release ${{ steps.releaseInfo.outputs.version }}
-          artifacts: build/linux/release-*.tar.gz
+          artifacts: build/**/release-*.tar.gz
           body: |
             Changes in this Release
 
