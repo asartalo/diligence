@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:diligence/config.dart';
+import 'package:diligence/diligence_config.dart';
 import 'package:diligence/services/side_effects.dart';
 import 'package:diligence/utils/interval.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -17,6 +17,7 @@ Interval microInterval(IntervalCallback fn) {
   fn();
   sleep(microsecond);
   final after = DateTime.now();
+
   return Interval(before: before, after: after);
 }
 
@@ -56,7 +57,8 @@ void main() {
     group('When "DILIGENCE_DEV_TODAY" is set in config', () {
       setUp(() {
         final config = DiligenceConfig.fromEnv(
-            const {'DILIGENCE_DEV_TODAY': '2010-02-14'});
+          const {'DILIGENCE_DEV_TODAY': '2010-02-14'},
+        );
         sideEffects = DevSideEffects(config);
       });
 

@@ -18,7 +18,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 version: 0.1.0+1
 
 environment:
-  sdk: ">=2.12.2 <3.0.0"
+  sdk: ">=3.2.0 <4.0.0"
 
 dependencies:
   # The following adds the Cupertino Icons font to your application.
@@ -28,7 +28,7 @@ dependencies:
   cupertino_icons: ^1.0.1
   dartz: ^0.10.1
   equatable: ^2.0.3
-  fl_chart: ^0.55.0
+  fl_chart: ^0.66.0
   flutter:
     sdk: flutter
   flutter_bloc: ^8.0.1
@@ -36,23 +36,31 @@ dependencies:
     git:
       url: https://github.com/asartalo/flutter_dotenv.git
   flutter_markdown: ^0.6.10+2
+  intl: ^0.19.0
   meta: any
-  path: any # any until we resolve integration_test upgrade
-  provider: ^6.0.3
+  path: ^1.8.3 # any until we resolve integration_test upgrade
+  path_provider: ^2.1.2
+  provider: ^6.1.1
+  sqlite3_flutter_libs: ^0.5.18
+  sqlite_async: ^0.6.0
+  uuid: ^4.3.3
 
 dev_dependencies:
-  conventional: ^0.3.0
+  analyzer: ^6.2.0
+  build_runner: ^2.4.7
+  conventional: ^0.4.0
   flutter_driver:
     sdk: flutter
+  flutter_launcher_icons: ^0.13.1
+  flutter_lints: ^3.0.1
+  flutter_oss_licenses: ^2.0.1
   flutter_test:
     sdk: flutter
-  git_hooks:
-    git:
-      url: https://github.com/asartalo/git_hooks.git
-      ref: null-safety-2
+  git_hooks: ^1.0.1
   integration_test:
     sdk: flutter
-  lint: ^1.5.3
+  lint: ^2.3.0
+  mocktail: ^1.0.3
 
 flutter:
   uses-material-design: true
