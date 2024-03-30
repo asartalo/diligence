@@ -68,6 +68,9 @@ app.*.map.json
 # Releasing
 NEWVERSION.txt
 SUMMARY.md
+RELEASE_SUMMARY.txt
+VERSION.txt
+VERSION-NO-BUILD.txt
 
 # Ubuntu snap
 /*.snap
