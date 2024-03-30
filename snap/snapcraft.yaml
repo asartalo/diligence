@@ -1,5 +1,5 @@
 name: diligence
-version: 0.1.0
+version: 0.1.4
 summary: Diligence
 description: |
   Diligence is a tree-based task management app that lets you breakdown tasks to
@@ -25,6 +25,10 @@ apps:
       - dbus-diligence
 parts:
   diligence:
+    override-pull: |
+      set -eux
+      rm -rf $SNAPCRAFT_PROJECT_DIR/build
+      snapcraftctl pull
     source: .
     plugin: flutter
     flutter-target: lib/main.dart # The main entry-point file of the application

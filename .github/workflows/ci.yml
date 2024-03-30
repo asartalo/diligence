@@ -31,7 +31,7 @@ jobs:
       - name: Check if we were able to save branch info
         run: echo ${{ steps.branchinfo.outputs.branch }}
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
         # Setup Java environment in order to build the Android app.
       - uses: actions/setup-java@v1
@@ -127,6 +127,11 @@ jobs:
             shouldRelease="false"
           fi
           echo "shouldRelease=${shouldRelease}" >> $GITHUB_OUTPUT
+
+      - name: Update Version on other files
+        run: |
+          currentVersion=$(cat VERSION-NO-BUILD.txt)
+          release_tools update_version --file="snap/snapcraft.yaml" --template="version: [VERSION]" $currentVersion
 
       - name: Install Build Dependencies
         if: steps.releaseInfo.outputs.shouldRelease == 'yes'
