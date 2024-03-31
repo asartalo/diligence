@@ -12,7 +12,7 @@ As of the moment, only an AppImage is available for download. See [Releases](htt
 
 ### Linux
 
-- [AppImage](https://github.com/asartalo/diligence/releases/download/0.1.5/Diligence-x64.AppImage)
+- [AppImage](https://github.com/asartalo/diligence/releases/download/0.1.4/Diligence-x64.AppImage)
 
 ## Roadmap
 
