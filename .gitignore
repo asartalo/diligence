@@ -74,3 +74,10 @@ VERSION-NO-BUILD.txt
 
 # Ubuntu snap
 /*.snap
+
+# AppImage
+/*.AppImage
+/Diligence.AppDir/*
+!/Diligence.AppDir/Diligence.desktop
+!/Diligence.AppDir/diligence.png
+!/Diligence.AppDir/AppRun

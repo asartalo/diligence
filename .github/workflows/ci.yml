@@ -159,6 +159,15 @@ jobs:
           cd build/linux/x64/
           tar -czvf release-linux-x64-${{ steps.releaseInfo.outputs.version }}.tar.gz release
 
+      - name: Create AppImage
+        id: appImage
+        if: steps.releaseInfo.outputs.shouldRelease == 'yes'
+        run: |
+          wget https://github.com/AppImage/AppImageKit/releases/download/13/appimagetool-x86_64.AppImage
+          chmod +x appimagetool-x86_64.AppImage
+          cp -r ./build/linux/x64/release/bundle/* ./Diligence.AppDir/
+          appimagetool-x86_64.AppImage  Diligence.AppDir/ Diligence-x64.AppImage
+
       - name: Create Release
         if: steps.releaseInfo.outputs.shouldRelease == 'yes'
         id: createRelease
@@ -168,7 +177,7 @@ jobs:
           tag: ${{ steps.releaseInfo.outputs.version }}
           name: Release ${{ steps.releaseInfo.outputs.version }}
           commit: release
-          artifacts: build/**/release-*.tar.gz
+          artifacts: build/**/release-*.tar.gz,*.AppImage
           body: |
             Changes in this Release
 
