@@ -1,6 +1,22 @@
 # Diligence
 
-Productivity for the unproductive.
+Diligence is a free and open-source, tree-based, task management system.
+
+## Tree-based?
+
+The idea is to break down tasks as much as you need into "actionable" tasks to lessen overwhelm increasing the chance you'll complete them. If you've done outlining before, this should be familiar to you.
+
+## Installation
+
+As of the moment, only an AppImage is available for download. See [Releases](https://github.com/asartalo/diligence/releases).
+
+### Linux
+
+- [AppImage](https://github.com/asartalo/diligence/releases/download/0.1.4/Diligence-x64.AppImage)
+
+## Roadmap
+
+Visit the [Diligence Project Page](https://github.com/users/asartalo/projects/1/views/1) to get a sense of what's on the pipeline.
 
 ## Development
 
