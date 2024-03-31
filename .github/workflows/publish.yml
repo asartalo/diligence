@@ -1,0 +1,22 @@
+name: Publish to Stores
+
+on:
+  push:
+    tags:
+      - "^[0-9]+.[0-9]+.[0-9]+"
+
+jobs:
+  snapstore:
+    name: Publish to Ubuntu Snap Store
+    runs-on: ubuntu-latest
+    env:
+      SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_TOKEN }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Snapcraft
+        uses: samuelmeuli/action-snapcraft@v2
