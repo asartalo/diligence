@@ -167,7 +167,7 @@ jobs:
           wget https://github.com/AppImage/AppImageKit/releases/download/13/appimagetool-x86_64.AppImage
           chmod +x appimagetool-x86_64.AppImage
           cp -r ./build/linux/x64/release/bundle/* ./Diligence.AppDir/
-          appimagetool-x86_64.AppImage  Diligence.AppDir/ Diligence-x64.AppImage
+          ./appimagetool-x86_64.AppImage  Diligence.AppDir/ Diligence-x64.AppImage
 
       - name: Create Release
         if: steps.releaseInfo.outputs.shouldRelease == 'yes'
