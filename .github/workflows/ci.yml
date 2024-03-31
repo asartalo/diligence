@@ -120,7 +120,7 @@ jobs:
             echo "version=${releaseVersionNoBuild}" >> $GITHUB_OUTPUT
             {
               echo 'summary<<EOF'
-              echo summary
+              echo $summary
               echo EOF
             } >> $GITHUB_OUTPUT
           else
