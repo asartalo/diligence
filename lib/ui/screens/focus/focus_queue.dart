@@ -28,6 +28,7 @@ class FocusQueue extends StatelessWidget {
   final TaskIndexCallback onUpdateTask;
   final TaskIndexCallback onRequestTask;
   final void Function(Command command, int index) onCommand;
+  final ScrollController? scrollController;
 
   const FocusQueue({
     super.key,
@@ -36,6 +37,7 @@ class FocusQueue extends StatelessWidget {
     required this.onUpdateTask,
     required this.onRequestTask,
     required this.onCommand,
+    this.scrollController,
   });
 
   @override
@@ -44,6 +46,7 @@ class FocusQueue extends StatelessWidget {
       key: keys.focusQueueList,
       buildDefaultDragHandles: false,
       shrinkWrap: true,
+      scrollController: scrollController,
       itemBuilder: (context, index) {
         final task = queue[index];
 

@@ -82,29 +82,31 @@ class _FocusScreenState extends State<FocusScreen> {
   Widget build(BuildContext context) {
     return CommonScreen(
       title: 'Focus',
-      child: Container(
-        margin: const EdgeInsets.fromLTRB(64.0, 48.0, 64.0, 0.0),
-        child: Column(
-          // crossAxisAlignment: CrossAxisAlignment.center,
-          // mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            FocusQueue(
-              queue: _queue,
-              onReorderQueue: (oldIndex, newIndex) {
-                _handleReorderQueue(oldIndex, newIndex);
-              },
-              onRequestTask: (task, index) {
-                _handleRequestTask(task, index);
-              },
-              onUpdateTask: (task, index) {
-                _handleUpdateTask(task, index);
-              },
-              onCommand: (command, index) {
-                _handleCommand(command, index);
-              },
-            ),
-            _moreSection(),
-          ],
+      child: SingleChildScrollView(
+        child: Container(
+          margin: const EdgeInsets.fromLTRB(64.0, 48.0, 64.0, 0.0),
+          child: Column(
+            // crossAxisAlignment: CrossAxisAlignment.center,
+            // mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              FocusQueue(
+                queue: _queue,
+                onReorderQueue: (oldIndex, newIndex) {
+                  _handleReorderQueue(oldIndex, newIndex);
+                },
+                onRequestTask: (task, index) {
+                  _handleRequestTask(task, index);
+                },
+                onUpdateTask: (task, index) {
+                  _handleUpdateTask(task, index);
+                },
+                onCommand: (command, index) {
+                  _handleCommand(command, index);
+                },
+              ),
+              _moreSection(),
+            ],
+          ),
         ),
       ),
     );
