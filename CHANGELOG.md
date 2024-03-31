@@ -1,9 +1,3 @@
-# 0.1.5 (2024-03-31)
-
-## Bug Fixes
-
-- scroll and render issues in focus screen ([b2ab15a](commit/b2ab15a))
-
 # 0.1.4 (2024-03-30)
 
 ## Bug Fixes
