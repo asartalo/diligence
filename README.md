@@ -1,5 +1,8 @@
 # Diligence
 
+[![build](https://github.com/asartalo/diligence/actions/workflows/ci.yml/badge.svg)](https://github.com/asartalo/diligence/actions/workflows/ci.yml)
+[![Coverage Status](https://coveralls.io/repos/github/asartalo/diligence/badge.svg?branch=main)](https://coveralls.io/github/asartalo/diligence?branch=main)
+
 Diligence is a free and open-source, tree-based, task management system.
 
 ## Tree-based?
