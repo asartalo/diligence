@@ -80,7 +80,8 @@ class TestTasksScreen extends TestScreen with TestScreenTaskItemActions {
     await tapTaskMenuFocus(name);
   }
 
-  // Expectations
+  // Expectations //
+
   void expectTaskExistsOnTaskList(
     String name, {
     String? details,
@@ -181,5 +182,22 @@ class TestTasksScreen extends TestScreen with TestScreenTaskItemActions {
     }
 
     expect(actual, expected);
+  }
+
+  Checkbox findTaskCheckboxWidget(String name) {
+    final checkboxFinder = findTaskCheckbox(name);
+    return tester.firstWidget<Checkbox>(checkboxFinder);
+  }
+
+  void expectTaskIsDone(String name) {
+    final checkbox = findTaskCheckboxWidget(name);
+
+    expect(checkbox.value, true);
+  }
+
+  void expectTaskIsNotDone(String name) {
+    final checkbox = findTaskCheckboxWidget(name);
+
+    expect(checkbox.value, false);
   }
 }

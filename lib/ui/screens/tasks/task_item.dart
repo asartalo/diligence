@@ -133,6 +133,7 @@ class _TaskItemState extends State<TaskItem> {
       child: RevealOnHover(
         revealByDefault: task.done,
         child: Checkbox(
+          key: keys.taskItemCheckbox,
           value: task.done,
           onChanged: (bool? done) {
             widget.onUpdateTask(

@@ -28,6 +28,7 @@ const Key mainTaskList = Key('tasksTaskList');
 const Key taskItem = Key('tasksTaskItem');
 const Key taskItemName = Key('tasksTaskItemName');
 const Key taskItemDetails = Key('tasksTaskItemDetails');
+const Key taskItemCheckbox = Key('tasksTaskItemCheckbox');
 
 // Task Menu
 const taskMenu = Key('tasksTaskMenu');

@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
+import 'package:flutter_test/flutter_test.dart';
+
 import '../helpers/dtest/dtest.dart';
 
 Future<void> main() async {
@@ -79,6 +81,31 @@ Future<void> main() async {
       ts.expectTaskExistsOnTaskList('First Task');
       await ts.deleteTaskViaTaskView('First Task');
       ts.expectTaskDoesNotExistOnTaskList('First Task');
+    });
+
+    group('Toggling tasks done', () {
+      testApp('Toggling a single task done', (dtest) async {
+        final ts = await dtest.navigateToTasksPage();
+        await ts.toggleTaskDone('Life');
+        ts.expectTaskIsDone('Life');
+      });
+
+      testApp('Toggling a task as not done', (dtest) async {
+        final ts = await dtest.navigateToTasksPage();
+        await ts.toggleTaskDone('Work');
+        await ts.toggleTaskDone('Work');
+        ts.expectTaskIsNotDone('Work');
+      });
+
+      testApp('Toggling multiple child tasks as done', (dtest) async {
+        final ts = await dtest.navigateToTasksPage();
+        await ts.addChildTask('First Life Task', parent: 'Life');
+        await ts.addChildTask('Second Life Task', parent: 'Life');
+        await ts.toggleTaskDone('First Life Task');
+        ts.expectTaskIsNotDone('Life');
+        await ts.toggleTaskDone('Second Life Task');
+        ts.expectTaskIsDone('Life');
+      });
     });
   });
 }

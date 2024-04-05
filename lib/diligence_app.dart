@@ -55,8 +55,4 @@ class DiligenceApp extends StatelessWidget {
       ),
     );
   }
-
-  Future<void> resetForTests() async {
-    await container.diligent.clearDataForTests();
-  }
 }
