@@ -198,6 +198,114 @@ void main() {
       });
     });
 
+    group('#subtreeFlat()', () {
+      late Map<String, Task> setupResult;
+
+      setUp(() async {
+        setupResult = await testTreeSetup(diligent);
+      });
+
+      test('it returns subtree as a flat list', () async {
+        final aTask = setupResult['A'];
+        if (aTask == null) {
+          fail('Unexpected result. testTreeSetup() did not work.');
+        }
+        final TaskNodeList taskNodes = await diligent.subtreeFlat(aTask.id);
+        final nameList = <String>[];
+        for (final taskNode in taskNodes) {
+          nameList.add(taskNode.task.name);
+        }
+        expect(
+          nameList,
+          equals(
+            [
+              'A',
+              'A1',
+              'A1i - leaf',
+              'A1ii - leaf',
+              'A1iii - leaf',
+              'A2 - leaf',
+              'A3 - leaf',
+            ],
+          ),
+        );
+      });
+    });
+
+    group('#leaves()', () {
+      test('it can find all leaves on a subtree', () async {
+        final Map<String, Task> setupResult = await testTreeSetup(diligent);
+        final leaves = await diligent.leaves(setupResult['A']!);
+        expect(
+          taskNames(leaves),
+          equals([
+            'A1i - leaf',
+            'A1ii - leaf',
+            'A1iii - leaf',
+            'A2 - leaf',
+            'A3 - leaf',
+          ]),
+        );
+      });
+    });
+
+    group('#expandedDescendantsTree()', () {
+      late Map<String, Task> setupResult;
+
+      setUp(() async {
+        setupResult = await testTreeSetup(diligent);
+      });
+
+      test(
+        'it returns subtree starting from descendants including of root',
+        () async {
+          final rootTask = setupResult['Root'];
+          if (rootTask == null) {
+            fail('Unexpected result. testTreeSetup() did not work.');
+          }
+          final TaskNodeList taskNodes =
+              await diligent.expandedDescendantsTree(rootTask);
+          final nameList = <String>[];
+          for (final taskNode in taskNodes) {
+            nameList.add(taskNode.task.name);
+          }
+          expect(
+            nameList,
+            equals(
+              [
+                'A',
+                'A1',
+                'A2 - leaf',
+                'A3 - leaf',
+                'B',
+                'B1 - leaf',
+                'B2',
+                'B3 - leaf',
+                'C - leaf',
+              ],
+            ),
+          );
+        },
+      );
+    });
+
+    group('#ancestors()', () {
+      late Map<String, Task> setupResult;
+
+      setUp(() async {
+        setupResult = await testTreeSetup(Diligent.forTests());
+      });
+
+      test('it returns all ancestors of a task', () async {
+        final task = setupResult['B2i - leaf']!;
+        final ancestors = await diligent.ancestors(task);
+        expect(
+          taskNames(ancestors),
+          equals(['B2', 'B', 'Root']),
+        );
+      });
+    });
+
     group('Basic CRUD', () {
       test('can create a root task', () async {
         final task = await diligent.addTask(NewTask(name: 'Root'));
@@ -213,6 +321,13 @@ void main() {
         final task = await diligent.findTask(id);
         expect(task!.name, equals('Foo'));
         expect(task.details, equals('Bar'));
+      });
+
+      test('it can update a task', () async {
+        final task = await diligent.addTask(NewTask(name: 'Foo'));
+        await diligent.updateTask(task.copyWith(name: 'Bar'));
+        final updatedTask = await diligent.findTask(task.id);
+        expect(updatedTask?.name, equals('Bar'));
       });
 
       test('increments childrenCount when a child task is added', () async {
@@ -644,103 +759,7 @@ void main() {
       );
     });
 
-    test('it can find all leaves on a subtree', () async {
-      final Map<String, Task> setupResult = await testTreeSetup(diligent);
-      final leaves = await diligent.leaves(setupResult['A']!);
-      expect(
-        taskNames(leaves),
-        equals([
-          'A1i - leaf',
-          'A1ii - leaf',
-          'A1iii - leaf',
-          'A2 - leaf',
-          'A3 - leaf',
-        ]),
-      );
-    });
-
-    test('it can update a task', () async {
-      final task = await diligent.addTask(NewTask(name: 'Foo'));
-      await diligent.updateTask(task.copyWith(name: 'Bar'));
-      final updatedTask = await diligent.findTask(task.id);
-      expect(updatedTask?.name, equals('Bar'));
-    });
-
-    group('subtreeFlat()', () {
-      late Map<String, Task> setupResult;
-
-      setUp(() async {
-        setupResult = await testTreeSetup(diligent);
-      });
-
-      test('it returns subtree as a flat list', () async {
-        final aTask = setupResult['A'];
-        if (aTask == null) {
-          fail('Unexpected result. testTreeSetup() did not work.');
-        }
-        final TaskNodeList taskNodes = await diligent.subtreeFlat(aTask.id);
-        final nameList = <String>[];
-        for (final taskNode in taskNodes) {
-          nameList.add(taskNode.task.name);
-        }
-        expect(
-          nameList,
-          equals(
-            [
-              'A',
-              'A1',
-              'A1i - leaf',
-              'A1ii - leaf',
-              'A1iii - leaf',
-              'A2 - leaf',
-              'A3 - leaf',
-            ],
-          ),
-        );
-      });
-    });
-
-    group('expandedDescendantsTree()', () {
-      late Map<String, Task> setupResult;
-
-      setUp(() async {
-        setupResult = await testTreeSetup(diligent);
-      });
-
-      test(
-        'it returns subtree starting from descendants including of root',
-        () async {
-          final rootTask = setupResult['Root'];
-          if (rootTask == null) {
-            fail('Unexpected result. testTreeSetup() did not work.');
-          }
-          final TaskNodeList taskNodes =
-              await diligent.expandedDescendantsTree(rootTask);
-          final nameList = <String>[];
-          for (final taskNode in taskNodes) {
-            nameList.add(taskNode.task.name);
-          }
-          expect(
-            nameList,
-            equals(
-              [
-                'A',
-                'A1',
-                'A2 - leaf',
-                'A3 - leaf',
-                'B',
-                'B1 - leaf',
-                'B2',
-                'B3 - leaf',
-                'C - leaf',
-              ],
-            ),
-          );
-        },
-      );
-    });
-
-    group('Done logic in tree structure', () {
+    group('Done Logic in Tree Structure', () {
       late Map<String, Task> setupResult;
 
       setUp(() async {
@@ -975,23 +994,6 @@ void main() {
           }
         },
       );
-    });
-
-    group('#ancestors()', () {
-      late Map<String, Task> setupResult;
-
-      setUp(() async {
-        setupResult = await testTreeSetup(Diligent.forTests());
-      });
-
-      test('it returns all ancestors of a task', () async {
-        final task = setupResult['B2i - leaf']!;
-        final ancestors = await diligent.ancestors(task);
-        expect(
-          taskNames(ancestors),
-          equals(['B2', 'B', 'Root']),
-        );
-      });
     });
   });
 }
