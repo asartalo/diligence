@@ -59,7 +59,14 @@ class _RevealOnHoverState extends State<RevealOnHover> {
             ? 1.0
             : widget.hiddenOpacity,
         duration: const Duration(milliseconds: 200),
-        child: widget.child,
+        child: Focus(
+          onFocusChange: (hasFocus) {
+            setState(() {
+              _showMoreReveal = hasFocus;
+            });
+          },
+          child: widget.child,
+        ),
       ),
     );
   }

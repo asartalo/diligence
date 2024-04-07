@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 import '../../../models/commands/commands.dart';
-import '../../../models/modified_task.dart';
-import '../../../models/new_task.dart';
-import '../../../models/persisted_task.dart';
-import '../../../models/task.dart';
+import '../../../models/tasks.dart';
+import '../../components/reveal_on_hover.dart';
 import 'keys.dart' as keys;
 
 class TaskDialog extends StatefulWidget {
@@ -61,57 +61,80 @@ class _TaskDialogState extends State<TaskDialog> {
         ),
         // backgroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextFormField(
-              key: keys.taskNameField,
-              autofocus: true,
-              decoration: const InputDecoration(hintText: 'Enter task name'),
-              initialValue: _task.name,
-              onChanged: (str) {
-                setState(() {
-                  _task = _task.copyWith(name: str);
-                });
-              },
-            ),
-            TextFormField(
-              key: keys.taskDetailsField,
-              keyboardType: TextInputType.multiline,
-              maxLines: null,
-              decoration: const InputDecoration(labelText: 'Details'),
-              initialValue: _task.details,
-              onChanged: (str) {
-                setState(() {
-                  _task = _task.copyWith(details: str);
-                });
-              },
-            ),
-          ],
+        content: Container(
+          constraints: const BoxConstraints(minWidth: 300),
+          width: 400,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                key: keys.taskNameField,
+                autofocus: true,
+                decoration: const InputDecoration(hintText: 'Enter task name'),
+                initialValue: _task.name,
+                onChanged: (str) {
+                  setState(() {
+                    _task = _task.copyWith(name: str);
+                  });
+                },
+              ),
+              TextFormField(
+                key: keys.taskDetailsField,
+                keyboardType: TextInputType.multiline,
+                maxLines: null,
+                decoration: const InputDecoration(labelText: 'Details'),
+                initialValue: _task.details,
+                onChanged: (str) {
+                  setState(() {
+                    _task = _task.copyWith(details: str);
+                  });
+                },
+              ),
+              const SizedBox(height: 40),
+              FocusTraversalGroup(
+                policy: OrderedTraversalPolicy(),
+                child: Row(
+                  children: [
+                    RevealOnHover(
+                      child: FocusTraversalOrder(
+                        order: const NumericFocusOrder(3),
+                        child: TextButton(
+                          key: keys.deleteTaskButton,
+                          child: const Text('DELETE'),
+                          onPressed: () {
+                            if (_task is PersistedTask) {
+                              Navigator.of(context).pop<Command>(
+                                DeleteTaskCommand(task: _task as PersistedTask),
+                              );
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                    FocusTraversalOrder(
+                      order: const NumericFocusOrder(2),
+                      child: FilledButton(
+                        key: keys.focusTaskButton,
+                        onPressed: _handleFocusTask,
+                        child: const Text('FOCUS'),
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    FocusTraversalOrder(
+                      order: const NumericFocusOrder(1),
+                      child: FilledButton(
+                        key: keys.saveTaskButton,
+                        onPressed: () => submit(),
+                        child: const Text('SAVE'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
-        actions: [
-          TextButton(
-            key: keys.deleteTaskButton,
-            onPressed: () {
-              if (_task is PersistedTask) {
-                Navigator.of(context).pop<Command>(
-                  DeleteTaskCommand(task: _task as PersistedTask),
-                );
-              }
-            },
-            child: const Text('DELETE'),
-          ),
-          FilledButton(
-            key: keys.focusTaskButton,
-            onPressed: _handleFocusTask,
-            child: const Text('FOCUS'),
-          ),
-          FilledButton(
-            key: keys.saveTaskButton,
-            onPressed: () => submit(),
-            child: const Text('SAVE'),
-          ),
-        ],
       ),
     );
   }
