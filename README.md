@@ -25,7 +25,7 @@ Visit the [Diligence Project Page](https://github.com/users/asartalo/projects/1/
 
 ## Development
 
-At the moment, the desktop app has only been tested on Linux. If you have an instance of the release version of the app running while developing, run the debug mode with the `DILIGENCE_APP_ID_PREFIX` set to something (e.g. "dev") so that it won't conflict with the release version.
+The desktop app has only been tested on Linux. If you have an instance of the release version of the app running while developing, run the debug mode with the `DILIGENCE_APP_ID_PREFIX` set to something (e.g. "dev") so that it won't conflict with the release version.
 
 See the following example command below to do this on the terminal.
 
@@ -49,7 +49,7 @@ In Ubuntu you can run the following
 snapcraft
 ```
 
-This creates an snap file `diligence_<VERSION>_amd64.snap`. Install it with the following command:
+This creates a snap file `diligence_<VERSION>_amd64.snap`. Install it with the following command:
 
 ```sh
 sudo snap install ./diligence_<VERSION>_amd64.snap --dangerous
