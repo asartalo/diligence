@@ -17,7 +17,7 @@
 import 'dart:io';
 
 import 'package:diligence/models/new_task.dart';
-import 'package:diligence/services/diligent.dart';
+import 'package:diligence/models/task_list.dart';
 import 'package:diligence/ui/components/keys.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';

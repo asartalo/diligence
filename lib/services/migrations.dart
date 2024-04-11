@@ -36,15 +36,15 @@ const migrationQueries = [
   )
   ''',
   // Modify tasks table to add a new datetime column named doneAt
-  '''
-  ALTER TABLE tasks ADD COLUMN doneAt INTEGER
-  ''',
+  'ALTER TABLE tasks ADD COLUMN doneAt INTEGER',
 
-  '''
-  ALTER TABLE tasks DROP COLUMN done
-  ''',
+  'ALTER TABLE tasks DROP COLUMN done',
 
   'ALTER TABLE tasks ADD COLUMN createdAt INTEGER DEFAULT 0',
 
   'ALTER TABLE tasks ADD COLUMN updatedAt INTEGER DEFAULT 0',
+
+  'ALTER TABLE tasks ADD COLUMN deadlineAt INTEGER',
+
+  'ALTER TABLE tasks ADD COLUMN reminderAt INTEGER',
 ];

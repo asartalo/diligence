@@ -17,7 +17,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../models/commands/commands.dart';
-import '../../../services/diligent.dart';
+import '../../../models/task_list.dart';
 import '../../../utils/types.dart';
 import '../tasks/task_item.dart';
 import 'keys.dart' as keys;

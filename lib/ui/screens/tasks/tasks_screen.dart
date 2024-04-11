@@ -19,7 +19,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../../../models/commands/commands.dart';
-import '../../../models/new_task.dart';
 import '../../../models/task.dart';
 import '../../../models/task_node.dart';
 import '../../../services/diligent.dart';
@@ -124,7 +123,8 @@ class _TasksScreenState extends State<TasksScreen> {
   }
 
   Future<void> _handleAddTaskFloatingButtonPressed() async {
-    final command = await TaskDialog.open(context, NewTask(parent: _root));
+    final command =
+        await TaskDialog.open(context, diligent.newTask(parent: _root));
     if (command is NewTaskCommand) {
       final newTask = command.payload;
       await diligent.addTask(newTask);

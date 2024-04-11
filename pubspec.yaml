@@ -24,6 +24,7 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   bloc: any
+  clock: ^1.1.1
   collection: ^1.16.0
   cupertino_icons: ^1.0.1
   dartz: ^0.10.1

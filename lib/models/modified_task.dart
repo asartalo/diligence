@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
+import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart' show immutable;
 
 import 'persisted_task.dart';
@@ -62,14 +63,18 @@ class ModifiedTask with TaskCommons implements Task {
   @override
   final DateTime updatedAt;
 
+  @override
+  final DateTime? deadlineAt;
+
   ModifiedTask({
     this.parentId,
     this.doneAt,
     this.name = '',
     this.details,
     this.expanded = false,
+    this.deadlineAt,
     required this.originalTask,
-  }) : updatedAt = DateTime.now() {
+  }) : updatedAt = clock.now() {
     _checkModifications(
       originalTask,
       parentId: parentId,
@@ -77,6 +82,7 @@ class ModifiedTask with TaskCommons implements Task {
       name: name,
       details: details,
       expanded: expanded,
+      deadlineAt: deadlineAt,
     );
   }
 
@@ -92,6 +98,7 @@ class ModifiedTask with TaskCommons implements Task {
     bool? expanded,
     DateTime? createdAt,
     DateTime? updatedAt,
+    DateTime? deadlineAt,
   }) {
     return ModifiedTask(
       originalTask: originalTask,
@@ -100,6 +107,7 @@ class ModifiedTask with TaskCommons implements Task {
       name: name ?? this.name,
       details: normalizedDetails(details),
       expanded: expanded ?? this.expanded,
+      deadlineAt: deadlineAt ?? this.deadlineAt,
     );
   }
 
@@ -110,12 +118,16 @@ class ModifiedTask with TaskCommons implements Task {
     String? name,
     String? details,
     bool? expanded,
+    DateTime? deadlineAt,
   }) {
     if (parentId != original.parentId) _modifiedFields.add('parentId');
     if (!sameTime(doneAt, original.doneAt)) _modifiedFields.add('doneAt');
     if (name != original.name) _modifiedFields.add('name');
     if (details != original.details) _modifiedFields.add('details');
     if (expanded != original.expanded) _modifiedFields.add('expanded');
+    if (!sameTime(deadlineAt, original.deadlineAt)) {
+      _modifiedFields.add('deadlineAt');
+    }
   }
 
   Set<String> modifiedFields() {

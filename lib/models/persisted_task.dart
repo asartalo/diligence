@@ -51,6 +51,9 @@ class PersistedTask with TaskCommons implements Task {
   @override
   final DateTime updatedAt;
 
+  @override
+  final DateTime? deadlineAt;
+
   const PersistedTask({
     this.id = 0,
     this.parentId,
@@ -58,6 +61,7 @@ class PersistedTask with TaskCommons implements Task {
     this.name = '',
     this.details,
     this.expanded = false,
+    this.deadlineAt,
     required this.uid,
     required this.createdAt,
     required this.updatedAt,
@@ -75,6 +79,7 @@ class PersistedTask with TaskCommons implements Task {
     bool? expanded,
     DateTime? createdAt,
     DateTime? updatedAt,
+    DateTime? deadlineAt,
   }) {
     return ModifiedTask(
       originalTask: this,
@@ -83,6 +88,7 @@ class PersistedTask with TaskCommons implements Task {
       name: name ?? this.name,
       details: normalizedDetails(details),
       expanded: expanded ?? this.expanded,
+      deadlineAt: deadlineAt ?? this.deadlineAt,
     );
   }
 }

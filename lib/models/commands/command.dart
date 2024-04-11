@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
+import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart' show immutable;
 
 @immutable
@@ -21,7 +22,7 @@ abstract class Command {
   final String? message;
   final DateTime at;
 
-  Command({this.message}) : at = DateTime.now();
+  Command({this.message}) : at = clock.now();
 }
 
 @immutable

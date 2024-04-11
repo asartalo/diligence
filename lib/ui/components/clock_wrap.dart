@@ -16,6 +16,7 @@
 
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 
 typedef ClockCallback = Widget Function(DateTime time);
@@ -35,11 +36,11 @@ class _ClockWrapState extends State<ClockWrap> {
   @override
   void initState() {
     super.initState();
-    time = DateTime.now();
+    time = clock.now();
     timer = Timer.periodic(const Duration(minutes: 1), (Timer t) {
       if (mounted) {
         setState(() {
-          time = DateTime.now();
+          time = clock.now();
         });
       }
     });

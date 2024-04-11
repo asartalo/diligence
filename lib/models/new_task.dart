@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
+import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart' show immutable;
 import 'package:uuid/uuid.dart';
 
@@ -54,6 +55,9 @@ class NewTask with TaskCommons implements Task {
   @override
   final DateTime updatedAt;
 
+  @override
+  final DateTime? deadlineAt;
+
   NewTask({
     this.id = 0,
     int? parentId,
@@ -65,10 +69,11 @@ class NewTask with TaskCommons implements Task {
     DateTime? createdAt,
     DateTime? updatedAt,
     Task? parent,
+    this.deadlineAt,
   })  : parentId = parentId ?? parent?.id,
         uid = uid ?? uuidGenerator.v4(),
-        createdAt = createdAt ?? DateTime.now(),
-        updatedAt = updatedAt ?? DateTime.now();
+        createdAt = createdAt ?? clock.now(),
+        updatedAt = updatedAt ?? clock.now();
 
   @override
   Task copyWith({
@@ -82,6 +87,7 @@ class NewTask with TaskCommons implements Task {
     bool? expanded,
     DateTime? createdAt,
     DateTime? updatedAt,
+    DateTime? deadlineAt,
   }) {
     return NewTask(
       id: id ?? this.id,
@@ -92,7 +98,8 @@ class NewTask with TaskCommons implements Task {
       details: normalizedDetails(details),
       expanded: expanded ?? this.expanded,
       createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? DateTime.now(),
+      updatedAt: updatedAt ?? clock.now(),
+      deadlineAt: deadlineAt ?? this.deadlineAt,
     );
   }
 }

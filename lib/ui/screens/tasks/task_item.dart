@@ -15,11 +15,12 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../../models/commands/commands.dart';
-import '../../../models/new_task.dart';
 import '../../../models/persisted_task.dart';
 import '../../../models/task.dart';
+import '../../../services/diligent.dart';
 import '../../../utils/types.dart';
 import '../../colors.dart' as colors;
 import '../../components/reveal_on_hover.dart';
@@ -119,7 +120,7 @@ class _TaskItemState extends State<TaskItem> {
             onClose: () {
               focusNode.requestFocus();
             },
-            menuChildren: taskMenuItems(),
+            menuChildren: taskMenuItems(context),
           ),
         ),
       ),
@@ -145,7 +146,8 @@ class _TaskItemState extends State<TaskItem> {
     );
   }
 
-  List<Widget> taskMenuItems() {
+  List<Widget> taskMenuItems(BuildContext context) {
+    final diligent = Provider.of<Diligent>(context);
     return [
       TaskMenuItem(
         key: keys.taskMenuEdit,
@@ -160,7 +162,7 @@ class _TaskItemState extends State<TaskItem> {
         icon: Icons.add,
         label: 'Add Task',
         onPressed: () {
-          widget.onRequestTask(NewTask(parent: task));
+          widget.onRequestTask(diligent.newTask(parent: task));
         },
       ),
       ...task is PersistedTask

@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
+import 'package:clock/clock.dart';
+
 import 'task.dart';
 
 mixin TaskCommons implements Task {
@@ -44,7 +46,7 @@ mixin TaskCommons implements Task {
     }
 
     if (doneIntent == true) {
-      return DateTime.now();
+      return clock.now();
     }
 
     return null;
@@ -58,5 +60,10 @@ mixin TaskCommons implements Task {
   @override
   Task markNotDone() {
     return copyWith(done: false);
+  }
+
+  @override
+  String toString() {
+    return 'Task(id: $id, name: $name, parentId: $parentId, done: $done, doneAt: $doneAt, details: $details, expanded: $expanded, uid: $uid, createdAt: $createdAt, updatedAt: $updatedAt, deadlineAt: $deadlineAt)';
   }
 }
