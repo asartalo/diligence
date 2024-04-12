@@ -21,10 +21,15 @@ import 'package:sqlite_async/sqlite_async.dart';
 
 import '../../models/task.dart';
 import '../../models/task_list.dart';
+import '../diligent.dart';
+import 'diligent_event_register.dart';
 import 'task_db.dart';
+import 'task_events/added_tasks_event.dart';
+import 'task_events/toggled_tasks_done_event.dart';
+import 'task_events/updated_task_event.dart';
 import 'task_fields.dart';
 
-class FocusQueueManager extends TaskDb {
+class FocusQueueManager extends TaskDb implements DiligentEventRegister {
   @override
   final SqliteDatabase db;
 
@@ -205,5 +210,34 @@ class FocusQueueManager extends TaskDb {
       );
       await _normalizeFocusQueuePositions(tx);
     });
+  }
+
+  Future<void> handleAddedTasksEvent(AddedTasksEvent event) async {
+    final AddedTasksEvent(:parentId, :tasks, :tx) = event;
+    if (parentId is int && await isFocused(parentId, tx)) {
+      await unfocusByIdsInContext([parentId], tx);
+      await focusInContext(tasks, tx);
+    }
+  }
+
+  Future<void> handleUpdatedTaskEvent(UpdatedTaskEvent event) async {
+    final UpdatedTaskEvent(:modified, :tx) = event;
+    if (modified.hasToggledDone() && modified.done == true) {
+      await unfocusInContext([modified], tx);
+    }
+  }
+
+  Future<void> handleToggledTasksDoneEvent(ToggledTasksDoneEvent event) async {
+    final ToggledTasksDoneEvent(:tasks, :tx, :doneAt) = event;
+    if (doneAt != null) {
+      await unfocusInContext(tasks, tx);
+    }
+  }
+
+  @override
+  void registerEventHandlers(Diligent diligent) {
+    diligent.register(handleAddedTasksEvent);
+    diligent.register(handleUpdatedTaskEvent);
+    diligent.register(handleToggledTasksDoneEvent);
   }
 }

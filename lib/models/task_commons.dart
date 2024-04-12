@@ -63,6 +63,13 @@ mixin TaskCommons implements Task {
   }
 
   @override
+  void validate() {
+    if (name.isEmpty) {
+      throw ArgumentError('Task name must not be empty.');
+    }
+  }
+
+  @override
   String toString() {
     return 'Task(id: $id, name: $name, parentId: $parentId, done: $done, doneAt: $doneAt, details: $details, expanded: $expanded, uid: $uid, createdAt: $createdAt, updatedAt: $updatedAt, deadlineAt: $deadlineAt)';
   }

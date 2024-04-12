@@ -748,12 +748,11 @@ void main() {
       test(
         'when tasks are added to a focused task, the children are added to the queue',
         () async {
-          await diligent.focus(setupResult['A1i - leaf']!);
+          final parent = setupResult['A1i - leaf']!;
+          await diligent.focus(parent);
           await diligent.addTasks([
-            diligent.newTask(
-                name: 'New Task 1', parent: setupResult['A1i - leaf']),
-            diligent.newTask(
-                name: 'New Task 2', parent: setupResult['A1i - leaf']),
+            diligent.newTask(name: 'New Task 1', parent: parent),
+            diligent.newTask(name: 'New Task 2', parent: parent),
           ]);
           expect(
             taskNames(await diligent.focusQueue()),

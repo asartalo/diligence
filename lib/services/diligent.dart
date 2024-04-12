@@ -24,11 +24,17 @@ import 'package:sqlite_async/sqlite_async.dart';
 
 import '../models/modified_task.dart';
 import '../models/new_task.dart';
+import '../models/persisted_task.dart';
 import '../models/task.dart';
 import '../models/task_list.dart';
 import '../models/task_node.dart';
 import 'diligent/focus_queue_manager.dart';
 import 'diligent/task_db.dart';
+import 'diligent/task_events/added_tasks_event.dart';
+import 'diligent/task_events/task_event.dart';
+import 'diligent/task_events/task_event_registry.dart';
+import 'diligent/task_events/toggled_tasks_done_event.dart';
+import 'diligent/task_events/updated_task_event.dart';
 import 'diligent/task_fields.dart';
 import 'migrations.dart';
 
@@ -76,13 +82,17 @@ class Diligent extends TaskDb {
 
   final bool _isTest;
 
+  final TaskEventRegistry _eventRegistry = TaskEventRegistry();
+
   Diligent._internal({
     required this.db,
     required this.path,
     required bool isTest,
     required this.focusQueueManager,
     required this.clock,
-  }) : _isTest = isTest;
+  }) : _isTest = isTest {
+    focusQueueManager.registerEventHandlers(this);
+  }
 
   factory Diligent({String path = _defaultDbPath, dc.Clock? clock}) {
     final db = SqliteDatabase(path: path);
@@ -133,15 +143,21 @@ class Diligent extends TaskDb {
     return value;
   }
 
+  void register<T extends TaskEvent>(TaskEventHandler<T> handler) {
+    _eventRegistry.register(handler);
+  }
+
+  Future<void> announceEvent<T extends TaskEvent>(T event) async {
+    await _eventRegistry.broadcast<T>(event);
+  }
+
   Future<void> _validateAddedTasks(
     TaskList tasks,
     SqliteReadContext tx,
   ) async {
     final Set<int?> parentIds = {};
     for (final task in tasks) {
-      if (task.name.isEmpty) {
-        throw ArgumentError('Task name must not be empty.');
-      }
+      task.validate();
       parentIds.add(task.parentId ?? 0);
     }
     if (parentIds.length > 1) {
@@ -222,10 +238,12 @@ class Diligent extends TaskDb {
       newTasks = await _getPersistedTasks(tasks, tx);
       await _toggleSubtree(newTasks.first, tx);
 
-      if (parentId is int && await focusQueueManager.isFocused(parentId, tx)) {
-        await focusQueueManager.unfocusByIdsInContext([parentId], tx);
-        await focusQueueManager.focusInContext(newTasks, tx);
-      }
+      await announceEvent(AddedTasksEvent(
+        clock.now(),
+        tx: tx,
+        parentId: parentId,
+        tasks: newTasks,
+      ));
     });
 
     return newTasks;
@@ -317,22 +335,20 @@ class Diligent extends TaskDb {
     await db.writeTransaction((tx) async {
       await _updateTask(task, tx);
       await _toggleTreeIfToggled(task, tx);
-      await _focusCheck(task, tx);
       updatedTask = await _findTask(task.id, tx);
+      if (updatedTask == null) {
+        throw Exception('Task was not updated.');
+      }
+
+      await announceEvent(UpdatedTaskEvent(
+        clock.now(),
+        modified: task,
+        persisted: updatedTask as PersistedTask,
+        tx: tx,
+      ));
     });
-    if (updatedTask == null) {
-      throw Exception('Task was not updated.');
-    }
 
     return updatedTask!;
-  }
-
-  Future<void> _focusCheck(ModifiedTask task, SqliteWriteContext tx) async {
-    if (task.hasToggledDone()) {
-      if (task.done) {
-        await focusQueueManager.unfocusInContext([task], tx);
-      }
-    }
   }
 
   // TODO: The interface does not evoke the intent of its usage
@@ -418,9 +434,12 @@ class Diligent extends TaskDb {
         [doneAt?.millisecondsSinceEpoch, descendant.id],
       );
     }
-    if (doneAt != null) {
-      await focusQueueManager.unfocusInContext(descendants, tx);
-    }
+    announceEvent(ToggledTasksDoneEvent(
+      clock.now(),
+      tasks: descendants,
+      tx: tx,
+      doneAt: doneAt,
+    ));
   }
 
   Future<DateTime?> _allChildrenDone(Task task, SqliteReadContext tx) async {

@@ -44,4 +44,6 @@ abstract class Task {
   Task markDone();
 
   Task markNotDone();
+
+  void validate();
 }
