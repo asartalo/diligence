@@ -68,6 +68,12 @@ class DiligenceContainer {
     return kReleaseMode ? ProductionSideEffects() : DevSideEffects(config);
   }
 
+  Future<void> resetDataForTests() async {
+    if (test) {
+      diligent.clearDataForTests();
+    }
+  }
+
   static bool showDbPath(DiligenceConfig config) =>
       !kReleaseMode && config.showDbPath;
 
@@ -100,7 +106,7 @@ class DiligenceContainer {
     if (test) {
       return DiligenceConfig.fromEnv(
         dot_env.env,
-        showDbPath: true,
+        showDbPath: false,
         showReviewPage: true,
       );
     }

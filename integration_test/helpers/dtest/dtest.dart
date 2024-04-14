@@ -49,14 +49,8 @@ void integrationTest(String description, void Function() fn) {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   group(description, () {
     tearDown(() async {
+      // Wait for Flutter to finish
       await Future<void>.delayed(const Duration(seconds: 1));
-    });
-
-    setUp(() async {
-      final file = File('test.db');
-      if (await file.exists()) {
-        await file.delete();
-      }
     });
 
     fn();
@@ -190,7 +184,10 @@ void testApp(
       final container = await app.main();
 
       await widgetTester.pumpAndSettle();
-      return callback(Dtest(widgetTester, container: container));
+      final result = await callback(Dtest(widgetTester, container: container));
+
+      await container.resetDataForTests();
+      return result;
     },
     tags: tags,
     skip: skip,
