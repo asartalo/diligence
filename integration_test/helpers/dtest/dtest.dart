@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-import 'dart:io';
-
 import 'package:diligence/models/new_task.dart';
 import 'package:diligence/models/task_list.dart';
 import 'package:diligence/ui/components/keys.dart';
