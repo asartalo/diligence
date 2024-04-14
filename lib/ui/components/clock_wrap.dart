@@ -30,6 +30,21 @@ class ClockWrap extends StatefulWidget {
   State<ClockWrap> createState() => _ClockWrapState();
 }
 
+DateTime _nextExactMinute(DateTime time) {
+  return DateTime(
+    time.year,
+    time.month,
+    time.day,
+    time.hour,
+    time.minute + 1,
+  );
+}
+
+Duration _untilNextExactMinute(DateTime time) {
+  final roundUpMinute = _nextExactMinute(time);
+  return roundUpMinute.difference(clock.now());
+}
+
 class _ClockWrapState extends State<ClockWrap> {
   late Timer timer;
   late DateTime time;
@@ -40,13 +55,20 @@ class _ClockWrapState extends State<ClockWrap> {
   void initState() {
     super.initState();
     time = clock.now();
-    timer = Timer.periodic(const Duration(minutes: 1), (Timer t) {
-      if (mounted) {
-        setState(() {
-          time = clock.now();
-        });
-      }
+    Timer(_untilNextExactMinute(time), () {
+      updateTime();
+      timer = Timer.periodic(const Duration(minutes: 1), (Timer t) {
+        updateTime();
+      });
     });
+  }
+
+  void updateTime() {
+    if (mounted) {
+      setState(() {
+        time = clock.now();
+      });
+    }
   }
 
   @override
