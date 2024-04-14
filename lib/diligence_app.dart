@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -44,7 +45,7 @@ class DiligenceApp extends StatelessWidget {
         theme: diligenceTheme,
         initialRoute: '/',
         routes: {
-          '/': (context) => HomeScreen(),
+          '/': (context) => HomeScreen(clock: Provider.of<Clock>(context)),
           '/tasks': (context) =>
               TasksScreen(diligent: Provider.of<Diligent>(context)),
           '/focus': (context) =>

@@ -21,7 +21,7 @@ import '../../helpers/dtest/dtest.dart';
 Future<void> main() async {
   integrationTest('Day Log', () {
     testApp('Shows log', (dtest) async {
-      await dtest.navigateToReminderPage();
+      await dtest.navigateToReminderScreen();
       // final dayLogField = find.byKey(const Key('fieldDayLogNotes'));
       // await tester.enterText(dayLogField, 'This is a log');
       // await tester.tap(find.byKey(const Key('btnSaveLog')));

@@ -33,7 +33,7 @@ Future<void> main() async {
 
     testApp('Expanding a task', (dtest) async {
       await setupTasks(dtest);
-      final ts = await dtest.navigateToTasksPage();
+      final ts = await dtest.navigateToTasksScreen();
       await ts.toggleExpand('Life');
       ts.expectTaskLayout([
         'Life',
@@ -49,7 +49,7 @@ Future<void> main() async {
 
     testApp('Contract a task subtree', (dtest) async {
       await setupTasks(dtest);
-      final ts = await dtest.navigateToTasksPage();
+      final ts = await dtest.navigateToTasksScreen();
       await ts.toggleExpand('Life');
       await ts.toggleExpand('Life');
       ts.expectTaskLayout([
@@ -63,7 +63,7 @@ Future<void> main() async {
 
     testApp('Expanding descendants', (dtest) async {
       await setupTasks(dtest);
-      final ts = await dtest.navigateToTasksPage();
+      final ts = await dtest.navigateToTasksScreen();
       await ts.toggleExpand('Life');
       await ts.toggleExpand('2 Life');
       ts.expectTaskLayout([
@@ -82,12 +82,12 @@ Future<void> main() async {
 
     testApp('Expand states are persisted between screens', (dtest) async {
       await setupTasks(dtest);
-      final ts = await dtest.navigateToTasksPage();
+      final ts = await dtest.navigateToTasksScreen();
       await ts.toggleExpand('Life');
       await ts.toggleExpand('2 Life');
       await ts.toggleExpand('Work');
-      await dtest.navigateToFocusPage();
-      await dtest.navigateToTasksPage();
+      await dtest.navigateToFocusScreen();
+      await dtest.navigateToTasksScreen();
       ts.expectTaskLayout([
         'Life',
         '  1 Life',

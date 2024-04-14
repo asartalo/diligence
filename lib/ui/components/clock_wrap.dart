@@ -23,7 +23,8 @@ typedef ClockCallback = Widget Function(DateTime time);
 
 class ClockWrap extends StatefulWidget {
   final ClockCallback builder;
-  const ClockWrap({super.key, required this.builder});
+  final Clock clock;
+  const ClockWrap({super.key, required this.builder, required this.clock});
 
   @override
   State<ClockWrap> createState() => _ClockWrapState();
@@ -32,6 +33,8 @@ class ClockWrap extends StatefulWidget {
 class _ClockWrapState extends State<ClockWrap> {
   late Timer timer;
   late DateTime time;
+
+  Clock get clock => widget.clock;
 
   @override
   void initState() {

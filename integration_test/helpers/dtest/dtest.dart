@@ -72,24 +72,24 @@ class Dtest extends DtestBase {
     await tapByKey(key);
   }
 
-  Future<void> navigateToReminderPage() async {
+  Future<void> navigateToReminderScreen() async {
     await tapOnMenuBarItem(drawerLinkReview);
     expect(find.text('Review'), findsOneWidget);
   }
 
-  Future<TestTasksScreen> navigateToTasksPage() async {
+  Future<TestTasksScreen> navigateToTasksScreen() async {
     await tapOnMenuBarItem(drawerLinkTasks);
     expect(find.text('Tasks'), findsOneWidget);
     return TestTasksScreen(this);
   }
 
-  Future<TestFocusScreen> navigateToFocusPage() async {
+  Future<TestFocusScreen> navigateToFocusScreen() async {
     await tapOnMenuBarItem(drawerLinkFocus);
     expect(find.text('Focus'), findsOneWidget);
     return TestFocusScreen(this);
   }
 
-  Future<void> navigateToSettingsPage() async {
+  Future<void> navigateToSettingsScreen() async {
     await tapOnMenuBarItem(drawerLinkSettings);
     expect(find.text('Settings'), findsAtLeast(1));
   }

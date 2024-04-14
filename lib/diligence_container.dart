@@ -16,6 +16,7 @@
 
 import 'dart:io';
 
+import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -31,22 +32,28 @@ import 'services/diligent.dart';
 import 'services/review_data/review_data_bloc.dart';
 import 'services/review_data_service.dart';
 import 'services/side_effects.dart';
+import 'utils/ticking_stub_clock.dart';
 
 final loadAssetString = rootBundle.loadString;
 
 class DiligenceContainer {
   final DiligenceConfig config;
   final Diligent diligent;
+  final Di di;
+  final bool test;
 
   DiligenceContainer({
     required this.config,
     required this.diligent,
+    required this.di,
+    this.test = false,
   });
 
   List<SingleChildWidget> providers() {
     return [
       Provider(create: (_) => config),
       Provider(create: (_) => diligent),
+      Provider(create: (_) => di.clock),
       Provider(create: (_) => _sideEffects()),
       BlocProvider(
         create: (_) => ReviewDataBloc(
@@ -75,7 +82,8 @@ class DiligenceContainer {
       // ignore: avoid_print
       print('Database path: $pathToDb');
     }
-    final di = Di(dbPath: pathToDb, isTest: test);
+    final clock = test ? TickingStubClock() : const Clock();
+    final di = Di(dbPath: pathToDb, isTest: test, clock: clock);
     final diligent = di.diligent;
     await diligent.runMigrations();
     await diligent.initialAreas(initialAreas);
@@ -83,6 +91,8 @@ class DiligenceContainer {
     return DiligenceContainer(
       config: config,
       diligent: diligent,
+      di: di,
+      test: test,
     );
   }
 

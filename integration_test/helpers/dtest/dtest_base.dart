@@ -16,6 +16,7 @@
 
 import 'package:diligence/diligence_container.dart';
 import 'package:diligence/services/diligent.dart';
+import 'package:diligence/utils/ticking_stub_clock.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -24,6 +25,8 @@ class DtestBase {
   final DiligenceContainer container;
 
   Diligent get diligent => container.diligent;
+
+  TickingStubClock get clock => container.diligent.clock as TickingStubClock;
 
   DtestBase(this.tester, {required this.container});
 
@@ -47,4 +50,12 @@ class DtestBase {
 
   Future<void> enterTextByKey(Key key, String text) =>
       enterText(find.byKey(key), text);
+
+  void setClockCurrentTime(DateTime now) {
+    clock.setCurrentTime(now);
+  }
+
+  void advanceClock(Duration duration) {
+    clock.advance(duration);
+  }
 }

@@ -14,13 +14,16 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 import 'clock_wrap.dart';
 import 'keys.dart' as keys;
 
 AppBar appBar(BuildContext context, String title) {
+  final clock = Provider.of<Clock>(context);
   final theme = Theme.of(context);
   final titleStyle = theme.textTheme.titleLarge!.merge(
     TextStyle(
@@ -46,6 +49,7 @@ AppBar appBar(BuildContext context, String title) {
         padding: const EdgeInsets.only(right: 20.0),
         child: Center(
           child: ClockWrap(
+            clock: clock,
             builder: (time) => Text(
               dateFormat.format(time),
               style: theme.textTheme.bodyMedium,

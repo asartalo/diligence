@@ -23,7 +23,7 @@ Future<void> main() async {
     testApp(
       'Moving task down in order',
       (dtest) async {
-        final ts = await dtest.navigateToTasksPage();
+        final ts = await dtest.navigateToTasksScreen();
         await ts.moveTask('Work', to: 'Projects');
         ts.expectTaskLayout([
           'Life',
@@ -37,7 +37,7 @@ Future<void> main() async {
     );
 
     testApp('Moving task up in order', (dtest) async {
-      final ts = await dtest.navigateToTasksPage();
+      final ts = await dtest.navigateToTasksScreen();
       await ts.moveTask('Miscellaneous', to: 'Work');
       ts.expectTaskLayout([
         'Life',
@@ -49,7 +49,7 @@ Future<void> main() async {
     });
 
     testApp('Moving top task to the bottom', (dtest) async {
-      final ts = await dtest.navigateToTasksPage();
+      final ts = await dtest.navigateToTasksScreen();
       await ts.moveTask('Life', to: 'Inbox');
       ts.expectTaskLayout([
         'Work',
@@ -61,7 +61,7 @@ Future<void> main() async {
     });
 
     testApp('Moving bottom task to the top', (dtest) async {
-      final ts = await dtest.navigateToTasksPage();
+      final ts = await dtest.navigateToTasksScreen();
       await ts.moveTask('Inbox', to: 'Life');
       ts.expectTaskLayout([
         'Inbox',
@@ -87,7 +87,7 @@ Future<void> main() async {
 
       testApp('Moving a task down to a different parent', (dtest) async {
         await setupTasks(dtest);
-        final ts = await dtest.navigateToTasksPage();
+        final ts = await dtest.navigateToTasksScreen();
 
         await ts.moveTask('2 Life', to: '2 Work');
         ts.expectTaskLayout([
@@ -107,7 +107,7 @@ Future<void> main() async {
 
       testApp('Moving a task up to a different parent', (dtest) async {
         await setupTasks(dtest);
-        final ts = await dtest.navigateToTasksPage();
+        final ts = await dtest.navigateToTasksScreen();
 
         await ts.moveTask('2 Work', to: '2 Life');
         ts.expectTaskLayout([
@@ -129,7 +129,7 @@ Future<void> main() async {
         "Moving a parent's sibling task to that parent's children",
         (dtest) async {
           await setupTasks(dtest);
-          final ts = await dtest.navigateToTasksPage();
+          final ts = await dtest.navigateToTasksScreen();
 
           await ts.moveTask(
             'Inbox',
@@ -157,7 +157,7 @@ Future<void> main() async {
         "Moving a child as a parent's sibling",
         (dtest) async {
           await setupTasks(dtest);
-          final ts = await dtest.navigateToTasksPage();
+          final ts = await dtest.navigateToTasksScreen();
 
           await ts.moveTask(
             '2 Life',
