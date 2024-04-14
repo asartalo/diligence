@@ -30,8 +30,6 @@ class DtestBase {
 
   DtestBase(this.tester, {required this.container});
 
-  Future<void> tapByStringKey(String strKey) => tapByKey(Key(strKey));
-
   Future<void> tapByKey(Key key) {
     final element = find.byKey(key);
 
