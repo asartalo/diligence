@@ -9,13 +9,13 @@ void main() {
       di = Di();
     });
 
-    test('it should be able to return a Diligent instance', () async {
-      expect(await di.diligent, isA<Diligent>());
+    test('it should be able to return a Diligent instance', () {
+      expect(di.diligent, isA<Diligent>());
     });
 
-    test('it should return the same instance each time', () async {
-      final diligent1 = await di.diligent;
-      final diligent2 = await di.diligent;
+    test('it should return the same instance each time', () {
+      final diligent1 = di.diligent;
+      final diligent2 = di.diligent;
       expect(identical(diligent1, diligent2), isTrue);
     });
   });
