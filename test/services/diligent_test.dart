@@ -3,6 +3,7 @@ import 'package:diligence/services/diligent.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../helpers/error_matcher.dart';
+import '../helpers/test_db.dart';
 
 List<String> taskNames(List<Task?> tasks) {
   final List<String> names = [];
@@ -20,7 +21,7 @@ void main() {
     late Diligent diligent;
 
     setUpAll(() async {
-      diligent = Diligent.forTests();
+      diligent = Diligent.forTests(db: testDb);
       await diligent.runMigrations();
     });
 
@@ -294,7 +295,7 @@ void main() {
       late Map<String, Task> setupResult;
 
       setUp(() async {
-        setupResult = await testTreeSetup(Diligent.forTests());
+        setupResult = await testTreeSetup(Diligent.forTests(db: testDb));
       });
 
       test('it returns all ancestors of a task', () async {

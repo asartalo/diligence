@@ -28,11 +28,13 @@ DateTime? _parseDate(String dateString) {
 class DiligenceConfig {
   final DateTime? today;
   final bool showDbPath;
+  final String dbPath;
 
   /// Whether to show the review page.
   final bool showReviewPage;
 
   const DiligenceConfig({
+    required this.dbPath,
     this.today,
     this.showDbPath = false,
     this.showReviewPage = false,
@@ -42,11 +44,13 @@ class DiligenceConfig {
     Map<String, String> env, {
     bool? showDbPath,
     bool? showReviewPage,
+    String? dbPath,
   })  : today = _parseDate(env['DILIGENCE_DEV_TODAY'] ?? 'none'),
         showDbPath = showDbPath is bool
             ? showDbPath
             : env['DILIGENCE_SHOW_DB_PATH'] == 'true',
         showReviewPage = showReviewPage is bool
             ? showReviewPage
-            : env['DILIGENCE_SHOW_REVIEW_PAGE'] == 'true';
+            : env['DILIGENCE_SHOW_REVIEW_PAGE'] == 'true',
+        dbPath = dbPath ?? env['DILIGENCE_DB_PATH'] ?? 'diligence.db';
 }

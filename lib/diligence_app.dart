@@ -17,6 +17,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'diligence_config.dart';
 import 'diligence_container.dart';
 import 'services/diligent.dart';
 import 'ui/diligence_theme.dart';
@@ -50,7 +51,7 @@ class DiligenceApp extends StatelessWidget {
               FocusScreen(diligent: Provider.of<Diligent>(context)),
           '/review': (context) => const ReviewScreen(title: 'Diligence'),
           '/settings': (context) =>
-              SettingsScreen(diligent: Provider.of<Diligent>(context)),
+              SettingsScreen(config: Provider.of<DiligenceConfig>(context)),
         },
       ),
     );

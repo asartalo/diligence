@@ -17,7 +17,7 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:clock/clock.dart' as dc;
+import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:sqlite_async/sqlite3.dart';
 import 'package:sqlite_async/sqlite_async.dart';
@@ -36,7 +36,7 @@ import 'diligent/task_events/task_event_registry.dart';
 import 'diligent/task_events/toggled_tasks_done_event.dart';
 import 'diligent/task_events/updated_task_event.dart';
 import 'diligent/task_fields.dart';
-import 'migrations.dart';
+import 'migrate.dart';
 
 typedef TaskNodeList = List<TaskNode>;
 
@@ -51,34 +51,13 @@ final initialAreas = [
   NewTask(name: 'Inbox', details: "Tasks that haven't been categorized yet"),
 ];
 
-SqliteMigrations migrate() {
-  final SqliteMigrations migrations = SqliteMigrations();
-  int i = 0;
-
-  for (final migrationQuery in migrationQueries) {
-    i += 1;
-    migrations.add(SqliteMigration(i, (tx) async {
-      await tx.execute(migrationQuery);
-    }));
-  }
-
-  return migrations;
-}
-
-final migrations = migrate();
-
-const _testDbPath = 'test.db';
-const _defaultDbPath = 'diligence.db';
-
 class Diligent extends TaskDb {
   @override
   final SqliteDatabase db;
 
   final FocusQueueManager focusQueueManager;
 
-  final String path;
-
-  final dc.Clock clock;
+  final Clock clock;
 
   final bool _isTest;
 
@@ -86,7 +65,6 @@ class Diligent extends TaskDb {
 
   Diligent._internal({
     required this.db,
-    required this.path,
     required bool isTest,
     required this.focusQueueManager,
     required this.clock,
@@ -94,30 +72,27 @@ class Diligent extends TaskDb {
     focusQueueManager.registerEventHandlers(this);
   }
 
-  factory Diligent({String path = _defaultDbPath, dc.Clock? clock}) {
-    final db = SqliteDatabase(path: path);
-    final actualClock = clock ?? const dc.Clock();
+  factory Diligent.convenience({
+    required bool isTest,
+    required SqliteDatabase db,
+    Clock? clock,
+  }) {
+    final actualClock = clock ?? const Clock();
 
     return Diligent._internal(
       db: db,
-      path: path,
-      isTest: false,
+      isTest: isTest,
       clock: actualClock,
       focusQueueManager: FocusQueueManager(db: db, clock: actualClock),
     );
   }
 
-  factory Diligent.forTests({dc.Clock? clock}) {
-    final db = SqliteDatabase(path: _testDbPath);
-    final actualClock = clock ?? const dc.Clock();
+  factory Diligent({required SqliteDatabase db, Clock? clock}) {
+    return Diligent.convenience(isTest: false, db: db, clock: clock);
+  }
 
-    return Diligent._internal(
-      path: _testDbPath,
-      db: db,
-      isTest: true,
-      clock: actualClock,
-      focusQueueManager: FocusQueueManager(db: db, clock: actualClock),
-    );
+  factory Diligent.forTests({required SqliteDatabase db, Clock? clock}) {
+    return Diligent.convenience(isTest: true, db: db, clock: clock);
   }
 
   Future<void> runMigrations() async {

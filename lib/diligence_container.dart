@@ -25,6 +25,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
+import 'di.dart';
 import 'diligence_config.dart';
 import 'services/diligent.dart';
 import 'services/review_data/review_data_bloc.dart';
@@ -74,7 +75,8 @@ class DiligenceContainer {
       // ignore: avoid_print
       print('Database path: $pathToDb');
     }
-    final diligent = test ? Diligent.forTests() : Diligent(path: pathToDb);
+    final di = Di(dbPath: pathToDb, isTest: test);
+    final diligent = di.diligent;
     await diligent.runMigrations();
     await diligent.initialAreas(initialAreas);
 

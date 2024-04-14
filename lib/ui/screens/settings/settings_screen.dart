@@ -16,12 +16,12 @@
 
 import 'package:flutter/material.dart';
 
-import '../../../services/diligent.dart';
+import '../../../diligence_config.dart';
 import '../../components/common_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
-  final Diligent diligent;
-  const SettingsScreen({super.key, required this.diligent});
+  final DiligenceConfig config;
+  const SettingsScreen({super.key, required this.config});
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +46,7 @@ class SettingsScreen extends StatelessWidget {
                 children: [
                   ListTile(
                     title: const Text('Database Path'),
-                    subtitle: Text(diligent.path),
+                    subtitle: Text(config.dbPath),
                   ),
                 ],
               ),
