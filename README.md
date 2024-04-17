@@ -13,11 +13,14 @@ The idea is to break down tasks as much as you need into "actionable" tasks to l
 
 ## Installation
 
-As of the moment, only an AppImage is available for download. See [Releases](https://github.com/asartalo/diligence/releases).
+As of the moment, Diligence is available as an AppImage and as a snap on the Snap Store.
 
 ### Linux
 
 - [AppImage](https://github.com/asartalo/diligence/releases/download/0.1.5/Diligence-x64.AppImage)
+- [Snap Store](https://snapcraft.io/diligence)
+
+For the source code and other (future) binaries, head onto [Releases](https://github.com/asartalo/diligence/releases).
 
 ## Roadmap
 
