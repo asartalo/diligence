@@ -88,11 +88,15 @@ class DiligenceContainer {
       // ignore: avoid_print
       print('Database path: $pathToDb');
     }
+    if (test) {
+      await deleteDb(pathToDb);
+    }
     final clock = test ? TickingStubClock() : const Clock();
     final di = Di(dbPath: pathToDb, isTest: test, clock: clock);
     final diligent = di.diligent;
     await diligent.runMigrations();
     await diligent.initialAreas(initialAreas);
+    await di.jobTrack.start();
 
     return DiligenceContainer(
       config: config,
@@ -128,5 +132,12 @@ class DiligenceContainer {
     }
 
     return path.join(directory.path, dbName(test));
+  }
+
+  static Future<void> deleteDb(String path) async {
+    final file = File(path);
+    if (await file.exists()) {
+      await file.delete();
+    }
   }
 }

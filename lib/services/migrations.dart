@@ -47,4 +47,13 @@ const migrationQueries = [
   'ALTER TABLE tasks ADD COLUMN deadlineAt INTEGER',
 
   'ALTER TABLE tasks ADD COLUMN reminderAt INTEGER',
+  '''
+  CREATE TABLE IF NOT EXISTS jobs (
+    uuid TEXT PRIMARY KEY,
+    runAt INTEGER NOT NULL,
+    type TEXT NOT NULL,
+    taskId INTEGER
+  )
+  ''',
+  'CREATE INDEX IF NOT EXISTS jobs_type ON jobs(type)',
 ];
