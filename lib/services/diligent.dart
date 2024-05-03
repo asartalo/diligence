@@ -17,7 +17,6 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:sqlite_async/sqlite3.dart';
 import 'package:sqlite_async/sqlite_async.dart';
@@ -25,12 +24,19 @@ import 'package:sqlite_async/sqlite_async.dart';
 import '../models/modified_task.dart';
 import '../models/new_task.dart';
 import '../models/persisted_task.dart';
+import '../models/reminders/reminder.dart';
+import '../models/reminders/reminder_list.dart';
 import '../models/task.dart';
 import '../models/task_list.dart';
 import '../models/task_node.dart';
+import '../models/task_pack.dart';
+import '../utils/clock.dart';
+import '../utils/date_time_from_row_epoch.dart';
 import 'diligent/focus_queue_manager.dart';
 import 'diligent/task_db.dart';
+import 'diligent/task_events/added_reminders_event.dart';
 import 'diligent/task_events/added_tasks_event.dart';
+import 'diligent/task_events/removed_reminders_event.dart';
 import 'diligent/task_events/task_event.dart';
 import 'diligent/task_events/task_event_registry.dart';
 import 'diligent/task_events/toggled_tasks_done_event.dart';
@@ -40,15 +46,22 @@ import 'migrate.dart';
 
 typedef TaskNodeList = List<TaskNode>;
 
+final now = Clock().now();
+
 final initialAreas = [
-  NewTask(name: 'Life', details: 'Life goals'),
-  NewTask(name: 'Work', details: 'Work-related tasks'),
-  NewTask(name: 'Projects', details: 'Personal projects'),
+  NewTask(name: 'Life', details: 'Life goals', now: now),
+  NewTask(name: 'Work', details: 'Work-related tasks', now: now),
+  NewTask(name: 'Projects', details: 'Personal projects', now: now),
   NewTask(
     name: 'Miscellaneous',
     details: "Stuff that don't belong to the main areas",
+    now: now,
   ),
-  NewTask(name: 'Inbox', details: "Tasks that haven't been categorized yet"),
+  NewTask(
+    name: 'Inbox',
+    details: "Tasks that haven't been categorized yet",
+    now: now,
+  ),
 ];
 
 class Diligent extends TaskDb {
@@ -77,7 +90,7 @@ class Diligent extends TaskDb {
     required SqliteDatabase db,
     Clock? clock,
   }) {
-    final actualClock = clock ?? const Clock();
+    final actualClock = clock ?? Clock();
 
     return Diligent._internal(
       db: db,
@@ -102,12 +115,15 @@ class Diligent extends TaskDb {
   Future<void> clearDataForTests() async {
     if (_isTest) {
       await db.execute('DELETE FROM focusQueue');
+      await db.execute('DELETE FROM reminders');
       await db.execute('DELETE FROM tasks');
     }
   }
 
   final _queryCache = <String, String>{};
 
+  // TODO: This does not actually work as you think it does
+  // Query strings still need to be evaluated
   String _cachedQuery(String key, String query) {
     String? value = _queryCache[key];
     if (value == null) {
@@ -170,9 +186,10 @@ class Diligent extends TaskDb {
       name: name ?? '',
       details: details,
       expanded: expanded ?? false,
-      createdAt: createdAt ?? clock.now(),
-      updatedAt: updatedAt ?? clock.now(),
+      createdAt: createdAt,
+      updatedAt: updatedAt,
       deadlineAt: deadlineAt,
+      now: clock.now(),
     );
   }
 
@@ -432,9 +449,7 @@ class Diligent extends TaskDb {
     final doneCount = result['doneCount'] as int;
     final doneAtEpoch =
         result['latestDoneAt'] == null ? 0 : result['latestDoneAt'] as int;
-    final doneAt = doneAtEpoch > 0
-        ? DateTime.fromMillisecondsSinceEpoch(doneAtEpoch)
-        : null;
+    final doneAt = doneAtEpoch > 0 ? dateTimeFromRowEpoch(doneAtEpoch) : null;
 
     return count == doneCount ? doneAt : null;
   }
@@ -670,6 +685,7 @@ class Diligent extends TaskDb {
         parentId: 1,
         updatedAt: now,
         createdAt: now,
+        now: now,
       ));
     }
   }
@@ -815,4 +831,117 @@ class Diligent extends TaskDb {
         task,
         position,
       );
+
+  Future<void> addReminders(List<Reminder> reminders) async {
+    await db.writeTransaction((tx) async {
+      final batchProps = reminders.map((reminder) {
+        return [reminder.taskId, reminder.remindAt.millisecondsSinceEpoch];
+      }).toList();
+
+      await tx.executeBatch(
+        'INSERT INTO reminders (taskId, remindAt) VALUES (?, ?)',
+        batchProps,
+      );
+    });
+    await announceEvent(AddedRemindersEvent(
+      clock.now(),
+      reminders: reminders,
+    ));
+  }
+
+  Future<ReminderList> getNextReminders(DateTime now) async {
+    final rows = await db.getAll(
+      '''
+      SELECT reminders.*
+      FROM reminders
+      WHERE reminders.remindAt <= ?
+      ORDER BY reminders.remindAt ASC
+      ''',
+      [now.millisecondsSinceEpoch],
+    );
+
+    return ReminderList(rows.map(reminderFromRow).toList());
+  }
+
+  Future<ReminderList> getRemindersForTask(Task task) async {
+    return getRemindersForTaskIds([task.id]);
+  }
+
+  Future<ReminderList> getRemindersForTaskIds(List<int> taskIds) async {
+    final rows = await db.getAll(
+      '''
+      SELECT reminders.*
+      FROM reminders
+      WHERE reminders.taskId IN (${questionMarks(taskIds.length)})
+      ORDER BY reminders.remindAt ASC
+      ''',
+      taskIds,
+    );
+
+    return ReminderList(rows.map(reminderFromRow).toList());
+  }
+
+  Future<Reminder> dismissReminder(Reminder reminder) async {
+    if (clock.now().isBefore(reminder.remindAt)) {
+      throw ReminderError('Cannot dismiss a reminder before it is due.');
+    }
+
+    final Reminder(:taskId, :remindAt) = reminder;
+    await db.execute(
+      '''
+      UPDATE reminders
+      SET dismissed = 1
+      WHERE taskId = ? AND remindAt = ?
+      ''',
+      [taskId, remindAt.millisecondsSinceEpoch],
+    );
+
+    return reminder.dismiss();
+  }
+
+  Future<void> deleteReminders(List<Reminder> reminders) async {
+    await db.executeBatch(
+      '''
+      DELETE FROM reminders
+      WHERE taskId = ? AND remindAt = ?
+      ''',
+      reminders.map((reminder) {
+        return [reminder.taskId, reminder.remindAt.millisecondsSinceEpoch];
+      }).toList(),
+    );
+    await announceEvent(RemovedRemindersEvent(
+      clock.now(),
+      reminders: reminders,
+    ));
+  }
+
+  Reminder reminderFromRow(Row row) {
+    return Reminder(
+      taskId: row['taskId'] as int,
+      remindAt: dateTimeFromRowEpoch(row['remindAt']),
+      dismissed: row['dismissed'] as int == 1,
+    );
+  }
+
+  Future<TaskPack?> getTaskPackById(int id) async {
+    final task = await findTask(id);
+
+    if (task == null) {
+      return null;
+    }
+
+    return TaskPack(
+      task,
+      reminders: await getRemindersForTask(task),
+    );
+  }
+}
+
+class ReminderError extends Error {
+  final String message;
+
+  ReminderError(this.message);
+
+  @override
+  String toString() => 'ReminderError: $message';
 }

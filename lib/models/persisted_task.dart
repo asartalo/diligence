@@ -80,11 +80,13 @@ class PersistedTask with TaskCommons implements Task {
     DateTime? createdAt,
     DateTime? updatedAt,
     DateTime? deadlineAt,
+    required DateTime now,
   }) {
     return ModifiedTask(
+      now: now,
       originalTask: this,
       parentId: parentId ?? this.parentId,
-      doneAt: normalizedDoneAt(done, doneAt),
+      doneAt: normalizedDoneAt(now, done, doneAt),
       name: name ?? this.name,
       details: normalizedDetails(details),
       expanded: expanded ?? this.expanded,

@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart';
 
 import '../diligence_config.dart';
@@ -25,7 +24,7 @@ abstract class SideEffects {
 
 class ProductionSideEffects extends SideEffects {
   @override
-  DateTime now() => clock.now();
+  DateTime now() => DateTime.now();
 }
 
 DateTime _toDate(DateTime toConvert, DateTime date) {
@@ -48,7 +47,7 @@ class DevSideEffects extends SideEffects {
 
   @override
   DateTime now() {
-    final realNow = clock.now();
+    final realNow = DateTime.now();
     if (config.today == null) {
       return realNow;
     }

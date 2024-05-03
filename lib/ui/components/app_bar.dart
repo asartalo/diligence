@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
+import '../../utils/clock.dart';
+import '../../utils/i18n.dart';
 import 'clock_wrap.dart';
 import 'keys.dart' as keys;
 
@@ -30,7 +30,7 @@ AppBar appBar(BuildContext context, String title) {
       color: theme.textTheme.bodyLarge!.color,
     ),
   );
-  final dateFormat = DateFormat('EEEE, MMMM d, y').add_jm();
+  // final dateFormatWithDay = DateFormat('EEEE, MMMM d, y').add_jm();
 
   return AppBar(
     leading: IconButton(
@@ -51,7 +51,7 @@ AppBar appBar(BuildContext context, String title) {
           child: ClockWrap(
             clock: clock,
             builder: (time) => Text(
-              dateFormat.format(time),
+              dateFormatWithDay.format(time),
               style: theme.textTheme.bodyMedium,
             ),
           ),

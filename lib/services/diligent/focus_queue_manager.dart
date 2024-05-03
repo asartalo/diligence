@@ -14,13 +14,12 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-// import 'package:clock/clock.dart';
-import 'package:clock/clock.dart';
 import 'package:collection/collection.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 
 import '../../models/task.dart';
 import '../../models/task_list.dart';
+import '../../utils/clock.dart';
 import '../diligent.dart';
 import 'diligent_event_register.dart';
 import 'task_db.dart';

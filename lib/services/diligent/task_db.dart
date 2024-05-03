@@ -20,6 +20,7 @@ import 'package:sqlite_async/sqlite_async.dart';
 import '../../models/persisted_task.dart';
 import '../../models/task.dart';
 import '../../models/task_list.dart';
+import '../../utils/date_time_from_row_epoch.dart';
 import 'task_fields.dart';
 
 abstract class TaskDb {
@@ -32,16 +33,15 @@ abstract class TaskDb {
       id: row['id'] as int,
       name: row['name'] as String,
       parentId: row['parentId'] as int?,
-      doneAt: row['doneAt'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(row['doneAt'] as int)
-          : null,
+      doneAt:
+          row['doneAt'] != null ? dateTimeFromRowEpoch(row['doneAt']) : null,
       uid: row['uid'] as String,
       expanded: row['expanded'] as int == 1,
       details: row['details'] as String?,
-      createdAt: DateTime.fromMillisecondsSinceEpoch(row['createdAt'] as int),
-      updatedAt: DateTime.fromMillisecondsSinceEpoch(row['updatedAt'] as int),
+      createdAt: dateTimeFromRowEpoch(row['createdAt']),
+      updatedAt: dateTimeFromRowEpoch(row['updatedAt']),
       deadlineAt: row['deadlineAt'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(row['deadlineAt'] as int)
+          ? dateTimeFromRowEpoch(row['deadlineAt'])
           : null,
     );
 

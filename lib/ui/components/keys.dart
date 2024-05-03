@@ -17,11 +17,14 @@
 import 'package:flutter/foundation.dart';
 
 // Drawer
-const Key drawerLinkHome = Key('drawerLinkHome');
-const Key drawerLinkTasks = Key('drawerLinkTasks');
-const Key drawerLinkFocus = Key('drawerLinkFocus');
-const Key drawerLinkReview = Key('drawerLinkReview');
-const Key drawerLinkSettings = Key('drawerLinkSettings');
+const drawerLinkHome = Key('drawerLinkHome');
+const drawerLinkTasks = Key('drawerLinkTasks');
+const drawerLinkFocus = Key('drawerLinkFocus');
+const drawerLinkReview = Key('drawerLinkReview');
+const drawerLinkSettings = Key('drawerLinkSettings');
 
 // App Bar
 const Key appBarMenuButton = Key('appBarMenuButton');
+
+// Notice
+const noticeArea = Key('noticeArea');

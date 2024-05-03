@@ -23,8 +23,9 @@ import 'command.dart';
 class DeleteTaskCommand extends CommandPack<PersistedTask> {
   final PersistedTask task;
 
-  DeleteTaskCommand({
+  const DeleteTaskCommand({
     super.message = 'Task deleted',
+    required super.at,
     required this.task,
   });
 

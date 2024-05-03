@@ -15,10 +15,14 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl_standalone.dart'
+    if (dart.library.html) 'package:intl/intl_browser.dart';
 
 import 'diligence_app.dart';
 import 'diligence_container.dart';
 
 Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await findSystemLocale();
   runApp(DiligenceApp(await DiligenceContainer.start()));
 }

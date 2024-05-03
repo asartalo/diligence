@@ -23,6 +23,11 @@ const Key taskDetailsField = Key('taskDialogDetailsField');
 const Key saveTaskButton = Key('taskDialogSaveButton');
 const Key deleteTaskButton = Key('taskDialogDeleteButton');
 const Key focusTaskButton = Key('taskDialogFocusButton');
+const Key addReminderButton = Key('taskDialogAddReminderButton');
+const Key remindersSection = Key('taskDialogRemindersSection');
+const Key reminderDateField = Key('taskDialogReminderDateField');
+const Key reminderAddButton = Key('taskDialogReminderAddButton');
+const Key reminderDeleteButton = Key('taskDialogReminderDeleteButton');
 const Key mainTaskList = Key('tasksTaskList');
 
 const Key taskItem = Key('tasksTaskItem');

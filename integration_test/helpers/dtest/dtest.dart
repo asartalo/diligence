@@ -29,13 +29,13 @@ import 'test_tasks_screen.dart';
 
 // ignore_for_file: avoid-dynamic
 
-class TestSetupTaskParam {
+class SetupTaskParam {
   final String name;
   final String? details;
   final String? parent;
   final bool? done;
 
-  const TestSetupTaskParam(
+  const SetupTaskParam(
     this.name, {
     this.details,
     this.parent,
@@ -86,11 +86,11 @@ class Dtest extends DtestBase {
     expect(find.text('Settings'), findsAtLeast(1));
   }
 
-  Future<void> setUpInitialTasks(List<TestSetupTaskParam> taskParams) async {
-    final byParent = <String, List<TestSetupTaskParam>>{};
+  Future<void> setUpInitialTasks(List<SetupTaskParam> taskParams) async {
+    final byParent = <String, List<SetupTaskParam>>{};
     // gather tasks by parent
     for (final taskParam in taskParams) {
-      byParent[taskParam.parent ?? ''] ??= <TestSetupTaskParam>[];
+      byParent[taskParam.parent ?? ''] ??= <SetupTaskParam>[];
       byParent[taskParam.parent ?? '']!.add(taskParam);
     }
 
@@ -99,11 +99,13 @@ class Dtest extends DtestBase {
       final parentId = parent?.id;
       await diligent.addTasks(
         children.value.map((child) {
+          final now = clock.now();
           return NewTask(
             name: child.name,
             details: child.details,
             parentId: parentId,
-            doneAt: child.done != null ? DateTime.now() : null,
+            doneAt: child.done != null ? now : null,
+            now: now,
           );
         }).toList(),
       );
@@ -122,7 +124,10 @@ class Dtest extends DtestBase {
     for (final taskName in taskNames) {
       final task = await diligent.findTaskByName(taskName);
       if (task != null) {
-        await diligent.updateTask(task.copyWith(expanded: true));
+        await diligent.updateTask(task.copyWith(
+          expanded: true,
+          now: clock.now(),
+        ));
       }
     }
   }
@@ -180,11 +185,9 @@ void testApp(
     description,
     (widgetTester) async {
       final container = await app.main();
-
       await widgetTester.pumpAndSettle();
       final result = await callback(Dtest(widgetTester, container: container));
 
-      await container.resetDataForTests();
       return result;
     },
     tags: tags,

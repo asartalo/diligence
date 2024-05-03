@@ -16,7 +16,6 @@
 
 import 'dart:io';
 
-import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -32,7 +31,8 @@ import 'services/diligent.dart';
 import 'services/review_data/review_data_bloc.dart';
 import 'services/review_data_service.dart';
 import 'services/side_effects.dart';
-import 'utils/ticking_stub_clock.dart';
+import 'utils/clock.dart';
+import 'utils/stub_clock.dart';
 
 final loadAssetString = rootBundle.loadString;
 
@@ -55,6 +55,7 @@ class DiligenceContainer {
       Provider(create: (_) => diligent),
       Provider(create: (_) => di.clock),
       Provider(create: (_) => _sideEffects()),
+      Provider(create: (_) => di.noticeQueue),
       BlocProvider(
         create: (_) => ReviewDataBloc(
           ReviewDataService(),
@@ -80,10 +81,11 @@ class DiligenceContainer {
   static Future<DiligenceContainer> start({
     String envFile = '.env',
     bool test = false,
+    bool e2e = false,
   }) async {
     await dot_env.load(fileName: envFile);
-    final config = getConfig(test);
     final pathToDb = await dbPath(test);
+    final config = getConfig(test, pathToDb);
     if (showDbPath(config)) {
       // ignore: avoid_print
       print('Database path: $pathToDb');
@@ -91,11 +93,12 @@ class DiligenceContainer {
     if (test) {
       await deleteDb(pathToDb);
     }
-    final clock = test ? TickingStubClock() : const Clock();
+    final clock = test ? StubClock() : Clock();
     final di = Di(dbPath: pathToDb, isTest: test, clock: clock);
     final diligent = di.diligent;
     await diligent.runMigrations();
     await diligent.initialAreas(initialAreas);
+    di.jobQueue.registerEventHandlers(diligent);
     await di.jobTrack.start();
 
     return DiligenceContainer(
@@ -106,16 +109,17 @@ class DiligenceContainer {
     );
   }
 
-  static DiligenceConfig getConfig(bool test) {
+  static DiligenceConfig getConfig(bool test, String dbPath) {
     if (test) {
       return DiligenceConfig.fromEnv(
         dot_env.env,
         showDbPath: false,
         showReviewPage: true,
+        dbPath: dbPath,
       );
     }
 
-    return DiligenceConfig.fromEnv(dot_env.env);
+    return DiligenceConfig.fromEnv(dot_env.env, dbPath: dbPath);
   }
 
   static Future<Directory> getApplicationDirectory() =>

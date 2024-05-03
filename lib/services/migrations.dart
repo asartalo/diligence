@@ -56,4 +56,28 @@ const migrationQueries = [
   )
   ''',
   'CREATE INDEX IF NOT EXISTS jobs_type ON jobs(type)',
+
+  'ALTER TABLE tasks DROP COLUMN reminderAt',
+
+  '''
+  CREATE TABLE IF NOT EXISTS reminders (
+    taskId INTEGER NOT NULL,
+    remindAt INTEGER NOT NULL UNIQUE,
+    dismissed INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (taskId, remindAt),
+    FOREIGN KEY (taskId) REFERENCES tasks(id) ON DELETE CASCADE
+  )
+  ''',
+  '''
+  CREATE TABLE IF NOT EXISTS notices (
+    uuid TEXT PRIMARY KEY,
+    type TEXT NOT NULL,
+    title TEXT,
+    details TEXT,
+    taskId INTEGER,
+    createdAt INTEGER NOT NULL
+  )
+  ''',
+
+  'CREATE INDEX runAtIdx On jobs(runAt)',
 ];

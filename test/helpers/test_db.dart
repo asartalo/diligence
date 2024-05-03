@@ -1,3 +1,4 @@
 import 'package:sqlite_async/sqlite_async.dart';
 
-final testDb = SqliteDatabase(path: 'diligence_test.db');
+const testDbPath = 'diligence_test.db';
+final testDb = SqliteDatabase(path: testDbPath);

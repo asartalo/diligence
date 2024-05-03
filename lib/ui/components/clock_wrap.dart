@@ -16,8 +16,9 @@
 
 import 'dart:async';
 
-import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
+
+import '../../utils/clock.dart';
 
 typedef ClockCallback = Widget Function(DateTime time);
 
@@ -40,13 +41,15 @@ DateTime _nextExactMinute(DateTime time) {
   );
 }
 
-Duration _untilNextExactMinute(DateTime time) {
+Duration _untilNextExactMinute(DateTime time, Clock clock) {
   final roundUpMinute = _nextExactMinute(time);
   return roundUpMinute.difference(clock.now());
 }
 
+const oneMinute = Duration(minutes: 1);
+
 class _ClockWrapState extends State<ClockWrap> {
-  late Timer timer;
+  Timer? timer;
   late DateTime time;
 
   Clock get clock => widget.clock;
@@ -55,12 +58,18 @@ class _ClockWrapState extends State<ClockWrap> {
   void initState() {
     super.initState();
     time = clock.now();
-    Timer(_untilNextExactMinute(time), () {
+    clock.timer(_untilNextExactMinute(time, clock), () {
       updateTime();
-      timer = Timer.periodic(const Duration(minutes: 1), (Timer t) {
-        updateTime();
-      });
+      timer = clock.periodic(oneMinute, (_) => updateTime());
     });
+  }
+
+  @override
+  void dispose() {
+    if (timer is Timer) {
+      timer!.cancel();
+    }
+    super.dispose();
   }
 
   void updateTime() {

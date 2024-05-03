@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart' show immutable;
 
 import 'persisted_task.dart';
@@ -74,7 +73,8 @@ class ModifiedTask with TaskCommons implements Task {
     this.expanded = false,
     this.deadlineAt,
     required this.originalTask,
-  }) : updatedAt = clock.now() {
+    required DateTime now,
+  }) : updatedAt = now {
     _checkModifications(
       originalTask,
       parentId: parentId,
@@ -99,11 +99,13 @@ class ModifiedTask with TaskCommons implements Task {
     DateTime? createdAt,
     DateTime? updatedAt,
     DateTime? deadlineAt,
+    required DateTime now,
   }) {
     return ModifiedTask(
+      now: now,
       originalTask: originalTask,
       parentId: parentId ?? this.parentId,
-      doneAt: normalizedDoneAt(done, doneAt),
+      doneAt: normalizedDoneAt(now, done, doneAt),
       name: name ?? this.name,
       details: normalizedDetails(details),
       expanded: expanded ?? this.expanded,

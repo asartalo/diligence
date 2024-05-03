@@ -1,5 +1,8 @@
+import 'package:diligence/models/reminders/reminder.dart';
+import 'package:diligence/models/reminders/reminder_list.dart';
 import 'package:diligence/models/task.dart';
 import 'package:diligence/services/diligent.dart';
+import 'package:diligence/utils/stub_clock.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../helpers/error_matcher.dart';
@@ -19,9 +22,11 @@ List<String> taskNames(List<Task?> tasks) {
 void main() {
   group('Diligent', () {
     late Diligent diligent;
+    late StubClock clock;
 
     setUpAll(() async {
-      diligent = Diligent.forTests(db: testDb);
+      clock = StubClock();
+      diligent = Diligent.forTests(db: testDb, clock: clock);
       await diligent.runMigrations();
     });
 
@@ -178,8 +183,9 @@ void main() {
 
       setUpAll(() async {
         task = await diligent.addTask(diligent.newTask(name: 'Foo'));
+        clock.advance(const Duration(seconds: 1));
         updatedTask = await diligent.updateTask(
-          task.copyWith(name: 'Bar'),
+          task.copyWith(name: 'Bar', now: clock.now()),
         );
       });
 
@@ -327,7 +333,7 @@ void main() {
 
       test('it can update a task', () async {
         final task = await diligent.addTask(diligent.newTask(name: 'Foo'));
-        await diligent.updateTask(task.copyWith(name: 'Bar'));
+        await diligent.updateTask(task.copyWith(name: 'Bar', now: clock.now()));
         final updatedTask = await diligent.findTask(task.id);
         expect(updatedTask?.name, equals('Bar'));
       });
@@ -633,7 +639,7 @@ void main() {
         () async {
           await diligent.focus(setupResult['A1i - leaf']!);
           final task = setupResult['B2ii - leaf']!;
-          await diligent.updateTask(task.markDone());
+          await diligent.updateTask(task.markDone(clock.now()));
           await diligent.focus(setupResult['B']!);
           expect(
             taskNames(await diligent.focusQueue()),
@@ -690,7 +696,8 @@ void main() {
           final task = setupResult['C - leaf']!;
           await diligent.focus(setupResult['A1i - leaf']!);
           await diligent.focus(task);
-          await diligent.updateTask(task.copyWith(doneAt: DateTime.now()));
+          final now = clock.now();
+          await diligent.updateTask(task.markDone(now));
           expect(
             taskNames(await diligent.focusQueue()),
             equals([
@@ -775,7 +782,8 @@ void main() {
 
       Future<void> markNodesDone(List<String> taskNames) async {
         for (final taskName in taskNames) {
-          await diligent.updateTask(setupResult[taskName]!.markDone());
+          await diligent
+              .updateTask(setupResult[taskName]!.markDone(clock.now()));
         }
       }
 
@@ -783,7 +791,7 @@ void main() {
         'marking a single leaf node as done while its siblings are not done does not affect ancestors',
         () async {
           final task = setupResult['A1i - leaf']!;
-          await diligent.updateTask(task.markDone());
+          await diligent.updateTask(task.markDone(clock.now()));
           final a1 = await diligent.findTask(setupResult['A1']!.id);
           final a = await diligent.findTask(setupResult['A']!.id);
           expect(a1!.done, isFalse);
@@ -839,10 +847,10 @@ void main() {
       test(
         'marking a single leaf node not done when its parent is done marks its parent as not done',
         () async {
-          await diligent.updateTask(setupResult['A1']!.markDone());
+          await diligent.updateTask(setupResult['A1']!.markDone(clock.now()));
           final updatedA1i =
               await diligent.findTask(setupResult['A1i - leaf']!.id);
-          await diligent.updateTask(updatedA1i!.markNotDone());
+          await diligent.updateTask(updatedA1i!.markNotDone(clock.now()));
           final a1 = await diligent.findTask(setupResult['A1']!.id);
           expect(a1!.done, isFalse);
         },
@@ -851,10 +859,10 @@ void main() {
       test(
         'marking a single leaf node not done when its ancestors are done marks them as not done too',
         () async {
-          await diligent.updateTask(setupResult['A']!.markDone());
+          await diligent.updateTask(setupResult['A']!.markDone(clock.now()));
           final updatedA1i =
               await diligent.findTask(setupResult['A1i - leaf']!.id);
-          await diligent.updateTask(updatedA1i!.markNotDone());
+          await diligent.updateTask(updatedA1i!.markNotDone(clock.now()));
           final ancestors = ['A1', 'A'];
           for (final ancestor in ancestors) {
             final task = await diligent.findTask(setupResult[ancestor]!.id);
@@ -866,7 +874,7 @@ void main() {
       test(
         'marking a parent node as done marks all of its children as done',
         () async {
-          await diligent.updateTask(setupResult['A1']!.markDone());
+          await diligent.updateTask(setupResult['A1']!.markDone(clock.now()));
           final names = ['A1i - leaf', 'A1ii - leaf', 'A1iii - leaf'];
           for (final name in names) {
             final task = await diligent.findTask(setupResult[name]!.id);
@@ -878,7 +886,7 @@ void main() {
       test(
         'marking an ancestor node as done marks all of its descendants as done',
         () async {
-          await diligent.updateTask(setupResult['A']!.markDone());
+          await diligent.updateTask(setupResult['A']!.markDone(clock.now()));
           final names = [
             'A1i - leaf',
             'A1ii - leaf',
@@ -903,7 +911,7 @@ void main() {
           ];
           await markNodesDone(names);
           final updatedA1 = await diligent.findTask(setupResult['A1']!.id);
-          await diligent.updateTask(updatedA1!.markNotDone());
+          await diligent.updateTask(updatedA1!.markNotDone(clock.now()));
           for (final name in names) {
             final task = await diligent.findTask(setupResult[name]!.id);
             expect(task!.done, isFalse);
@@ -917,7 +925,7 @@ void main() {
           await diligent.focus(setupResult['A1i - leaf']!);
           await markNodesDone(['A']);
           final updatedA1 = await diligent.findTask(setupResult['A1']!.id);
-          await diligent.updateTask(updatedA1!.markNotDone());
+          await diligent.updateTask(updatedA1!.markNotDone(clock.now()));
           final queue =
               (await diligent.focusQueue()).map((task) => task.name).toList();
           expect(queue, isNot(contains('A1i - leaf')));
@@ -946,7 +954,7 @@ void main() {
           final a1iLeaf =
               await diligent.findTask(setupResult['A1i - leaf']!.id);
           expect(a1iLeaf!.done, isTrue);
-          await diligent.updateTask(a1iLeaf.markNotDone());
+          await diligent.updateTask(a1iLeaf.markNotDone(clock.now()));
 
           final toCheck = ['A1', 'A'];
           for (final name in toCheck) {
@@ -1010,7 +1018,8 @@ void main() {
       });
 
       test('task can have a deadline', () async {
-        final deadline = DateTime.now()
+        final deadline = diligent.clock
+            .now()
             .add(const Duration(days: 2))
             .copyWith(microsecond: 0);
         final task = await diligent.addTask(diligent.newTask(
@@ -1020,7 +1029,99 @@ void main() {
         expect(task.deadlineAt, equals(deadline));
       });
     });
+
+    group('Reminders', () {
+      late Task task;
+      late DateTime now;
+      late DateTime tomorrow;
+      late Reminder reminder;
+
+      setUp(() async {
+        task = await diligent.addTask(diligent.newTask(name: 'Foo'));
+        now = diligent.clock.now();
+        tomorrow = now.add(const Duration(days: 1));
+        reminder = Reminder(taskId: task.id, remindAt: tomorrow);
+        await diligent.addReminders([reminder]);
+      });
+
+      test('a reminder can be set to a task', () async {
+        final reminders = await diligent.getNextReminders(tomorrow);
+
+        expect(reminders.first.taskId, equals(task.id));
+      });
+
+      test('a reminder is not dismissed by default', () async {
+        expect(reminder.dismissed, isFalse);
+      });
+
+      test('multiple reminders can be set to a task', () async {
+        final dayAfterTom = tomorrow.add(const Duration(days: 1));
+        await diligent.addReminders([
+          Reminder(taskId: task.id, remindAt: dayAfterTom),
+        ]);
+        final reminders = await diligent.getRemindersForTask(task);
+
+        expect(uniques(reminders, (reminder) => reminder.taskId), [task.id]);
+        expect(
+          reminders.map((reminder) => reminder.remindAt.millisecondsSinceEpoch),
+          [
+            tomorrow.millisecondsSinceEpoch,
+            dayAfterTom.millisecondsSinceEpoch,
+          ],
+        );
+      });
+
+      test('a reminder can be dismissed', () async {
+        clock.advance(const Duration(days: 1));
+        await diligent.dismissReminder(reminder);
+        final reminders = await diligent.getRemindersForTask(task);
+
+        expect(reminders.first.dismissed, isTrue);
+      });
+
+      test(
+        'a reminder cannnot be dismissed if it is not past remindAt yet',
+        () async {
+          expect(
+            () async {
+              await diligent.dismissReminder(reminder);
+            },
+            throwsA(
+              matchesError<ReminderError>(
+                'Cannot dismiss a reminder before it is due.',
+              ),
+            ),
+          );
+          final reminders = await diligent.getRemindersForTask(task);
+
+          expect(reminders.first.dismissed, isFalse);
+        },
+      );
+
+      test('reminders can be deleted', () async {
+        final dayAfterTom = tomorrow.add(const Duration(days: 1));
+        final reminder2 = Reminder(taskId: task.id, remindAt: dayAfterTom);
+        await diligent.addReminders([reminder2]);
+        await diligent.deleteReminders([reminder, reminder2]);
+        final reminders = await diligent.getRemindersForTask(task);
+
+        expect(reminders, isEmpty);
+      });
+
+      test('reminders are part of the task pack', () async {
+        final pack = await diligent.getTaskPackById(task.id);
+        expect(pack!.reminders, ReminderList([reminder]));
+      });
+    });
   });
+}
+
+List<T> uniques<T, F>(List<F> list, T Function(F) mapper) {
+  final result = <T>{};
+  for (final item in list) {
+    result.add(mapper(item));
+  }
+  return result.toList();
 }
 
 class _Tts {

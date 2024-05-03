@@ -19,10 +19,14 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../../../models/commands/commands.dart';
+import '../../../models/new_task.dart';
+import '../../../models/reminders/reminder_list.dart';
 import '../../../models/task.dart';
 import '../../../models/task_node.dart';
+import '../../../models/task_pack.dart';
 import '../../../services/diligent.dart';
 import '../../../services/diligent/diligent_commander.dart';
+import '../../../utils/clock.dart';
 import '../../components/common_screen.dart';
 import 'keys.dart' as keys;
 import 'task_dialog.dart';
@@ -31,7 +35,8 @@ import 'task_tree.dart';
 class TasksScreen extends StatefulWidget {
   final Diligent diligent;
   final DiligentCommander commander;
-  TasksScreen({super.key, required this.diligent})
+  final Clock clock;
+  TasksScreen({super.key, required this.diligent, required this.clock})
       : commander = DiligentCommander(diligent);
 
   @override
@@ -43,6 +48,7 @@ class _TasksScreenState extends State<TasksScreen> {
   late Task _root;
 
   Diligent get diligent => widget.diligent;
+  Clock get clock => widget.clock;
 
   @override
   void initState() {
@@ -102,6 +108,7 @@ class _TasksScreenState extends State<TasksScreen> {
         child: const Icon(Icons.add),
       ),
       child: TaskTree(
+        clock: clock,
         taskNodes: _taskNodes,
         onUpdateTask: (task, index) {
           _handleUpdateTask(task, index);
@@ -123,13 +130,12 @@ class _TasksScreenState extends State<TasksScreen> {
   }
 
   Future<void> _handleAddTaskFloatingButtonPressed() async {
-    final command =
-        await TaskDialog.open(context, diligent.newTask(parent: _root));
-    if (command is NewTaskCommand) {
-      final newTask = command.payload;
-      await diligent.addTask(newTask);
-      await updateTaskTree();
-    }
+    final pack = TaskPack(
+      diligent.newTask(parent: _root),
+      reminders: ReminderList([]),
+    );
+    final command = await TaskDialog.open(context, pack: pack, clock: clock);
+    if (command is Command) await _handleCommand(command);
   }
 
   Future<void> _handleToggleExpandTask(Task task, int _) async {
@@ -138,7 +144,16 @@ class _TasksScreenState extends State<TasksScreen> {
   }
 
   Future<void> _handleRequestTask(Task task, int _) async {
-    final command = await TaskDialog.open(context, task);
+    final pack = task is NewTask
+        ? TaskPack(task, reminders: ReminderList([]))
+        : await diligent.getTaskPackById(task.id);
+    if (pack == null) {
+      throw AssertionError(
+          '_handleRequest() unexpected missing task pack for ${task.uid}');
+    }
+    if (!context.mounted) return;
+    // ignore: use_build_context_synchronously
+    final command = await TaskDialog.open(context, pack: pack, clock: clock);
     if (command is Command) {
       await _handleCommand(command);
     }
@@ -163,7 +178,8 @@ class _TasksScreenState extends State<TasksScreen> {
   }
 
   Future<void> _expandTask(Task task, {bool expanded = true}) async {
-    await diligent.updateTask(task.copyWith(expanded: expanded));
+    await diligent
+        .updateTask(task.copyWith(expanded: expanded, now: clock.now()));
   }
 
   Future<void> _expandParent(Task task) async {

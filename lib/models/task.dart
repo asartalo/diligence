@@ -39,11 +39,12 @@ abstract class Task {
     DateTime? createdAt,
     DateTime? updatedAt,
     DateTime? deadlineAt,
+    required DateTime now,
   });
 
-  Task markDone();
+  Task markDone(DateTime now);
 
-  Task markNotDone();
+  Task markNotDone(DateTime now);
 
   void validate();
 }

@@ -1,8 +1,7 @@
 import 'dart:async';
 
-import 'package:clock/clock.dart';
-
 import '../../models/scheduled_job.dart';
+import '../../utils/clock.dart';
 import 'job_queue.dart';
 import 'job_runner.dart';
 
@@ -43,7 +42,8 @@ class JobTrack implements NextJobListener {
       _queuedTimer!.cancel();
     }
 
-    _queuedTimer = Timer(_doItIn(job.runAt), () async {
+    final doItIn = _doItIn(job.runAt);
+    _queuedTimer = clock.timer(doItIn, () async {
       if (await jobQueue.isPending(job)) {
         final runner = runnerFactoryFunc(job);
         // TODO: How to handle job run failures?

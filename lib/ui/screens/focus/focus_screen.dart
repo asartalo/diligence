@@ -23,6 +23,7 @@ import '../../../models/task.dart';
 import '../../../models/task_list.dart';
 import '../../../services/diligent.dart';
 import '../../../services/diligent/diligent_commander.dart';
+import '../../../utils/clock.dart';
 import '../../components/common_screen.dart';
 import '../../components/reveal_on_hover.dart';
 import '../tasks/task_dialog.dart';
@@ -31,7 +32,8 @@ import 'focus_queue.dart';
 class FocusScreen extends StatefulWidget {
   final Diligent diligent;
   final DiligentCommander commander;
-  FocusScreen({super.key, required this.diligent})
+  final Clock clock;
+  FocusScreen({super.key, required this.diligent, required this.clock})
       : commander = DiligentCommander(diligent);
 
   @override
@@ -44,6 +46,7 @@ class _FocusScreenState extends State<FocusScreen> {
   late int _limit;
 
   Diligent get diligent => widget.diligent;
+  Clock get clock => widget.clock;
 
   @override
   void initState() {
@@ -92,6 +95,7 @@ class _FocusScreenState extends State<FocusScreen> {
             children: [
               FocusQueue(
                 queue: _queue,
+                clock: clock,
                 onReorderQueue: (oldIndex, newIndex) {
                   _handleReorderQueue(oldIndex, newIndex);
                 },
@@ -126,7 +130,10 @@ class _FocusScreenState extends State<FocusScreen> {
   }
 
   Future<void> _handleRequestTask(Task task, int index) async {
-    final command = await TaskDialog.open(context, task);
+    final pack = await diligent.getTaskPackById(task.id);
+    if (!context.mounted) return;
+    // ignore: use_build_context_synchronously
+    final command = await TaskDialog.open(context, pack: pack!, clock: clock);
     if (command is Command) {
       await _handleCommand(command, index);
     }

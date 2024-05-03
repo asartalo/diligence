@@ -18,12 +18,14 @@ import 'package:flutter/material.dart';
 
 import '../../../models/commands/commands.dart';
 import '../../../models/task_list.dart';
+import '../../../utils/clock.dart';
 import '../../../utils/types.dart';
 import '../tasks/task_item.dart';
 import 'keys.dart' as keys;
 
 class FocusQueue extends StatelessWidget {
   final TaskList queue;
+  final Clock clock;
   final void Function(int oldIndex, int newIndex) onReorderQueue;
   final TaskIndexCallback onUpdateTask;
   final TaskIndexCallback onRequestTask;
@@ -32,6 +34,7 @@ class FocusQueue extends StatelessWidget {
 
   const FocusQueue({
     super.key,
+    required this.clock,
     required this.queue,
     required this.onReorderQueue,
     required this.onUpdateTask,
@@ -54,6 +57,7 @@ class FocusQueue extends StatelessWidget {
           key: Key('fQ-${task.id}'),
           index: index,
           child: TaskItem(
+            clock: clock,
             task: task,
             focused: true,
             onUpdateTask: (task) => onUpdateTask(task, index),

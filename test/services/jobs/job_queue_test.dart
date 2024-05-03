@@ -1,20 +1,10 @@
-import 'package:clock/clock.dart';
 import 'package:diligence/models/reminder_job.dart';
 import 'package:diligence/models/scheduled_job.dart';
 import 'package:diligence/services/jobs/job_queue.dart';
+import 'package:diligence/utils/clock.dart';
+import 'package:diligence/utils/stub_clock.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite_async/sqlite_async.dart';
-
-class StubClock extends Clock {
-  final DateTime nowValue;
-
-  StubClock({DateTime? nowValue}) : nowValue = nowValue ?? DateTime.now();
-
-  @override
-  DateTime now() {
-    return nowValue;
-  }
-}
 
 void main() {
   group('JobScheduler', () {
@@ -25,7 +15,7 @@ void main() {
 
     setUp(() async {
       listener = StubListener();
-      clock = StubClock(nowValue: startNow);
+      clock = StubClock(startNow);
       // Tests run in parallel so make each test file unique
       final testDb = SqliteDatabase(path: 'test_job_scheduler.db');
       jobScheduler = JobQueue.forTests(db: testDb, clock: clock);

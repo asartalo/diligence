@@ -16,7 +16,7 @@
 
 import 'package:diligence/diligence_container.dart';
 import 'package:diligence/services/diligent.dart';
-import 'package:diligence/utils/ticking_stub_clock.dart';
+import 'package:diligence/utils/stub_clock.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -26,7 +26,7 @@ class DtestBase {
 
   Diligent get diligent => container.diligent;
 
-  TickingStubClock get clock => container.diligent.clock as TickingStubClock;
+  StubClock get clock => container.diligent.clock as StubClock;
 
   DtestBase(this.tester, {required this.container});
 
@@ -53,7 +53,13 @@ class DtestBase {
     clock.setCurrentTime(now);
   }
 
-  void advanceClock(Duration duration) {
+  Future<void> advanceClock(Duration duration) async {
     clock.advance(duration);
+    await tester.pump(duration);
+  }
+
+  Future<void> timeTravel(DateTime time) async {
+    clock.timeTravel(time);
+    await tester.pumpAndSettle();
   }
 }

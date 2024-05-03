@@ -1,6 +1,7 @@
 import 'package:diligence/models/modified_task.dart';
 import 'package:diligence/models/persisted_task.dart';
 import 'package:diligence/models/task.dart';
+import 'package:diligence/utils/stub_clock.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -8,6 +9,7 @@ void main() {
     late ModifiedTask task;
     late PersistedTask persistedTask;
     final now = DateTime.now();
+    final clock = StubClock(now);
 
     setUp(() {
       persistedTask = PersistedTask(
@@ -18,7 +20,9 @@ void main() {
         createdAt: now,
         updatedAt: now,
       );
+      clock.advance(const Duration(seconds: 1));
       task = ModifiedTask(
+        now: clock.now(),
         originalTask: persistedTask,
         name: 'FooBaz',
         details: 'BarBaz',
@@ -47,7 +51,7 @@ void main() {
     });
 
     test('it identifies that doneAt had been changed when marked as done', () {
-      final modified = task.markDone() as ModifiedTask;
+      final modified = task.markDone(clock.now()) as ModifiedTask;
       expect(modified.modifiedFields(), contains('doneAt'));
     });
 
@@ -60,7 +64,11 @@ void main() {
     });
 
     test('it updates updatedAt when task is modified again', () {
-      final modified = task.copyWith(name: 'FooBaz');
+      clock.advance(const Duration(seconds: 1));
+      final modified = task.copyWith(
+        name: 'FooBaz',
+        now: clock.now(),
+      );
       expect(modified.updatedAt.isAfter(task.updatedAt), isTrue);
     });
   });

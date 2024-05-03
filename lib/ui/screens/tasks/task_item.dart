@@ -21,6 +21,7 @@ import '../../../models/commands/commands.dart';
 import '../../../models/persisted_task.dart';
 import '../../../models/task.dart';
 import '../../../services/diligent.dart';
+import '../../../utils/clock.dart';
 import '../../../utils/types.dart';
 import '../../colors.dart' as colors;
 import '../../components/reveal_on_hover.dart';
@@ -41,6 +42,7 @@ class TaskItem extends StatefulWidget {
   final int? childrenCount;
   final TaskItemStyle style;
   final double levelScale;
+  final Clock clock;
 
   const TaskItem({
     super.key,
@@ -48,6 +50,7 @@ class TaskItem extends StatefulWidget {
     required this.onUpdateTask,
     required this.onRequestTask,
     required this.onCommand,
+    required this.clock,
     this.focused = false,
     this.onToggleExpandTask,
     this.level,
@@ -64,6 +67,7 @@ class _TaskItemState extends State<TaskItem> {
   late FocusNode focusNode;
 
   Task get task => widget.task;
+  Clock get clock => widget.clock;
 
   @override
   void initState() {
@@ -138,7 +142,9 @@ class _TaskItemState extends State<TaskItem> {
           value: task.done,
           onChanged: (bool? done) {
             widget.onUpdateTask(
-              done == true ? task.markDone() : task.markNotDone(),
+              done == true
+                  ? task.markDone(clock.now())
+                  : task.markNotDone(clock.now()),
             );
           },
         ),
@@ -178,7 +184,7 @@ class _TaskItemState extends State<TaskItem> {
         icon: Icons.delete,
         label: 'Delete',
         onPressed: () {
-          widget.onCommand(DeleteTaskCommand(task: task));
+          widget.onCommand(DeleteTaskCommand(task: task, at: clock.now()));
         },
       ),
       focusToggle(),
@@ -191,7 +197,7 @@ class _TaskItemState extends State<TaskItem> {
             key: keys.taskMenuUnfocus,
             icon: Icons.visibility_off,
             onPressed: () {
-              widget.onCommand(UnfocusTaskCommand(task: task));
+              widget.onCommand(UnfocusTaskCommand(task: task, at: clock.now()));
             },
             label: 'Unfocus',
           )
@@ -199,7 +205,7 @@ class _TaskItemState extends State<TaskItem> {
             key: keys.taskMenuFocus,
             icon: Icons.visibility,
             onPressed: () {
-              widget.onCommand(FocusTaskCommand(task: task));
+              widget.onCommand(FocusTaskCommand(task: task, at: clock.now()));
             },
             label: 'Focus',
           );

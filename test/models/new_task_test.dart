@@ -5,12 +5,14 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('NewTask', () {
     late Task task;
+    final now = DateTime.now();
 
     setUp(() {
       task = NewTask(
         name: 'Foo',
         details: 'Bar',
         parentId: 1,
+        now: now,
       );
     });
 
@@ -36,8 +38,10 @@ void main() {
 
     group('#markDone()', () {
       late Task doneTask;
+      final nowPlusOne = now.add(const Duration(seconds: 1));
+
       setUp(() {
-        doneTask = task.markDone();
+        doneTask = task.markDone(nowPlusOne);
       });
 
       test('should return a Task with doneAt set to now', () {
@@ -51,8 +55,11 @@ void main() {
 
     group('#markNotDone()', () {
       late Task notDoneTask;
+      final nowPlusOne = now.add(const Duration(seconds: 1));
+      final nowPlusTwo = now.add(const Duration(seconds: 2));
+
       setUp(() {
-        notDoneTask = task.markDone().markNotDone();
+        notDoneTask = task.markDone(nowPlusOne).markNotDone(nowPlusTwo);
       });
 
       test('should return a Task with doneAt set to null', () {

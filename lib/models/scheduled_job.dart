@@ -1,7 +1,6 @@
 import 'package:equatable/equatable.dart';
-import 'package:uuid/v4.dart';
 
-const generator = UuidV4();
+import '../utils/uuidv4.dart';
 
 abstract class ScheduledJob extends Equatable {
   final String uuid;
@@ -12,7 +11,7 @@ abstract class ScheduledJob extends Equatable {
     String? uuid,
     required this.runAt,
     required this.type,
-  }) : uuid = uuid ?? generator.generate();
+  }) : uuid = uuid ?? uuidv4();
 
   @override
   List<Object?> get props => [uuid, runAt, type];

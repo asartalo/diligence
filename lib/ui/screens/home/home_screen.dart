@@ -14,19 +14,18 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
+import '../../../utils/clock.dart';
+import '../../../utils/i18n.dart';
 import '../../components/clock_wrap.dart';
 import '../../components/common_screen.dart';
 
+@immutable
 class HomeScreen extends StatelessWidget {
-  final timeFormat = DateFormat.jm();
-  final dateFormat = DateFormat('EEEE, MMMM d, y');
   final Clock clock;
 
-  HomeScreen({super.key, required this.clock});
+  const HomeScreen({super.key, required this.clock});
 
   @override
   Widget build(BuildContext context) {
@@ -64,7 +63,7 @@ class HomeScreen extends StatelessWidget {
                   style: hourStyle,
                 ),
                 Text(
-                  dateFormat.format(time),
+                  dateFormatWithDay.format(time),
                   style: theme.textTheme.headlineMedium,
                 ),
                 const SizedBox(height: 32.0),

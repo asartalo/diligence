@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
 import 'diligence_config.dart';
@@ -27,6 +27,7 @@ import 'ui/screens/home/home_screen.dart';
 import 'ui/screens/review/review_screen.dart';
 import 'ui/screens/settings/settings_screen.dart';
 import 'ui/screens/tasks/tasks_screen.dart';
+import 'utils/clock.dart';
 
 final diligenceTheme = DiligenceTheme.createThemeData();
 
@@ -44,12 +45,24 @@ class DiligenceApp extends StatelessWidget {
         title: 'Diligence',
         theme: diligenceTheme,
         initialRoute: '/',
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [
+          Locale('en'), // English
+        ],
         routes: {
           '/': (context) => HomeScreen(clock: Provider.of<Clock>(context)),
-          '/tasks': (context) =>
-              TasksScreen(diligent: Provider.of<Diligent>(context)),
-          '/focus': (context) =>
-              FocusScreen(diligent: Provider.of<Diligent>(context)),
+          '/tasks': (context) => TasksScreen(
+                diligent: Provider.of<Diligent>(context),
+                clock: Provider.of<Clock>(context),
+              ),
+          '/focus': (context) => FocusScreen(
+                diligent: Provider.of<Diligent>(context),
+                clock: Provider.of<Clock>(context),
+              ),
           '/review': (context) => const ReviewScreen(title: 'Diligence'),
           '/settings': (context) =>
               SettingsScreen(config: Provider.of<DiligenceConfig>(context)),

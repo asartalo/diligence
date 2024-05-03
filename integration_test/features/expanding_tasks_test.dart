@@ -20,14 +20,14 @@ Future<void> main() async {
   integrationTest('Expanding Tasks', () {
     Future<void> setupTasks(Dtest dtest) async {
       await dtest.setUpInitialTasks([
-        const TestSetupTaskParam('1 Life', parent: 'Life'),
-        const TestSetupTaskParam('2 Life', parent: 'Life'),
-        const TestSetupTaskParam('2a Life', parent: '2 Life'),
-        const TestSetupTaskParam('2b Life', parent: '2 Life'),
-        const TestSetupTaskParam('3 Life', parent: 'Life'),
-        const TestSetupTaskParam('1 Work', parent: 'Work'),
-        const TestSetupTaskParam('2 Work', parent: 'Work'),
-        const TestSetupTaskParam('3 Work', parent: 'Work'),
+        const SetupTaskParam('1 Life', parent: 'Life'),
+        const SetupTaskParam('2 Life', parent: 'Life'),
+        const SetupTaskParam('2a Life', parent: '2 Life'),
+        const SetupTaskParam('2b Life', parent: '2 Life'),
+        const SetupTaskParam('3 Life', parent: 'Life'),
+        const SetupTaskParam('1 Work', parent: 'Work'),
+        const SetupTaskParam('2 Work', parent: 'Work'),
+        const SetupTaskParam('3 Work', parent: 'Work'),
       ]);
     }
 

@@ -36,13 +36,13 @@ Future<void> main() async {
       'Focusing a task with children adds the leaf nodes to the queue',
       (dtest) async {
         await dtest.setUpInitialTasks([
-          const TestSetupTaskParam('1 Inbox', parent: 'Inbox'),
-          const TestSetupTaskParam('2 Inbox', parent: 'Inbox', done: true),
-          const TestSetupTaskParam('3 Inbox', parent: 'Inbox'),
+          const SetupTaskParam('1 Inbox', parent: 'Inbox'),
+          const SetupTaskParam('2 Inbox', parent: 'Inbox', done: true),
+          const SetupTaskParam('3 Inbox', parent: 'Inbox'),
         ]);
         await dtest.setUpInitialTasks([
-          const TestSetupTaskParam('3a Inbox', parent: '3 Inbox', done: true),
-          const TestSetupTaskParam('3b Inbox', parent: '3 Inbox'),
+          const SetupTaskParam('3a Inbox', parent: '3 Inbox', done: true),
+          const SetupTaskParam('3b Inbox', parent: '3 Inbox'),
         ]);
         final ts = await dtest.navigateToTasksScreen();
         await ts.focusTask('Inbox');
