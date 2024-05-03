@@ -17,16 +17,20 @@
 import 'package:flutter/foundation.dart' show immutable;
 
 import '../new_task.dart';
+import '../reminders/reminder_list.dart';
 import 'command.dart';
 
 @immutable
 class NewTaskCommand extends CommandPack<NewTask> {
   final NewTask task;
+  final ReminderList reminders;
 
   NewTaskCommand({
     super.message = 'New task created',
+    required super.at,
     required this.task,
-  });
+    ReminderList? reminders,
+  }) : reminders = reminders ?? ReminderList();
 
   @override
   NewTask get payload => task;

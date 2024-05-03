@@ -16,6 +16,7 @@
 
 import '../../../models/commands/commands.dart';
 
+import '../../../models/tasks.dart';
 import '../../diligent.dart';
 import 'fails_on_exception.dart';
 
@@ -25,13 +26,18 @@ Future<CommandResult> newTaskHandler(
 ) async {
   return failsOnException(
     () async {
-      final persisted = await diligent.addTask(command.payload);
+      final NewTaskCommand(:task, :reminders) = command;
+      final persisted = await diligent.addTask(task);
+
+      if (persisted is! PersistedTask) throw Exception('Task not persisted.');
+
+      await diligent.addReminders(reminders.remapToTask(persisted));
 
       return SuccessPack(
-        message: 'Task "${command.payload.name}" added successfully.',
+        message: 'Task "${task.name}" added successfully.',
         payload: persisted,
       );
     },
-    'Failed to add task "${command.payload.name}".',
+    'Failed to add task "${command.task.name}".',
   );
 }

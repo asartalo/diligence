@@ -36,15 +36,48 @@ const migrationQueries = [
   )
   ''',
   // Modify tasks table to add a new datetime column named doneAt
-  '''
-  ALTER TABLE tasks ADD COLUMN doneAt INTEGER
-  ''',
+  'ALTER TABLE tasks ADD COLUMN doneAt INTEGER',
 
-  '''
-  ALTER TABLE tasks DROP COLUMN done
-  ''',
+  'ALTER TABLE tasks DROP COLUMN done',
 
   'ALTER TABLE tasks ADD COLUMN createdAt INTEGER DEFAULT 0',
 
   'ALTER TABLE tasks ADD COLUMN updatedAt INTEGER DEFAULT 0',
+
+  'ALTER TABLE tasks ADD COLUMN deadlineAt INTEGER',
+
+  'ALTER TABLE tasks ADD COLUMN reminderAt INTEGER',
+  '''
+  CREATE TABLE IF NOT EXISTS jobs (
+    uuid TEXT PRIMARY KEY,
+    runAt INTEGER NOT NULL,
+    type TEXT NOT NULL,
+    taskId INTEGER
+  )
+  ''',
+  'CREATE INDEX IF NOT EXISTS jobs_type ON jobs(type)',
+
+  'ALTER TABLE tasks DROP COLUMN reminderAt',
+
+  '''
+  CREATE TABLE IF NOT EXISTS reminders (
+    taskId INTEGER NOT NULL,
+    remindAt INTEGER NOT NULL UNIQUE,
+    dismissed INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (taskId, remindAt),
+    FOREIGN KEY (taskId) REFERENCES tasks(id) ON DELETE CASCADE
+  )
+  ''',
+  '''
+  CREATE TABLE IF NOT EXISTS notices (
+    uuid TEXT PRIMARY KEY,
+    type TEXT NOT NULL,
+    title TEXT,
+    details TEXT,
+    taskId INTEGER,
+    createdAt INTEGER NOT NULL
+  )
+  ''',
+
+  'CREATE INDEX runAtIdx On jobs(runAt)',
 ];

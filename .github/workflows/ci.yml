@@ -1,4 +1,4 @@
-name: Continuous Integration and Delivery
+name: Continuous Integration
 
 on:
   push:
@@ -120,7 +120,7 @@ jobs:
             echo "version=${releaseVersionNoBuild}" >> $GITHUB_OUTPUT
             {
               echo 'summary<<EOF'
-              echo summary
+              echo $summary
               echo EOF
             } >> $GITHUB_OUTPUT
           else
@@ -136,7 +136,7 @@ jobs:
 
       - name: Install Build Dependencies
         if: steps.releaseInfo.outputs.shouldRelease == 'yes'
-        run: sudo apt-get install clang cmake ninja-build pkg-config libgtk-3-dev libblkid-dev liblzma-dev libsqlite3-dev fuse libfuse2
+        run: sudo apt-get install clang cmake ninja-build pkg-config libgtk-3-dev libblkid-dev liblzma-dev libsqlite3-dev libfuse2
 
       - name: Build
         if: steps.releaseInfo.outputs.shouldRelease == 'yes'

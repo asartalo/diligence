@@ -62,14 +62,19 @@ class ModifiedTask with TaskCommons implements Task {
   @override
   final DateTime updatedAt;
 
+  @override
+  final DateTime? deadlineAt;
+
   ModifiedTask({
     this.parentId,
     this.doneAt,
     this.name = '',
     this.details,
     this.expanded = false,
+    this.deadlineAt,
     required this.originalTask,
-  }) : updatedAt = DateTime.now() {
+    required DateTime now,
+  }) : updatedAt = now {
     _checkModifications(
       originalTask,
       parentId: parentId,
@@ -77,6 +82,7 @@ class ModifiedTask with TaskCommons implements Task {
       name: name,
       details: details,
       expanded: expanded,
+      deadlineAt: deadlineAt,
     );
   }
 
@@ -92,14 +98,18 @@ class ModifiedTask with TaskCommons implements Task {
     bool? expanded,
     DateTime? createdAt,
     DateTime? updatedAt,
+    DateTime? deadlineAt,
+    required DateTime now,
   }) {
     return ModifiedTask(
+      now: now,
       originalTask: originalTask,
       parentId: parentId ?? this.parentId,
-      doneAt: normalizedDoneAt(done, doneAt),
+      doneAt: normalizedDoneAt(now, done, doneAt),
       name: name ?? this.name,
       details: normalizedDetails(details),
       expanded: expanded ?? this.expanded,
+      deadlineAt: deadlineAt ?? this.deadlineAt,
     );
   }
 
@@ -110,12 +120,16 @@ class ModifiedTask with TaskCommons implements Task {
     String? name,
     String? details,
     bool? expanded,
+    DateTime? deadlineAt,
   }) {
     if (parentId != original.parentId) _modifiedFields.add('parentId');
     if (!sameTime(doneAt, original.doneAt)) _modifiedFields.add('doneAt');
     if (name != original.name) _modifiedFields.add('name');
     if (details != original.details) _modifiedFields.add('details');
     if (expanded != original.expanded) _modifiedFields.add('expanded');
+    if (!sameTime(deadlineAt, original.deadlineAt)) {
+      _modifiedFields.add('deadlineAt');
+    }
   }
 
   Set<String> modifiedFields() {

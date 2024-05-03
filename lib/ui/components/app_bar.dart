@@ -15,19 +15,22 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
+import '../../utils/clock.dart';
+import '../../utils/i18n.dart';
 import 'clock_wrap.dart';
 import 'keys.dart' as keys;
 
 AppBar appBar(BuildContext context, String title) {
+  final clock = Provider.of<Clock>(context);
   final theme = Theme.of(context);
   final titleStyle = theme.textTheme.titleLarge!.merge(
     TextStyle(
       color: theme.textTheme.bodyLarge!.color,
     ),
   );
-  final dateFormat = DateFormat('EEEE, MMMM d, y').add_jm();
+  // final dateFormatWithDay = DateFormat('EEEE, MMMM d, y').add_jm();
 
   return AppBar(
     leading: IconButton(
@@ -46,8 +49,9 @@ AppBar appBar(BuildContext context, String title) {
         padding: const EdgeInsets.only(right: 20.0),
         child: Center(
           child: ClockWrap(
+            clock: clock,
             builder: (time) => Text(
-              dateFormat.format(time),
+              dateFormatWithDay.format(time),
               style: theme.textTheme.bodyMedium,
             ),
           ),

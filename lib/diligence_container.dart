@@ -25,28 +25,37 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
+import 'di.dart';
 import 'diligence_config.dart';
 import 'services/diligent.dart';
 import 'services/review_data/review_data_bloc.dart';
 import 'services/review_data_service.dart';
 import 'services/side_effects.dart';
+import 'utils/clock.dart';
+import 'utils/stub_clock.dart';
 
 final loadAssetString = rootBundle.loadString;
 
 class DiligenceContainer {
   final DiligenceConfig config;
   final Diligent diligent;
+  final Di di;
+  final bool test;
 
   DiligenceContainer({
     required this.config,
     required this.diligent,
+    required this.di,
+    this.test = false,
   });
 
   List<SingleChildWidget> providers() {
     return [
       Provider(create: (_) => config),
       Provider(create: (_) => diligent),
+      Provider(create: (_) => di.clock),
       Provider(create: (_) => _sideEffects()),
+      Provider(create: (_) => di.noticeQueue),
       BlocProvider(
         create: (_) => ReviewDataBloc(
           ReviewDataService(),
@@ -60,40 +69,57 @@ class DiligenceContainer {
     return kReleaseMode ? ProductionSideEffects() : DevSideEffects(config);
   }
 
+  Future<void> resetDataForTests() async {
+    if (test) {
+      diligent.clearDataForTests();
+    }
+  }
+
   static bool showDbPath(DiligenceConfig config) =>
       !kReleaseMode && config.showDbPath;
 
   static Future<DiligenceContainer> start({
     String envFile = '.env',
     bool test = false,
+    bool e2e = false,
   }) async {
     await dot_env.load(fileName: envFile);
-    final config = getConfig(test);
     final pathToDb = await dbPath(test);
+    final config = getConfig(test, pathToDb);
     if (showDbPath(config)) {
       // ignore: avoid_print
       print('Database path: $pathToDb');
     }
-    final diligent = test ? Diligent.forTests() : Diligent(path: pathToDb);
+    if (test) {
+      await deleteDb(pathToDb);
+    }
+    final clock = test ? StubClock() : Clock();
+    final di = Di(dbPath: pathToDb, isTest: test, clock: clock);
+    final diligent = di.diligent;
     await diligent.runMigrations();
     await diligent.initialAreas(initialAreas);
+    di.jobQueue.registerEventHandlers(diligent);
+    await di.jobTrack.start();
 
     return DiligenceContainer(
       config: config,
       diligent: diligent,
+      di: di,
+      test: test,
     );
   }
 
-  static DiligenceConfig getConfig(bool test) {
+  static DiligenceConfig getConfig(bool test, String dbPath) {
     if (test) {
       return DiligenceConfig.fromEnv(
         dot_env.env,
-        showDbPath: true,
+        showDbPath: false,
         showReviewPage: true,
+        dbPath: dbPath,
       );
     }
 
-    return DiligenceConfig.fromEnv(dot_env.env);
+    return DiligenceConfig.fromEnv(dot_env.env, dbPath: dbPath);
   }
 
   static Future<Directory> getApplicationDirectory() =>
@@ -110,5 +136,12 @@ class DiligenceContainer {
     }
 
     return path.join(directory.path, dbName(test));
+  }
+
+  static Future<void> deleteDb(String path) async {
+    final file = File(path);
+    if (await file.exists()) {
+      await file.delete();
+    }
   }
 }

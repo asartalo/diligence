@@ -18,8 +18,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../diligence_config.dart';
+import '../../services/notices/notice_queue.dart';
 import './app_bar.dart';
 import 'diligence_drawer.dart';
+import 'notice_area.dart';
 
 class CommonScreen extends StatelessWidget {
   final Widget child;
@@ -46,8 +48,13 @@ class CommonScreen extends StatelessWidget {
         ),
       ),
       backgroundColor: theme.colorScheme.background,
-      body: Builder(
-        builder: (BuildContext context) => child,
+      body: Stack(
+        children: [
+          Builder(
+            builder: (BuildContext context) => child,
+          ),
+          NoticeArea(noticeQueue: Provider.of<NoticeQueue>(context)),
+        ],
       ),
       floatingActionButton: floatingActionButton,
       drawer: Builder(

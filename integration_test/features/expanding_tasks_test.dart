@@ -20,20 +20,20 @@ Future<void> main() async {
   integrationTest('Expanding Tasks', () {
     Future<void> setupTasks(Dtest dtest) async {
       await dtest.setUpInitialTasks([
-        const TestSetupTaskParam('1 Life', parent: 'Life'),
-        const TestSetupTaskParam('2 Life', parent: 'Life'),
-        const TestSetupTaskParam('2a Life', parent: '2 Life'),
-        const TestSetupTaskParam('2b Life', parent: '2 Life'),
-        const TestSetupTaskParam('3 Life', parent: 'Life'),
-        const TestSetupTaskParam('1 Work', parent: 'Work'),
-        const TestSetupTaskParam('2 Work', parent: 'Work'),
-        const TestSetupTaskParam('3 Work', parent: 'Work'),
+        const SetupTaskParam('1 Life', parent: 'Life'),
+        const SetupTaskParam('2 Life', parent: 'Life'),
+        const SetupTaskParam('2a Life', parent: '2 Life'),
+        const SetupTaskParam('2b Life', parent: '2 Life'),
+        const SetupTaskParam('3 Life', parent: 'Life'),
+        const SetupTaskParam('1 Work', parent: 'Work'),
+        const SetupTaskParam('2 Work', parent: 'Work'),
+        const SetupTaskParam('3 Work', parent: 'Work'),
       ]);
     }
 
     testApp('Expanding a task', (dtest) async {
       await setupTasks(dtest);
-      final ts = await dtest.navigateToTasksPage();
+      final ts = await dtest.navigateToTasksScreen();
       await ts.toggleExpand('Life');
       ts.expectTaskLayout([
         'Life',
@@ -49,7 +49,7 @@ Future<void> main() async {
 
     testApp('Contract a task subtree', (dtest) async {
       await setupTasks(dtest);
-      final ts = await dtest.navigateToTasksPage();
+      final ts = await dtest.navigateToTasksScreen();
       await ts.toggleExpand('Life');
       await ts.toggleExpand('Life');
       ts.expectTaskLayout([
@@ -63,7 +63,7 @@ Future<void> main() async {
 
     testApp('Expanding descendants', (dtest) async {
       await setupTasks(dtest);
-      final ts = await dtest.navigateToTasksPage();
+      final ts = await dtest.navigateToTasksScreen();
       await ts.toggleExpand('Life');
       await ts.toggleExpand('2 Life');
       ts.expectTaskLayout([
@@ -82,12 +82,12 @@ Future<void> main() async {
 
     testApp('Expand states are persisted between screens', (dtest) async {
       await setupTasks(dtest);
-      final ts = await dtest.navigateToTasksPage();
+      final ts = await dtest.navigateToTasksScreen();
       await ts.toggleExpand('Life');
       await ts.toggleExpand('2 Life');
       await ts.toggleExpand('Work');
-      await dtest.navigateToFocusPage();
-      await dtest.navigateToTasksPage();
+      await dtest.navigateToFocusScreen();
+      await dtest.navigateToTasksScreen();
       ts.expectTaskLayout([
         'Life',
         '  1 Life',

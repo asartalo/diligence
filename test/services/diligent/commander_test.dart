@@ -3,6 +3,7 @@ import 'package:diligence/models/new_task.dart';
 import 'package:diligence/models/persisted_task.dart';
 import 'package:diligence/services/diligent.dart';
 import 'package:diligence/services/diligent/diligent_commander.dart';
+import 'package:diligence/utils/stub_clock.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -12,15 +13,20 @@ import 'package:mocktail/mocktail.dart';
 
 class MockDiligent extends Mock implements Diligent {}
 
-class UnknownCommand extends Command {}
+class UnknownCommand extends Command {
+  const UnknownCommand({required super.at});
+}
 
 void main() {
   group('DiligentCommander', () {
     late DiligentCommander commander;
     late Diligent diligent;
+    final now = DateTime.now();
+    final clock = StubClock(now);
 
     setUp(() async {
       diligent = MockDiligent();
+      when(() => diligent.addReminders(any())).thenAnswer((_) async {});
       commander = DiligentCommander(diligent);
     });
 
@@ -40,14 +46,19 @@ void main() {
       late CommandResult result;
 
       group('NewTaskCommand', () {
-        final newTask = NewTask(name: 'Foo');
-        final command = NewTaskCommand(task: newTask);
+        final newTask = NewTask(
+          name: 'Foo',
+          now: DateTime.now(),
+        );
+        final command = NewTaskCommand(task: newTask, at: clock.now());
 
         group('when successful', () {
           setUp(() async {
             final now = DateTime.now();
             when(() => diligent.addTask(newTask)).thenAnswer(
-              (_) async => createPersistedTask(now: now),
+              (_) async {
+                return createPersistedTask(now: now);
+              },
             );
             result = await commander.handle(command);
           });
@@ -91,7 +102,7 @@ void main() {
 
       group('DeleteTaskCommand', () {
         final task = createPersistedTask();
-        final command = DeleteTaskCommand(task: task);
+        final command = DeleteTaskCommand(task: task, at: clock.now());
 
         group('when successful', () {
           setUp(() async {
@@ -135,8 +146,11 @@ void main() {
       group('UpdateTaskCommand', () {
         final now = DateTime.now();
         final originalTask = createPersistedTask(now: now);
-        final task = originalTask.copyWith(name: 'Bar');
-        final command = UpdateTaskCommand(task: task);
+        final task = originalTask.copyWith(
+          name: 'Bar',
+          now: now.add(const Duration(seconds: 1)),
+        );
+        final command = UpdateTaskCommand(task: task, at: now);
 
         group('when successful', () {
           setUp(() async {
@@ -187,7 +201,7 @@ void main() {
 
       group('FocusTaskCommand', () {
         final task = createPersistedTask();
-        final command = FocusTaskCommand(task: task);
+        final command = FocusTaskCommand(task: task, at: clock.now());
 
         group('when successful', () {
           setUp(() async {
@@ -230,7 +244,7 @@ void main() {
 
       group('UnfocusTaskCommand', () {
         final task = createPersistedTask();
-        final command = UnfocusTaskCommand(task: task);
+        final command = UnfocusTaskCommand(task: task, at: clock.now());
 
         group('when successful', () {
           setUp(() async {
@@ -272,7 +286,7 @@ void main() {
       });
 
       group('Unknown command', () {
-        final command = UnknownCommand();
+        final command = UnknownCommand(at: clock.now());
         setUp(() async {
           result = await commander.handle(command);
         });

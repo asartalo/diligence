@@ -22,8 +22,9 @@ import 'command.dart';
 class FocusTaskCommand extends CommandPack<Task> {
   final Task task;
 
-  FocusTaskCommand({
+  const FocusTaskCommand({
     super.message = 'Task focused',
+    required super.at,
     required this.task,
   });
 

@@ -25,7 +25,7 @@ mixin TaskCommons implements Task {
     return str ?? details;
   }
 
-  DateTime? normalizedDoneAt(bool? doneIntent, DateTime? dt) {
+  DateTime? normalizedDoneAt(DateTime now, bool? doneIntent, DateTime? dt) {
     if (doneIntent == null) {
       if (dt == null) {
         return doneAt;
@@ -44,19 +44,31 @@ mixin TaskCommons implements Task {
     }
 
     if (doneIntent == true) {
-      return DateTime.now();
+      return now;
     }
 
     return null;
   }
 
   @override
-  Task markDone() {
-    return copyWith(done: true);
+  Task markDone(DateTime now) {
+    return copyWith(done: true, now: now);
   }
 
   @override
-  Task markNotDone() {
-    return copyWith(done: false);
+  Task markNotDone(DateTime now) {
+    return copyWith(done: false, now: now);
+  }
+
+  @override
+  void validate() {
+    if (name.isEmpty) {
+      throw ArgumentError('Task name must not be empty.');
+    }
+  }
+
+  @override
+  String toString() {
+    return 'Task(id: $id, name: $name, parentId: $parentId, done: $done, doneAt: $doneAt, details: $details, expanded: $expanded, uid: $uid, createdAt: $createdAt, updatedAt: $updatedAt, deadlineAt: $deadlineAt)';
   }
 }

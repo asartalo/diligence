@@ -23,7 +23,7 @@ Future<void> main() async {
     testApp(
       'Going to the settings page',
       (dtest) async {
-        await dtest.navigateToSettingsPage();
+        await dtest.navigateToSettingsScreen();
       },
     );
   });

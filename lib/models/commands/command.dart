@@ -21,18 +21,16 @@ abstract class Command {
   final String? message;
   final DateTime at;
 
-  Command({this.message}) : at = DateTime.now();
+  const Command({this.message, required this.at});
 }
 
 @immutable
 abstract class CommandPack<T> extends Command {
   T get payload;
-  CommandPack({super.message});
+  const CommandPack({super.message, required super.at});
 }
 
 @immutable
 class NoOpCommand extends Command {
-  NoOpCommand();
+  const NoOpCommand({required super.at});
 }
-
-final noOpCommand = NoOpCommand();

@@ -14,10 +14,8 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-import 'dart:io';
-
 import 'package:diligence/models/new_task.dart';
-import 'package:diligence/services/diligent.dart';
+import 'package:diligence/models/task_list.dart';
 import 'package:diligence/ui/components/keys.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
@@ -31,13 +29,13 @@ import 'test_tasks_screen.dart';
 
 // ignore_for_file: avoid-dynamic
 
-class TestSetupTaskParam {
+class SetupTaskParam {
   final String name;
   final String? details;
   final String? parent;
   final bool? done;
 
-  const TestSetupTaskParam(
+  const SetupTaskParam(
     this.name, {
     this.details,
     this.parent,
@@ -49,14 +47,8 @@ void integrationTest(String description, void Function() fn) {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   group(description, () {
     tearDown(() async {
+      // Wait for Flutter to finish
       await Future<void>.delayed(const Duration(seconds: 1));
-    });
-
-    setUp(() async {
-      final file = File('test.db');
-      if (await file.exists()) {
-        await file.delete();
-      }
     });
 
     fn();
@@ -72,33 +64,33 @@ class Dtest extends DtestBase {
     await tapByKey(key);
   }
 
-  Future<void> navigateToReminderPage() async {
+  Future<void> navigateToReminderScreen() async {
     await tapOnMenuBarItem(drawerLinkReview);
     expect(find.text('Review'), findsOneWidget);
   }
 
-  Future<TestTasksScreen> navigateToTasksPage() async {
+  Future<TestTasksScreen> navigateToTasksScreen() async {
     await tapOnMenuBarItem(drawerLinkTasks);
     expect(find.text('Tasks'), findsOneWidget);
     return TestTasksScreen(this);
   }
 
-  Future<TestFocusScreen> navigateToFocusPage() async {
+  Future<TestFocusScreen> navigateToFocusScreen() async {
     await tapOnMenuBarItem(drawerLinkFocus);
     expect(find.text('Focus'), findsOneWidget);
     return TestFocusScreen(this);
   }
 
-  Future<void> navigateToSettingsPage() async {
+  Future<void> navigateToSettingsScreen() async {
     await tapOnMenuBarItem(drawerLinkSettings);
     expect(find.text('Settings'), findsAtLeast(1));
   }
 
-  Future<void> setUpInitialTasks(List<TestSetupTaskParam> taskParams) async {
-    final byParent = <String, List<TestSetupTaskParam>>{};
+  Future<void> setUpInitialTasks(List<SetupTaskParam> taskParams) async {
+    final byParent = <String, List<SetupTaskParam>>{};
     // gather tasks by parent
     for (final taskParam in taskParams) {
-      byParent[taskParam.parent ?? ''] ??= <TestSetupTaskParam>[];
+      byParent[taskParam.parent ?? ''] ??= <SetupTaskParam>[];
       byParent[taskParam.parent ?? '']!.add(taskParam);
     }
 
@@ -107,11 +99,13 @@ class Dtest extends DtestBase {
       final parentId = parent?.id;
       await diligent.addTasks(
         children.value.map((child) {
+          final now = clock.now();
           return NewTask(
             name: child.name,
             details: child.details,
             parentId: parentId,
-            doneAt: child.done != null ? DateTime.now() : null,
+            doneAt: child.done != null ? now : null,
+            now: now,
           );
         }).toList(),
       );
@@ -130,7 +124,10 @@ class Dtest extends DtestBase {
     for (final taskName in taskNames) {
       final task = await diligent.findTaskByName(taskName);
       if (task != null) {
-        await diligent.updateTask(task.copyWith(expanded: true));
+        await diligent.updateTask(task.copyWith(
+          expanded: true,
+          now: clock.now(),
+        ));
       }
     }
   }
@@ -188,9 +185,10 @@ void testApp(
     description,
     (widgetTester) async {
       final container = await app.main();
-
       await widgetTester.pumpAndSettle();
-      return callback(Dtest(widgetTester, container: container));
+      final result = await callback(Dtest(widgetTester, container: container));
+
+      return result;
     },
     tags: tags,
     skip: skip,

@@ -18,31 +18,66 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../utils/clock.dart';
+
 typedef ClockCallback = Widget Function(DateTime time);
 
 class ClockWrap extends StatefulWidget {
   final ClockCallback builder;
-  const ClockWrap({super.key, required this.builder});
+  final Clock clock;
+  const ClockWrap({super.key, required this.builder, required this.clock});
 
   @override
   State<ClockWrap> createState() => _ClockWrapState();
 }
 
+DateTime _nextExactMinute(DateTime time) {
+  return DateTime(
+    time.year,
+    time.month,
+    time.day,
+    time.hour,
+    time.minute + 1,
+  );
+}
+
+Duration _untilNextExactMinute(DateTime time, Clock clock) {
+  final roundUpMinute = _nextExactMinute(time);
+  return roundUpMinute.difference(clock.now());
+}
+
+const oneMinute = Duration(minutes: 1);
+
 class _ClockWrapState extends State<ClockWrap> {
-  late Timer timer;
+  Timer? timer;
   late DateTime time;
+
+  Clock get clock => widget.clock;
 
   @override
   void initState() {
     super.initState();
-    time = DateTime.now();
-    timer = Timer.periodic(const Duration(minutes: 1), (Timer t) {
-      if (mounted) {
-        setState(() {
-          time = DateTime.now();
-        });
-      }
+    time = clock.now();
+    clock.timer(_untilNextExactMinute(time, clock), () {
+      updateTime();
+      timer = clock.periodic(oneMinute, (_) => updateTime());
     });
+  }
+
+  @override
+  void dispose() {
+    if (timer is Timer) {
+      timer!.cancel();
+    }
+    super.dispose();
+  }
+
+  void updateTime() {
+    if (mounted) {
+      setState(() {
+        time = clock.now();
+      });
+    }
   }
 
   @override

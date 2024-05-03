@@ -1,5 +1,10 @@
 # Diligence
 
+[![build](https://github.com/asartalo/diligence/actions/workflows/ci.yml/badge.svg)](https://github.com/asartalo/diligence/actions/workflows/ci.yml)
+[![Coverage Status](https://coveralls.io/repos/github/asartalo/diligence/badge.svg?branch=main)](https://coveralls.io/github/asartalo/diligence?branch=main)
+[![LICENSE: GPLv3](https://img.shields.io/github/license/asartalo/diligence.svg?color=purple)](https://github.com/asartalo/diligence/blob/master/LICENSE)
+
+
 Diligence is a free and open-source, tree-based, task management system.
 
 ## Tree-based?
@@ -8,11 +13,14 @@ The idea is to break down tasks as much as you need into "actionable" tasks to l
 
 ## Installation
 
-As of the moment, only an AppImage is available for download. See [Releases](https://github.com/asartalo/diligence/releases).
+As of the moment, Diligence is available as an AppImage and as a snap on the Snap Store.
 
 ### Linux
 
 - [AppImage](https://github.com/asartalo/diligence/releases/download/0.1.5/Diligence-x64.AppImage)
+- [Snap Store](https://snapcraft.io/diligence)
+
+For the source code and other (future) binaries, head onto [Releases](https://github.com/asartalo/diligence/releases).
 
 ## Roadmap
 
@@ -20,7 +28,7 @@ Visit the [Diligence Project Page](https://github.com/users/asartalo/projects/1/
 
 ## Development
 
-At the moment, the desktop app has only been tested on Linux. If you have an instance of the release version of the app running while developing, run the debug mode with the `DILIGENCE_APP_ID_PREFIX` set to something (e.g. "dev") so that it won't conflict with the release version.
+The desktop app has only been tested on Linux. If you have an instance of the release version of the app running while developing, run the debug mode with the `DILIGENCE_APP_ID_PREFIX` set to something (e.g. "dev") so that it won't conflict with the release version.
 
 See the following example command below to do this on the terminal.
 
@@ -44,7 +52,7 @@ In Ubuntu you can run the following
 snapcraft
 ```
 
-This creates an snap file `diligence_<VERSION>_amd64.snap`. Install it with the following command:
+This creates a snap file `diligence_<VERSION>_amd64.snap`. Install it with the following command:
 
 ```sh
 sudo snap install ./diligence_<VERSION>_amd64.snap --dangerous

@@ -22,8 +22,9 @@ import 'command.dart';
 class UnfocusTaskCommand extends CommandPack<Task> {
   final Task task;
 
-  UnfocusTaskCommand({
+  const UnfocusTaskCommand({
     super.message = 'Unfocused task',
+    required super.at,
     required this.task,
   });
 

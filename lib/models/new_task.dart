@@ -54,6 +54,9 @@ class NewTask with TaskCommons implements Task {
   @override
   final DateTime updatedAt;
 
+  @override
+  final DateTime? deadlineAt;
+
   NewTask({
     this.id = 0,
     int? parentId,
@@ -65,10 +68,12 @@ class NewTask with TaskCommons implements Task {
     DateTime? createdAt,
     DateTime? updatedAt,
     Task? parent,
+    this.deadlineAt,
+    required DateTime now,
   })  : parentId = parentId ?? parent?.id,
         uid = uid ?? uuidGenerator.v4(),
-        createdAt = createdAt ?? DateTime.now(),
-        updatedAt = updatedAt ?? DateTime.now();
+        createdAt = createdAt ?? now,
+        updatedAt = updatedAt ?? now;
 
   @override
   Task copyWith({
@@ -82,17 +87,21 @@ class NewTask with TaskCommons implements Task {
     bool? expanded,
     DateTime? createdAt,
     DateTime? updatedAt,
+    DateTime? deadlineAt,
+    required DateTime now,
   }) {
     return NewTask(
       id: id ?? this.id,
       parentId: parentId ?? this.parentId,
-      doneAt: normalizedDoneAt(done, doneAt),
+      doneAt: normalizedDoneAt(now, done, doneAt),
       uid: uid ?? this.uid,
       name: name ?? this.name,
       details: normalizedDetails(details),
       expanded: expanded ?? this.expanded,
       createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? DateTime.now(),
+      updatedAt: updatedAt ?? now,
+      deadlineAt: deadlineAt ?? this.deadlineAt,
+      now: now,
     );
   }
 }

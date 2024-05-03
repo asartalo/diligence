@@ -37,6 +37,19 @@ mixin TestScreenTaskItemActions on TestScreen {
         of: taskNameText, matching: find.byKey(tkeys.taskItem));
   }
 
+  Finder findTaskCheckbox(String name) {
+    final task = findTaskItem(name);
+    return find.descendant(
+      of: task,
+      matching: find.byKey(tkeys.taskItemCheckbox),
+    );
+  }
+
+  Future<void> toggleTaskDone(String name) async {
+    final checkbox = findTaskCheckbox(name);
+    await dtest.tapElement(checkbox);
+  }
+
   Future<void> tapTaskMenuItem(String name, Key key) async {
     final task = findTaskItem(name);
     final menuButton = find.descendant(

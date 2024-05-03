@@ -24,134 +24,89 @@ import 'package:sqlite_async/sqlite_async.dart';
 import '../models/modified_task.dart';
 import '../models/new_task.dart';
 import '../models/persisted_task.dart';
+import '../models/reminders/reminder.dart';
+import '../models/reminders/reminder_list.dart';
 import '../models/task.dart';
+import '../models/task_list.dart';
 import '../models/task_node.dart';
-import 'migrations.dart';
+import '../models/task_pack.dart';
+import '../utils/clock.dart';
+import '../utils/date_time_from_row_epoch.dart';
+import 'diligent/focus_queue_manager.dart';
+import 'diligent/task_db.dart';
+import 'diligent/task_events/added_reminders_event.dart';
+import 'diligent/task_events/added_tasks_event.dart';
+import 'diligent/task_events/removed_reminders_event.dart';
+import 'diligent/task_events/task_event.dart';
+import 'diligent/task_events/task_event_registry.dart';
+import 'diligent/task_events/toggled_tasks_done_event.dart';
+import 'diligent/task_events/updated_task_event.dart';
+import 'diligent/task_fields.dart';
+import 'migrate.dart';
 
-typedef TaskList = List<Task>;
 typedef TaskNodeList = List<TaskNode>;
 
+final now = Clock().now();
+
 final initialAreas = [
-  NewTask(name: 'Life', details: 'Life goals'),
-  NewTask(name: 'Work', details: 'Work-related tasks'),
-  NewTask(name: 'Projects', details: 'Personal projects'),
+  NewTask(name: 'Life', details: 'Life goals', now: now),
+  NewTask(name: 'Work', details: 'Work-related tasks', now: now),
+  NewTask(name: 'Projects', details: 'Personal projects', now: now),
   NewTask(
     name: 'Miscellaneous',
     details: "Stuff that don't belong to the main areas",
+    now: now,
   ),
-  NewTask(name: 'Inbox', details: "Tasks that haven't been categorized yet"),
+  NewTask(
+    name: 'Inbox',
+    details: "Tasks that haven't been categorized yet",
+    now: now,
+  ),
 ];
 
-final _allTaskFields = [
-  'id',
-  'uid',
-  'name',
-  'details',
-  'parentId',
-  'doneAt',
-  'expanded',
-  'position',
-  'createdAt',
-  'updatedAt',
-];
-
-final _unmodifiableFields = ['id', 'uid'];
-
-final _newTaskFields = _allTaskFields
-    .where((field) => !['id', 'position'].contains(field))
-    .toList();
-
-final _modifiableFields = _allTaskFields
-    .where((field) => !_unmodifiableFields.contains(field))
-    .toList();
-
-final _modifiableNonPositionFields =
-    _modifiableFields.where((field) => field != 'position').toList();
-
-String _prefixedField(String field, {String? prefix}) {
-  return prefix is String ? '$prefix.$field' : field;
-}
-
-String _commaFields(List<String> fields, {String? prefix}) {
-  return fields
-      .map((field) => _prefixedField(field, prefix: prefix))
-      .join(', ');
-}
-
-final _commaAllTaskFields = _commaFields(_allTaskFields);
-final _commaFieldsAllTaskFields = _commaFields(_allTaskFields, prefix: 'tasks');
-
-// Define a map for task fields
-final taskFieldMap = {
-  'id': (Task task) => task.id.toString(),
-  'uid': (Task task) => task.uid,
-  'name': (Task task) => task.name,
-  'details': (Task task) => task.details,
-  'parentId': (Task task) => task.parentId,
-  'doneAt': (Task task) => task.doneAt?.millisecondsSinceEpoch,
-  'expanded': (Task task) => task.expanded ? 1 : 0,
-  'createdAt': (Task task) => task.createdAt.millisecondsSinceEpoch,
-  'updatedAt': (Task task) => task.updatedAt.millisecondsSinceEpoch,
-};
-
-Object? _propFromTaskField(String field, Task task) {
-  final mapping = taskFieldMap[field];
-
-  if (mapping == null) {
-    throw Exception('Unknown field: $field');
-  }
-
-  return mapping(task);
-}
-
-List<Object?> _propsFromTaskFields(List<String> fields, Task task) {
-  return fields.map((field) => _propFromTaskField(field, task)).toList();
-}
-
-String _fieldValuePlaceholders(List<String> fields, {String? prefix}) {
-  return fields
-      .map((field) => '${_prefixedField(field, prefix: prefix)} = ?')
-      .join(', ');
-}
-
-String _questionMarks(int count) {
-  return List.generate(count, (_) => '?').join(', ');
-}
-
-SqliteMigrations migrate() {
-  final SqliteMigrations migrations = SqliteMigrations();
-  int i = 0;
-
-  for (final migrationQuery in migrationQueries) {
-    i += 1;
-    migrations.add(SqliteMigration(i, (tx) async {
-      await tx.execute(migrationQuery);
-    }));
-  }
-
-  return migrations;
-}
-
-int _getTaskId(Task task) => task.id;
-
-final migrations = migrate();
-
-const _testDbPath = 'test.db';
-const _defaultDbPath = 'diligence.db';
-
-class Diligent {
+class Diligent extends TaskDb {
+  @override
   final SqliteDatabase db;
-  final String path;
+
+  final FocusQueueManager focusQueueManager;
+
+  final Clock clock;
+
   final bool _isTest;
 
-  Diligent({this.path = _defaultDbPath})
-      : db = SqliteDatabase(path: path),
-        _isTest = false;
+  final TaskEventRegistry _eventRegistry = TaskEventRegistry();
 
-  Diligent.forTests()
-      : path = _testDbPath,
-        db = SqliteDatabase(path: _testDbPath),
-        _isTest = true;
+  Diligent._internal({
+    required this.db,
+    required bool isTest,
+    required this.focusQueueManager,
+    required this.clock,
+  }) : _isTest = isTest {
+    focusQueueManager.registerEventHandlers(this);
+  }
+
+  factory Diligent.convenience({
+    required bool isTest,
+    required SqliteDatabase db,
+    Clock? clock,
+  }) {
+    final actualClock = clock ?? Clock();
+
+    return Diligent._internal(
+      db: db,
+      isTest: isTest,
+      clock: actualClock,
+      focusQueueManager: FocusQueueManager(db: db, clock: actualClock),
+    );
+  }
+
+  factory Diligent({required SqliteDatabase db, Clock? clock}) {
+    return Diligent.convenience(isTest: false, db: db, clock: clock);
+  }
+
+  factory Diligent.forTests({required SqliteDatabase db, Clock? clock}) {
+    return Diligent.convenience(isTest: true, db: db, clock: clock);
+  }
 
   Future<void> runMigrations() async {
     await migrations.migrate(db);
@@ -160,12 +115,15 @@ class Diligent {
   Future<void> clearDataForTests() async {
     if (_isTest) {
       await db.execute('DELETE FROM focusQueue');
+      await db.execute('DELETE FROM reminders');
       await db.execute('DELETE FROM tasks');
     }
   }
 
   final _queryCache = <String, String>{};
 
+  // TODO: This does not actually work as you think it does
+  // Query strings still need to be evaluated
   String _cachedQuery(String key, String query) {
     String? value = _queryCache[key];
     if (value == null) {
@@ -176,15 +134,21 @@ class Diligent {
     return value;
   }
 
+  void register<T extends TaskEvent>(TaskEventHandler<T> handler) {
+    _eventRegistry.register(handler);
+  }
+
+  Future<void> announceEvent<T extends TaskEvent>(T event) async {
+    await _eventRegistry.broadcast<T>(event);
+  }
+
   Future<void> _validateAddedTasks(
     TaskList tasks,
     SqliteReadContext tx,
   ) async {
     final Set<int?> parentIds = {};
     for (final task in tasks) {
-      if (task.name.isEmpty) {
-        throw ArgumentError('Task name must not be empty.');
-      }
+      task.validate();
       parentIds.add(task.parentId ?? 0);
     }
     if (parentIds.length > 1) {
@@ -197,6 +161,36 @@ class Diligent {
         throw ArgumentError('Parent with id $parentId does not exist.');
       }
     }
+  }
+
+  NewTask newTask({
+    int id = 0,
+    int? parentId,
+    Task? parent,
+    bool? done,
+    DateTime? doneAt,
+    String? uid,
+    String? name,
+    String? details,
+    bool? expanded,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    DateTime? deadlineAt,
+  }) {
+    return NewTask(
+      id: id,
+      parentId: parentId,
+      parent: parent,
+      doneAt: doneAt,
+      uid: uid,
+      name: name ?? '',
+      details: details,
+      expanded: expanded ?? false,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      deadlineAt: deadlineAt,
+      now: clock.now(),
+    );
   }
 
   Future<TaskList> addTasks(TaskList tasks, {int? position}) async {
@@ -218,7 +212,7 @@ class Diligent {
       );
       final batchProps = tasks.mapIndexed((int index, task) {
         return [
-          ..._propsFromTaskFields(_newTaskFields, task),
+          ...propsFromTaskFields(newTaskFields, task),
           positionToUse + index,
         ];
       }).toList();
@@ -226,8 +220,8 @@ class Diligent {
         _cachedQuery(
           'tasksInsertWithPosition',
           '''
-          INSERT INTO tasks (${_newTaskFields.join(', ')}, position)
-          SELECT ${_questionMarks(_newTaskFields.length + 1)}
+          INSERT INTO tasks (${newTaskFields.join(', ')}, position)
+          SELECT ${questionMarks(newTaskFields.length + 1)}
           ''',
         ),
         batchProps,
@@ -236,10 +230,12 @@ class Diligent {
       newTasks = await _getPersistedTasks(tasks, tx);
       await _toggleSubtree(newTasks.first, tx);
 
-      if (parentId is int && await _isFocused(parentId, tx)) {
-        await _unfocusByIds([parentId], tx);
-        await _focus(newTasks, tx);
-      }
+      await announceEvent(AddedTasksEvent(
+        clock.now(),
+        tx: tx,
+        parentId: parentId,
+        tasks: newTasks,
+      ));
     });
 
     return newTasks;
@@ -283,15 +279,15 @@ class Diligent {
     List<String> uids,
     SqliteReadContext tx,
   ) async {
-    final questionMarks = _questionMarks(uids.length);
+    final qMarks = questionMarks(uids.length);
     final rows = await tx.getAll(
       '''
-      SELECT * FROM tasks WHERE uid IN ($questionMarks) ORDER BY position
+      SELECT * FROM tasks WHERE uid IN ($qMarks) ORDER BY position
       ''',
       uids,
     );
 
-    return rows.map(_taskFromRow).toList();
+    return rows.map(taskFromRow).toList();
   }
 
   Future<Task> addTask(Task task, {int? position}) async {
@@ -310,7 +306,7 @@ class Diligent {
     if (id == null) return null;
     final rows = await tx.getAll('SELECT * FROM tasks WHERE id = ?', [id]);
 
-    return rows.isEmpty ? null : _taskFromRow(rows.first);
+    return rows.isEmpty ? null : taskFromRow(rows.first);
   }
 
   Future<Task?> findTaskByName(String name) async {
@@ -319,7 +315,7 @@ class Diligent {
       ["%${name.toUpperCase()}%"],
     );
 
-    return rows.isEmpty ? null : _taskFromRow(rows.first);
+    return rows.isEmpty ? null : taskFromRow(rows.first);
   }
 
   Future<Task> updateTask(Task task) async {
@@ -331,22 +327,20 @@ class Diligent {
     await db.writeTransaction((tx) async {
       await _updateTask(task, tx);
       await _toggleTreeIfToggled(task, tx);
-      await _focusCheck(task, tx);
       updatedTask = await _findTask(task.id, tx);
+      if (updatedTask == null) {
+        throw Exception('Task was not updated.');
+      }
+
+      await announceEvent(UpdatedTaskEvent(
+        clock.now(),
+        modified: task,
+        persisted: updatedTask as PersistedTask,
+        tx: tx,
+      ));
     });
-    if (updatedTask == null) {
-      throw Exception('Task was not updated.');
-    }
 
     return updatedTask!;
-  }
-
-  Future<void> _focusCheck(ModifiedTask task, SqliteWriteContext tx) async {
-    if (task.hasToggledDone()) {
-      if (task.done) {
-        await _unfocus([task], tx);
-      }
-    }
   }
 
   // TODO: The interface does not evoke the intent of its usage
@@ -414,15 +408,8 @@ class Diligent {
     SqliteWriteContext tx,
   ) =>
       tx.execute(
-        '''
-          UPDATE tasks
-          SET doneAt = ?
-          WHERE id = ?
-          ''',
-        [
-          doneAtEpoch,
-          id,
-        ],
+        'UPDATE tasks SET doneAt = ? WHERE id = ?',
+        [doneAtEpoch, id],
       );
 
   Future<void> _toggleDescendantsDone(Task task, SqliteWriteContext tx) async {
@@ -439,9 +426,12 @@ class Diligent {
         [doneAt?.millisecondsSinceEpoch, descendant.id],
       );
     }
-    if (doneAt != null) {
-      await _unfocus(descendants, tx);
-    }
+    announceEvent(ToggledTasksDoneEvent(
+      clock.now(),
+      tasks: descendants,
+      tx: tx,
+      doneAt: doneAt,
+    ));
   }
 
   Future<DateTime?> _allChildrenDone(Task task, SqliteReadContext tx) async {
@@ -459,9 +449,7 @@ class Diligent {
     final doneCount = result['doneCount'] as int;
     final doneAtEpoch =
         result['latestDoneAt'] == null ? 0 : result['latestDoneAt'] as int;
-    final doneAt = doneAtEpoch > 0
-        ? DateTime.fromMillisecondsSinceEpoch(doneAtEpoch)
-        : null;
+    final doneAt = doneAtEpoch > 0 ? dateTimeFromRowEpoch(doneAtEpoch) : null;
 
     return count == doneCount ? doneAt : null;
   }
@@ -491,7 +479,7 @@ class Diligent {
       [id],
     );
 
-    return rows.map(_taskFromRow).toList();
+    return rows.map(taskFromRow).toList();
   }
 
   Future<TaskList> descendants(Task task) => _descendants(task, db);
@@ -514,7 +502,7 @@ class Diligent {
       [task.id],
     );
 
-    return rows.map(_taskFromRow).toList();
+    return rows.map(taskFromRow).toList();
   }
 
   Future<void> _updateTask(ModifiedTask task, SqliteWriteContext tx) async {
@@ -523,36 +511,18 @@ class Diligent {
         'updateTask',
         '''
           UPDATE tasks
-          SET ${_fieldValuePlaceholders(_modifiableNonPositionFields)}
+          SET ${fieldValuePlaceholders(modifiableNonPositionFields)}
           WHERE id = ?
         ''',
       ),
       [
-        ..._propsFromTaskFields(
-          _modifiableNonPositionFields,
+        ...propsFromTaskFields(
+          modifiableNonPositionFields,
           task,
         ),
         task.id,
       ],
     );
-  }
-
-  Task _taskFromRow(Row row) {
-    final task = PersistedTask(
-      id: row['id'] as int,
-      name: row['name'] as String,
-      parentId: row['parentId'] as int?,
-      doneAt: row['doneAt'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(row['doneAt'] as int)
-          : null,
-      uid: row['uid'] as String,
-      expanded: row['expanded'] as int == 1,
-      details: row['details'] as String?,
-      createdAt: DateTime.fromMillisecondsSinceEpoch(row['createdAt'] as int),
-      updatedAt: DateTime.fromMillisecondsSinceEpoch(row['updatedAt'] as int),
-    );
-
-    return task;
   }
 
   TaskNode _taskNodeFromRow(
@@ -561,7 +531,7 @@ class Diligent {
     int childrenCount = 0,
     int position = 0,
   }) {
-    final task = _taskFromRow(row);
+    final task = taskFromRow(row);
 
     return TaskNode(
       task: task,
@@ -708,9 +678,15 @@ class Diligent {
       return;
     }
 
-    await addTask(NewTask(name: 'Root', id: 1, uid: 'root', expanded: true));
+    await addTask(newTask(name: 'Root', id: 1, uid: 'root', expanded: true));
+    final now = clock.now();
     for (final area in areas) {
-      await addTask(area.copyWith(parentId: 1));
+      await addTask(area.copyWith(
+        parentId: 1,
+        updatedAt: now,
+        createdAt: now,
+        now: now,
+      ));
     }
   }
 
@@ -720,7 +696,7 @@ class Diligent {
       [task.id],
     );
 
-    return rows.map(_taskFromRow).toList();
+    return rows.map(taskFromRow).toList();
   }
 
   FutureOr<Task?> getParent(Task task) async {
@@ -730,7 +706,7 @@ class Diligent {
       [task.parentId],
     );
 
-    return rows.isEmpty ? null : _taskFromRow(rows.first);
+    return rows.isEmpty ? null : taskFromRow(rows.first);
   }
 
   /// Returns a task and its descendants as an ordered list
@@ -740,16 +716,16 @@ class Diligent {
         'subtreeFlat',
         '''
           WITH RECURSIVE
-            subtree(lvl, $_commaAllTaskFields) AS (
+            subtree(lvl, $commaAllTaskFields) AS (
               SELECT
                 0 AS lvl,
-                $_commaAllTaskFields
+                $commaAllTaskFields
               FROM tasks
               WHERE id = ?
             UNION ALL
               SELECT
                 subtree.lvl + 1,
-                ${_commaFields(_allTaskFields, prefix: 'tasks')}
+                ${commaFields(allTaskFields, prefix: 'tasks')}
               FROM
                 subtree
                 JOIN tasks ON tasks.parentId = subtree.id
@@ -787,16 +763,16 @@ class Diligent {
         'expandedDescendantsTree',
         '''
           WITH RECURSIVE
-            subtree(lvl, $_commaAllTaskFields) AS (
+            subtree(lvl, $commaAllTaskFields) AS (
               SELECT
                 0 AS lvl,
-                $_commaFieldsAllTaskFields
+                $commaAllTaskFieldsPrefixed
               FROM tasks
               WHERE tasks.parentId = ?
             UNION ALL
               SELECT
                 subtree.lvl + 1,
-                $_commaFieldsAllTaskFields
+                $commaAllTaskFieldsPrefixed
               FROM
                 subtree
                 JOIN tasks ON tasks.parentId = subtree.id
@@ -829,214 +805,143 @@ class Diligent {
   }
 
   Future<TaskList> leaves(Task task) {
-    return _leaves([task], db);
+    return leavesInContext([task], db);
   }
 
-  Future<TaskList> _leaves(
-    TaskList tasks,
-    SqliteReadContext tx, {
-    bool? done,
-  }) async {
-    final ids = tasks.map(_getTaskId).toList();
-    String doneClause = '';
-    if (done is bool) {
-      doneClause = 'AND doneAt IS ${done ? 'NOT' : ''} NULL';
-    }
-    final rows = await tx.getAll(
-      '''
-        WITH RECURSIVE
-          subtree(lvl, $_commaAllTaskFields) AS (
-            SELECT
-              0 AS lvl,
-              $_commaFieldsAllTaskFields
-            FROM tasks
-            WHERE tasks.parentId IN (${_questionMarks(ids.length)})
-          UNION ALL
-            SELECT
-              subtree.lvl + 1,
-              $_commaFieldsAllTaskFields
-            FROM
-              subtree
-              JOIN tasks ON tasks.parentId = subtree.id
-            ORDER BY
-              subtree.lvl+1 DESC,
-              tasks.position
-          )
-        SELECT
-          subtree.*,
-          (
-            SELECT count(id)
-            FROM tasks
-            WHERE parentId = subtree.id
-          ) AS childrenCount
-        FROM subtree
-        WHERE childrenCount = 0
-        $doneClause
-        ''',
-      ids,
-    );
+  Future<TaskList> focusQueue({int? limit}) =>
+      focusQueueManager.focusQueue(limit: limit);
 
-    return rows.map(_taskFromRow).toList();
+  Future<int> getFocusedCount() => focusQueueManager.getFocusedCount();
+
+  Future<void> focus(Task task, {int position = 0}) => focusQueueManager.focus(
+        task,
+        position: position,
+      );
+
+  Future<void> focusTasks(TaskList tasks, {int position = 0}) =>
+      focusQueueManager.focusTasks(
+        tasks,
+        position: position,
+      );
+
+  Future<void> unfocus(Task task) => focusQueueManager.unfocus(task);
+
+  Future<void> reprioritizeInFocusQueue(Task task, int position) =>
+      focusQueueManager.reprioritizeInFocusQueue(
+        task,
+        position,
+      );
+
+  Future<void> addReminders(List<Reminder> reminders) async {
+    await db.writeTransaction((tx) async {
+      final batchProps = reminders.map((reminder) {
+        return [reminder.taskId, reminder.remindAt.millisecondsSinceEpoch];
+      }).toList();
+
+      await tx.executeBatch(
+        'INSERT INTO reminders (taskId, remindAt) VALUES (?, ?)',
+        batchProps,
+      );
+    });
+    await announceEvent(AddedRemindersEvent(
+      clock.now(),
+      reminders: reminders,
+    ));
   }
 
-  Future<TaskList> focusQueue({int? limit}) async {
+  Future<ReminderList> getNextReminders(DateTime now) async {
     final rows = await db.getAll(
       '''
-      SELECT tasks.*, focusQueue.position
-      FROM tasks
-      JOIN focusQueue ON focusQueue.taskId = tasks.id
-      ORDER BY focusQueue.position DESC
-      ${limit != null && limit > 0 ? 'LIMIT $limit' : ''}
+      SELECT reminders.*
+      FROM reminders
+      WHERE reminders.remindAt <= ?
+      ORDER BY reminders.remindAt ASC
       ''',
+      [now.millisecondsSinceEpoch],
     );
 
-    return rows.map(_taskFromRow).toList();
+    return ReminderList(rows.map(reminderFromRow).toList());
   }
 
-  Future<int> getFocusedCount() async {
-    final result = await db.get(
+  Future<ReminderList> getRemindersForTask(Task task) async {
+    return getRemindersForTaskIds([task.id]);
+  }
+
+  Future<ReminderList> getRemindersForTaskIds(List<int> taskIds) async {
+    final rows = await db.getAll(
       '''
-      SELECT COUNT(focusQueue.taskId) as count
-      FROM focusQueue
+      SELECT reminders.*
+      FROM reminders
+      WHERE reminders.taskId IN (${questionMarks(taskIds.length)})
+      ORDER BY reminders.remindAt ASC
       ''',
+      taskIds,
     );
 
-    return result['count'] as int;
+    return ReminderList(rows.map(reminderFromRow).toList());
   }
 
-  Future<void> focus(Task task, {int position = 0}) async {
-    await db.writeTransaction((tx) async {
-      await _focus([task], tx, position: position);
-    });
-  }
-
-  Future<void> focusTasks(TaskList tasks, {int position = 0}) async {
-    await db.writeTransaction((tx) async {
-      await _focus(tasks, tx, position: position);
-    });
-  }
-
-  Future<void> _focus(
-    TaskList tasks,
-    SqliteWriteContext tx, {
-    int position = 0,
-  }) async {
-    final taskLeaves = await _leaves(
-      tasks,
-      tx,
-      done: false,
-    );
-    final toAdd = (taskLeaves.isEmpty ? tasks : taskLeaves).reversed.toList();
-
-    await _unfocus(toAdd, tx);
-
-    if (position == 0) {
-      // get max value of position in focusQueue
-      final result = await tx.get(
-        'SELECT COALESCE(MAX(position) + 1, 0) as position FROM focusQueue',
-      );
-      final maxPosition = result['position'] as int;
-      await tx.executeBatch(
-        '''
-        INSERT INTO focusQueue (taskId, position) VALUES (?, ?)
-        ''',
-        toAdd.mapIndexed((i, task) => [task.id, i + maxPosition]).toList(),
-      );
-    } else {
-      final lengthResult = await tx.get(
-        'SELECT count(taskId) as length FROM focusQueue',
-      );
-      final length = lengthResult['length'] as int;
-      final realPosition = length - position;
-      await tx.execute(
-        '''
-        UPDATE focusQueue
-        SET position = position + ?
-        WHERE position >= ?
-        ''',
-        [toAdd.length + 1, realPosition],
-      );
-      await tx.executeBatch(
-        '''
-          INSERT INTO focusQueue (taskId, position) VALUES (?, ?)
-          ''',
-        toAdd.indexed.map((item) {
-          final (index, task) = item;
-
-          return [task.id, realPosition + index];
-        }).toList(),
-      );
+  Future<Reminder> dismissReminder(Reminder reminder) async {
+    if (clock.now().isBefore(reminder.remindAt)) {
+      throw ReminderError('Cannot dismiss a reminder before it is due.');
     }
-  }
 
-  Future<bool> _isFocused(int? id, SqliteReadContext tx) async {
-    if (id == null) return false;
-    final result = await tx.get(
-      'SELECT count(taskId) as count FROM focusQueue WHERE taskId = ?',
-      [id],
-    );
-
-    return result['count'] as int > 0;
-  }
-
-  Future<void> unfocus(Task task) async {
-    await _unfocus([task], db);
-  }
-
-  Future<void> _unfocus(TaskList tasks, SqliteWriteContext tx) =>
-      _unfocusByIds(tasks.map(_getTaskId).toList(), tx);
-
-  Future<void> _unfocusByIds(List<int> ids, SqliteWriteContext tx) async {
-    await tx.execute(
+    final Reminder(:taskId, :remindAt) = reminder;
+    await db.execute(
       '''
-      DELETE FROM focusQueue WHERE taskId IN (${_questionMarks(ids.length)})
+      UPDATE reminders
+      SET dismissed = 1
+      WHERE taskId = ? AND remindAt = ?
       ''',
-      ids,
+      [taskId, remindAt.millisecondsSinceEpoch],
     );
-    await _normalizeFocusQueuePositions(tx);
+
+    return reminder.dismiss();
   }
 
-  Future<void> _normalizeFocusQueuePositions(SqliteWriteContext tx) async {
-    await tx.execute(
+  Future<void> deleteReminders(List<Reminder> reminders) async {
+    await db.executeBatch(
       '''
-      UPDATE focusQueue
-      SET position = p.newPosition
-      FROM (
-        SELECT taskId, position,
-          (row_number() OVER (ORDER BY position) - 1) AS newPosition
-        FROM focusQueue
-        ORDER BY position
-      ) AS p
-      WHERE p.taskId = focusQueue.taskId
+      DELETE FROM reminders
+      WHERE taskId = ? AND remindAt = ?
       ''',
+      reminders.map((reminder) {
+        return [reminder.taskId, reminder.remindAt.millisecondsSinceEpoch];
+      }).toList(),
+    );
+    await announceEvent(RemovedRemindersEvent(
+      clock.now(),
+      reminders: reminders,
+    ));
+  }
+
+  Reminder reminderFromRow(Row row) {
+    return Reminder(
+      taskId: row['taskId'] as int,
+      remindAt: dateTimeFromRowEpoch(row['remindAt']),
+      dismissed: row['dismissed'] as int == 1,
     );
   }
 
-  // TODO: Is there a better way to do this?
-  Future<void> reprioritizeInFocusQueue(Task task, int position) async {
-    await db.writeTransaction((tx) async {
-      final lengthResult = await tx.get(
-        'SELECT count(taskId) as length FROM focusQueue',
-      );
-      final length = lengthResult['length'] as int;
-      final realPosition = length - position;
-      await tx.execute(
-        '''
-        UPDATE focusQueue
-        SET position = position + ?
-        WHERE position >= ?
-        ''',
-        [1, realPosition],
-      );
-      await tx.execute(
-        '''
-        UPDATE focusQueue
-        SET position = ?
-        WHERE taskId = ?
-        ''',
-        [realPosition, task.id],
-      );
-      await _normalizeFocusQueuePositions(tx);
-    });
+  Future<TaskPack?> getTaskPackById(int id) async {
+    final task = await findTask(id);
+
+    if (task == null) {
+      return null;
+    }
+
+    return TaskPack(
+      task,
+      reminders: await getRemindersForTask(task),
+    );
   }
+}
+
+class ReminderError extends Error {
+  final String message;
+
+  ReminderError(this.message);
+
+  @override
+  String toString() => 'ReminderError: $message';
 }

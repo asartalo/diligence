@@ -16,6 +16,7 @@
 
 import '../../../models/commands/commands.dart';
 
+import '../../../models/tasks.dart';
 import '../../diligent.dart';
 import 'fails_on_exception.dart';
 
@@ -25,13 +26,27 @@ Future<CommandResult> updateTaskHandler(
 ) async {
   return failsOnException(
     () async {
-      final persisted = await diligent.updateTask(command.payload);
+      final UpdateTaskCommand(:task, :reminders) = command;
+      Task persisted = task;
+
+      if (task is ModifiedTask) {
+        persisted = await diligent.updateTask(task);
+      }
+
+      if (reminders.isModified) {
+        if (reminders.added.isNotEmpty) {
+          await diligent.addReminders(reminders.added.toList());
+        }
+        if (reminders.removed.isNotEmpty) {
+          await diligent.deleteReminders(reminders.removed.toList());
+        }
+      }
 
       return SuccessPack(
-        message: 'Task "${command.payload.name}" was updated successfully.',
+        message: 'Task "${task.name}" was updated successfully.',
         payload: persisted,
       );
     },
-    'Failed to update task "${command.payload.name}".',
+    'Failed to update task "${command.task.name}".',
   );
 }

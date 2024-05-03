@@ -16,6 +16,7 @@
 
 import 'package:diligence/diligence_container.dart';
 import 'package:diligence/services/diligent.dart';
+import 'package:diligence/utils/stub_clock.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -25,9 +26,9 @@ class DtestBase {
 
   Diligent get diligent => container.diligent;
 
-  DtestBase(this.tester, {required this.container});
+  StubClock get clock => container.diligent.clock as StubClock;
 
-  Future<void> tapByStringKey(String strKey) => tapByKey(Key(strKey));
+  DtestBase(this.tester, {required this.container});
 
   Future<void> tapByKey(Key key) {
     final element = find.byKey(key);
@@ -47,4 +48,18 @@ class DtestBase {
 
   Future<void> enterTextByKey(Key key, String text) =>
       enterText(find.byKey(key), text);
+
+  void setClockCurrentTime(DateTime now) {
+    clock.setCurrentTime(now);
+  }
+
+  Future<void> advanceClock(Duration duration) async {
+    clock.advance(duration);
+    await tester.pump(duration);
+  }
+
+  Future<void> timeTravel(DateTime time) async {
+    clock.timeTravel(time);
+    await tester.pumpAndSettle();
+  }
 }

@@ -27,6 +27,7 @@ void main() {
     late Task task;
     final now = DateTime.now();
     final nowPlusOne = now.add(const Duration(seconds: 1));
+    final nowPlusTwo = now.add(const Duration(seconds: 2));
 
     group('with all fields', () {
       late Task copy;
@@ -45,6 +46,7 @@ void main() {
           parentId: 2,
           doneAt: nowPlusOne,
           expanded: true,
+          now: nowPlusOne,
         );
       });
 
@@ -62,29 +64,31 @@ void main() {
     });
 
     test('copy is an instance of ModifiedTask', () {
-      final copy = task.copyWith(name: 'Baz');
+      final copy = task.copyWith(name: 'Baz', now: nowPlusTwo);
       expect(copy, isA<ModifiedTask>());
     });
 
     test('should not copy `doneAt` field if not specified', () {
-      final copy1 = task.copyWith(doneAt: nowPlusOne);
+      final copy1 = task.copyWith(doneAt: nowPlusOne, now: nowPlusOne);
       expect(copy1.doneAt, nowPlusOne);
-      final copy2 = copy1.copyWith(name: 'Baz');
+      final copy2 = copy1.copyWith(name: 'Baz', now: nowPlusOne);
       expect(copy2.doneAt, nowPlusOne);
     });
 
     test('should set `doneAt` when done is set', () {
-      final copy = task.copyWith(name: 'Baz', done: true);
+      final copy = task.copyWith(name: 'Baz', done: true, now: nowPlusTwo);
       expect(copy.doneAt, isA<DateTime>());
     });
 
     test('should set `doneAt` when done is set to true', () {
-      final copy = task.copyWith(name: 'Baz', done: true);
+      final copy = task.copyWith(name: 'Baz', done: true, now: nowPlusTwo);
       expect(copy.doneAt, isA<DateTime>());
     });
 
     test('should set `doneAt` to null when done is set to false', () {
-      final copy = task.copyWith(done: true).copyWith(done: false);
+      final copy = task
+          .copyWith(done: true, now: nowPlusTwo)
+          .copyWith(done: false, now: nowPlusTwo);
       expect(copy.doneAt, isNull);
     });
   });

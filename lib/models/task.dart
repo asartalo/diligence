@@ -25,6 +25,7 @@ abstract class Task {
   String get uid;
   DateTime get createdAt;
   DateTime get updatedAt;
+  DateTime? get deadlineAt;
 
   Task copyWith({
     int? id,
@@ -37,9 +38,13 @@ abstract class Task {
     String? uid,
     DateTime? createdAt,
     DateTime? updatedAt,
+    DateTime? deadlineAt,
+    required DateTime now,
   });
 
-  Task markDone();
+  Task markDone(DateTime now);
 
-  Task markNotDone();
+  Task markNotDone(DateTime now);
+
+  void validate();
 }

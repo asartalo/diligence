@@ -14,8 +14,11 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
+import 'package:date_field/date_field.dart';
 import 'package:diligence/ui/screens/tasks/keys.dart' as keys;
+import 'package:diligence/ui/components/keys.dart' as compkeys;
 import 'package:diligence/ui/screens/tasks/task_item.dart';
+import 'package:diligence/utils/i18n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -80,7 +83,44 @@ class TestTasksScreen extends TestScreen with TestScreenTaskItemActions {
     await tapTaskMenuFocus(name);
   }
 
-  // Expectations
+  Future<void> addReminder(String name, DateTime date) async {
+    await showTask(name);
+    await dtest.tapByKey(keys.addReminderButton);
+    await setReminderDate(date);
+    await dtest.tapByKey(keys.saveTaskButton);
+  }
+
+  Future<void> setReminderDate(DateTime date) async {
+    final tester = dtest.tester;
+    final widget = tester.widget<DateTimeFormField>(
+      find.byKey(keys.reminderDateField),
+    );
+    // TODO: The following is a hack. Learn how to do it properly.
+    widget.onChanged!(date);
+    await dtest.tapByKey(keys.reminderAddButton);
+  }
+
+  Future<void> removeReminder(String name, DateTime date) async {
+    await showTask(name);
+    final remindersSection = find.byKey(keys.remindersSection);
+    final whenText = dateTimeFormat.format(date);
+    final reminderText = find.descendant(
+      of: remindersSection,
+      matching: find.text(whenText),
+    );
+    final reminderItem = find.ancestor(
+      of: reminderText,
+      matching: find.byType(ListTile),
+    );
+    final deleteButton = find.descendant(
+      of: reminderItem,
+      matching: find.byKey(keys.reminderDeleteButton),
+    );
+    await dtest.tapElement(deleteButton);
+  }
+
+  // Expectations //
+
   void expectTaskExistsOnTaskList(
     String name, {
     String? details,
@@ -181,5 +221,74 @@ class TestTasksScreen extends TestScreen with TestScreenTaskItemActions {
     }
 
     expect(actual, expected);
+  }
+
+  Checkbox findTaskCheckboxWidget(String name) {
+    final checkboxFinder = findTaskCheckbox(name);
+    return tester.firstWidget<Checkbox>(checkboxFinder);
+  }
+
+  void expectTaskIsDone(String name) {
+    final checkbox = findTaskCheckboxWidget(name);
+
+    expect(checkbox.value, true);
+  }
+
+  void expectTaskIsNotDone(String name) {
+    final checkbox = findTaskCheckboxWidget(name);
+
+    expect(checkbox.value, false);
+  }
+
+  Finder _reminderItem(String name, DateTime when) {
+    final remindersSection = find.byKey(keys.remindersSection);
+    return find.descendant(
+      of: remindersSection,
+      matching: find.text(dateTimeFormat.format(when)),
+    );
+  }
+
+  void expectToSeeReminder(String name, DateTime when) {
+    final whenText = dateTimeFormat.format(when);
+    expect(
+      _reminderItem(name, when),
+      findsOneWidget,
+      reason: 'Did not find reminder for task "$name" at "$whenText"',
+    );
+  }
+
+  void expectNotToSeeReminder(String name, DateTime when) {
+    final whenText = dateTimeFormat.format(when);
+    expect(
+      _reminderItem(name, when),
+      findsNothing,
+      reason: 'Found reminder for task "$name" at "$whenText" unexpectedly.',
+    );
+  }
+
+  Finder _reminderNotice(String name) {
+    final noticeArea = find.byKey(compkeys.noticeArea);
+    return find.descendant(
+      of: noticeArea,
+      matching: find.text('Reminder: $name'),
+    );
+  }
+
+  void expectNotToSeeReminderNotice(String name) {
+    final notice = _reminderNotice(name);
+    expect(
+      notice,
+      findsNothing,
+      reason: 'Found reminder notice for task "$name"',
+    );
+  }
+
+  void expectToSeeReminderNotice(String name) {
+    final notice = _reminderNotice(name);
+    expect(
+      notice,
+      findsOneWidget,
+      reason: 'Did not find reminder notice for task "$name"',
+    );
   }
 }
