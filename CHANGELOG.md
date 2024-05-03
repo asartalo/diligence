@@ -1,3 +1,17 @@
+# 0.1.6 (2024-05-03)
+
+## Bug Fixes
+
+- formatting and copyright info ([667d548](commit/667d548))
+- better timing in clock updates ([1bddc15](commit/1bddc15))
+- change focus order of buttons ([e2b8c42](commit/e2b8c42))
+
+## Features
+
+- reminders and notifications for reminders ([50fb365](commit/50fb365))
+- job queueing system ([3c7b104](commit/3c7b104))
+- tasks can have deadlines ([1b86286](commit/1b86286))
+
 # 0.1.5 (2024-03-31)
 
 ## Bug Fixes
