@@ -28,7 +28,9 @@ Visit the [Diligence Project Page](https://github.com/users/asartalo/projects/1/
 
 ## Development
 
-The desktop app has only been tested on Linux. If you have an instance of the release version of the app running while developing, run the debug mode with the `DILIGENCE_APP_ID_PREFIX` set to something (e.g. "dev") so that it won't conflict with the release version.
+Development happens on the main branch. When we're ready to release, we merge those changes to the release branch.
+
+At the moment, the desktop app has only been tested on Linux. If you have an instance of the release version of the app running while developing, run the debug mode with the `DILIGENCE_APP_ID_PREFIX` set to something (e.g. "dev") so that it won't conflict with the release version.
 
 See the following example command below to do this on the terminal.
 
@@ -57,3 +59,7 @@ This creates a snap file `diligence_<VERSION>_amd64.snap`. Install it with the f
 ```sh
 sudo snap install ./diligence_<VERSION>_amd64.snap --dangerous
 ```
+
+## Preparing for Release
+
+Create a pull-request from the main to the release branch. Only use "Merge pull request" option when resolving the pull request and not"Squash and merge". Only use "Squash and merge" when merging feature branches to the main branch.
