@@ -19,7 +19,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart' as dot_env;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
@@ -83,7 +83,7 @@ class DiligenceContainer {
     bool test = false,
     bool e2e = false,
   }) async {
-    await dot_env.load(fileName: envFile);
+    await dotenv.load(fileName: envFile);
     final pathToDb = await dbPath(test);
     final config = getConfig(test, pathToDb);
     if (showDbPath(config)) {
@@ -112,14 +112,14 @@ class DiligenceContainer {
   static DiligenceConfig getConfig(bool test, String dbPath) {
     if (test) {
       return DiligenceConfig.fromEnv(
-        dot_env.env,
+        dotenv.env,
         showDbPath: false,
         showReviewPage: true,
         dbPath: dbPath,
       );
     }
 
-    return DiligenceConfig.fromEnv(dot_env.env, dbPath: dbPath);
+    return DiligenceConfig.fromEnv(dotenv.env, dbPath: dbPath);
   }
 
   static Future<Directory> getApplicationDirectory() =>

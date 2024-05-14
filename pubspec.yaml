@@ -36,9 +36,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_bloc: ^8.0.1
-  flutter_dotenv:
-    git:
-      url: https://github.com/asartalo/flutter_dotenv.git
+  flutter_dotenv: ^5.1.0
   flutter_localizations:
     sdk: flutter
   flutter_markdown: ^0.6.10+2
