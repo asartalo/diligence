@@ -46,7 +46,7 @@ class SettingsScreen extends StatelessWidget {
                 children: [
                   ListTile(
                     title: const Text('Database Path'),
-                    subtitle: Text(config.dbPath),
+                    subtitle: SelectableText(config.dbPath),
                   ),
                 ],
               ),
