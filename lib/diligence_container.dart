@@ -32,6 +32,7 @@ import 'services/review_data/review_data_bloc.dart';
 import 'services/review_data_service.dart';
 import 'services/side_effects.dart';
 import 'utils/clock.dart';
+import 'utils/fs.dart';
 import 'utils/stub_clock.dart';
 
 final loadAssetString = rootBundle.loadString;
@@ -83,9 +84,9 @@ class DiligenceContainer {
     bool test = false,
     bool e2e = false,
   }) async {
-    await dotenv.load(fileName: envFile);
+    final fs = Fs();
     final pathToDb = await dbPath(test);
-    final config = getConfig(test, pathToDb);
+    final config = await getConfig(fs, envFile, test, pathToDb);
     if (showDbPath(config)) {
       // ignore: avoid_print
       print('Database path: $pathToDb');
@@ -109,17 +110,22 @@ class DiligenceContainer {
     );
   }
 
-  static DiligenceConfig getConfig(bool test, String dbPath) {
-    if (test) {
-      return DiligenceConfig.fromEnv(
-        dotenv.env,
-        showDbPath: false,
-        showReviewPage: true,
-        dbPath: dbPath,
-      );
-    }
+  static Future<DiligenceConfig> getConfig(
+      Fs fs, String envFile, bool test, String dbPath) async {
+    if (await fs.exists(envFile)) {
+      if (test) {
+        return DiligenceConfig.fromEnv(
+          dotenv.env,
+          showDbPath: false,
+          showReviewPage: true,
+          dbPath: dbPath,
+        );
+      }
 
-    return DiligenceConfig.fromEnv(dotenv.env, dbPath: dbPath);
+      return DiligenceConfig.fromEnv(dotenv.env, dbPath: dbPath);
+    } else {
+      return DiligenceConfig(dbPath: dbPath);
+    }
   }
 
   static Future<Directory> getApplicationDirectory() =>
