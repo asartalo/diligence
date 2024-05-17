@@ -39,7 +39,7 @@ class TaskMenu extends StatelessWidget {
       onOpen: onOpen,
       style: MenuStyle(
         alignment: Alignment.bottomLeft,
-        backgroundColor: MaterialStateProperty.all(Colors.white),
+        backgroundColor: WidgetStateProperty.all(Colors.white),
       ),
       alignmentOffset: const Offset(-60.0, 0.0),
       builder: (context, controller, child) => IconButton(

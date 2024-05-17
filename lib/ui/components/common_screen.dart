@@ -47,7 +47,7 @@ class CommonScreen extends StatelessWidget {
           child: Builder(builder: (context) => appBar(context, title)),
         ),
       ),
-      backgroundColor: theme.colorScheme.background,
+      backgroundColor: theme.colorScheme.surface,
       body: Stack(
         children: [
           Builder(
