@@ -12,19 +12,24 @@ import 'services/jobs/job_track.dart';
 import 'services/jobs/reminder_job_runner.dart';
 import 'services/notices/notice_queue.dart';
 import 'utils/clock.dart';
+import 'utils/fs.dart';
 
 class Di {
   final String dbPath;
 
   final Clock clock;
 
+  final Fs fs;
+
   final bool isTest;
 
   Di({
     this.dbPath = 'diligence_test.db',
     Clock? clock,
+    Fs? fs,
     this.isTest = false,
-  }) : clock = clock ?? Clock();
+  })  : clock = clock ?? Clock(),
+        fs = fs ?? Fs();
 
   final DiScopeCache _cache = DiScopeCache();
 

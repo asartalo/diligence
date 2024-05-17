@@ -18,8 +18,6 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 
-const kDefaultMaxIdleMinutes = 30;
-
 String getScriptDir() {
   final scriptDir = path.dirname(Platform.script.path);
   final reg = RegExp(r'test$');
@@ -29,6 +27,11 @@ String getScriptDir() {
   }
 
   return scriptDir;
+}
+
+String getUserConfigPath() {
+  final home = Platform.environment['HOME'];
+  return path.join(home!, '.config', 'diligence.toml');
 }
 
 var _scriptDir = getScriptDir();
