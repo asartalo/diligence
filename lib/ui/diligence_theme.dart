@@ -87,7 +87,7 @@ class DiligenceTheme {
       colorScheme:
           ColorScheme.fromSwatch(primarySwatch: colors.twilightBlue).copyWith(
         secondary: colors.secondaryColor,
-        background: backgroundColor,
+        surface: backgroundColor,
       ),
       dialogBackgroundColor: Colors.white,
     );
