@@ -15,14 +15,10 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 import 'package:meta/meta.dart';
+import 'package:toml/toml.dart';
 
-DateTime? _parseDate(String dateString) {
-  try {
-    return DateTime.parse(dateString);
-  } catch (e) {
-    return null;
-  }
-}
+import 'paths.dart';
+import 'utils/fs.dart';
 
 @immutable
 class DiligenceConfig {
@@ -40,17 +36,39 @@ class DiligenceConfig {
     this.showReviewPage = false,
   });
 
-  DiligenceConfig.fromEnv(
-    Map<String, String> env, {
+  static Future<DiligenceConfig> fromConfigOrDefault(
+    Fs fs, {
     bool? showDbPath,
     bool? showReviewPage,
     String? dbPath,
-  })  : today = _parseDate(env['DILIGENCE_DEV_TODAY'] ?? 'none'),
-        showDbPath = showDbPath is bool
-            ? showDbPath
-            : env['DILIGENCE_SHOW_DB_PATH'] == 'true',
-        showReviewPage = showReviewPage is bool
-            ? showReviewPage
-            : env['DILIGENCE_SHOW_REVIEW_PAGE'] == 'true',
-        dbPath = dbPath ?? env['DILIGENCE_DB_PATH'] ?? 'diligence.db';
+  }) async {
+    final path = getUserConfigPath();
+    String actualDbPath = dbPath ?? 'diligence.db';
+    bool actualShowDbPath = showDbPath ?? false;
+    bool actualShowReviewPage = showReviewPage ?? false;
+
+    if (await fs.exists(path)) {
+      final doc = TomlDocument.parse(await fs.contents(path)).toMap();
+      final dbPathInConfig = doc['database']?['path'] as String?;
+      if (dbPathInConfig is String) {
+        actualDbPath = dbPathInConfig;
+      }
+
+      final showDbPathInConfig = doc['database']?['show'] as bool?;
+      if (showDbPathInConfig is bool) {
+        actualShowDbPath = showDbPathInConfig;
+      }
+
+      final showReviewPageInConfig = doc['dev']?['show_review_page'] as bool?;
+      if (showReviewPageInConfig is bool) {
+        actualShowReviewPage = showReviewPageInConfig;
+      }
+    }
+
+    return DiligenceConfig(
+      dbPath: actualDbPath,
+      showDbPath: actualShowDbPath,
+      showReviewPage: actualShowReviewPage,
+    );
+  }
 }

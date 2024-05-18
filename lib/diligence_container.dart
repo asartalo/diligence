@@ -19,7 +19,6 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
@@ -111,21 +110,16 @@ class DiligenceContainer {
   }
 
   static Future<DiligenceConfig> getConfig(
-      Fs fs, String envFile, bool test, String dbPath) async {
-    if (await fs.exists(envFile)) {
-      if (test) {
-        return DiligenceConfig.fromEnv(
-          dotenv.env,
-          showDbPath: false,
-          showReviewPage: true,
-          dbPath: dbPath,
-        );
-      }
-
-      return DiligenceConfig.fromEnv(dotenv.env, dbPath: dbPath);
-    } else {
-      return DiligenceConfig(dbPath: dbPath);
-    }
+    Fs fs,
+    String envFile,
+    bool test,
+    String dbPath,
+  ) async {
+    return DiligenceConfig.fromConfigOrDefault(
+      fs,
+      dbPath: dbPath,
+      showReviewPage: test,
+    );
   }
 
   static Future<Directory> getApplicationDirectory() =>
