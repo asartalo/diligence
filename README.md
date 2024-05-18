@@ -46,6 +46,14 @@ If you also want to run the integration tests and not want it to interfere with 
 DILIGENCE_APP_ID_PREFIX=test flutter test integration_test/all_tests.dart
 ```
 
+### Ubuntu Issues (and probably others...)
+
+You might need to install libsqlite3.
+
+```sh
+sudo apt install libsqlite3-dev
+```
+
 ### Testing Builds for Ubuntu
 
 In Ubuntu you can run the following
