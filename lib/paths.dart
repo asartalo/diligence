@@ -29,9 +29,9 @@ String getScriptDir() {
   return scriptDir;
 }
 
-String getUserConfigPath() {
+String getUserConfigPath([String type = 'yaml']) {
   final home = Platform.environment['HOME'];
-  return path.join(home!, '.config', 'diligence.toml');
+  return path.join(home!, '.config', 'diligence.$type');
 }
 
 var _scriptDir = getScriptDir();
