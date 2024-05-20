@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:diligence/utils/fs.dart';
 
 class StubFs implements Fs {
@@ -6,9 +8,7 @@ class StubFs implements Fs {
 
   void addFile(String path, String contents) {
     _files[path] = contents;
-    final pathArr = path.split('/');
-    pathArr.removeLast();
-    _directories.add(pathArr.join('/'));
+    _directories.add(parentDirectory(path));
   }
 
   void addDirectory(String path) {
@@ -24,6 +24,9 @@ class StubFs implements Fs {
   Future<bool> directoryExists(String path) async {
     return _directories.contains(path);
   }
+
+  @override
+  String parentDirectory(String path) => Directory(path).parent.path;
 
   @override
   Future<String> contents(String path) async {

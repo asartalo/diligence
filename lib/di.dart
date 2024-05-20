@@ -1,5 +1,6 @@
 import 'package:sqlite_async/sqlite_async.dart';
 
+import 'config_validator.dart';
 import 'di_scope_cache.dart';
 import 'models/notices/notice.dart';
 import 'models/notices/reminder_notice.dart';
@@ -43,6 +44,9 @@ class Di {
 
   SqliteDatabase get db =>
       _cache.getSet(#db, () => SqliteDatabase(path: dbPath));
+
+  ConfigValidator get configValidator =>
+      _cache.getSet(#configValidator, () => ConfigValidator(fs));
 
   RunnerFactoryFunc get runnerFactoryFunc => (ScheduledJob inputJob) {
         switch (inputJob) {

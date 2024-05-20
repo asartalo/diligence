@@ -6,6 +6,7 @@ abstract class Fs {
 
   Future<bool> fileExists(String path);
   Future<bool> directoryExists(String path);
+  String parentDirectory(String path);
   Future<String> contents(String path);
   Future<void> write(String path, String contents);
 }
@@ -17,7 +18,10 @@ class _Fs implements Fs {
   Future<bool> fileExists(String path) => File(path).exists();
 
   @override
-  Future<bool> directoryExists(String path) => Directory(path).parent.exists();
+  String parentDirectory(String path) => Directory(path).parent.path;
+
+  @override
+  Future<bool> directoryExists(String path) => Directory(path).exists();
 
   @override
   Future<String> contents(String path) => File(path).readAsString();
