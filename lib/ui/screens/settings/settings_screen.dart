@@ -18,6 +18,7 @@ import 'package:flutter/material.dart';
 
 import '../../../diligence_config.dart';
 import '../../components/common_screen.dart';
+import 'settings_fields.dart';
 
 class SettingsScreen extends StatelessWidget {
   final DiligenceConfig config;
@@ -42,13 +43,11 @@ class SettingsScreen extends StatelessWidget {
             Text('Settings', style: headingStyle),
             const SizedBox(height: 32.0),
             Expanded(
-              child: ListView(
-                children: [
-                  ListTile(
-                    title: const Text('Database Path'),
-                    subtitle: SelectableText(config.dbPath),
-                  ),
-                ],
+              child: SettingsFields(
+                config: config,
+                onUpdateConfig: (updatedConfig) {
+                  // TODO
+                },
               ),
             ),
           ],
