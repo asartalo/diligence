@@ -1,5 +1,4 @@
 import '../../services/diligent.dart';
-import '../../services/notices/notice_row_data.dart';
 import '../task.dart';
 import 'notice.dart';
 
@@ -8,10 +7,16 @@ class ReminderNotice extends Notice {
   final Diligent diligent;
 
   @override
+  int? get taskId => task.id;
+
+  @override
   String get title => 'Reminder: ${task.name}';
 
   @override
   String? get details => null;
+
+  @override
+  final String type = 'reminder';
 
   ReminderNotice({
     super.uuid,
@@ -20,21 +25,8 @@ class ReminderNotice extends Notice {
     required super.createdAt,
   });
 
-  @override
-  List<Object?> get props => [createdAt, task.uid];
-
   Future<void> focusTask() async {
     await diligent.focus(task);
-  }
-
-  @override
-  NoticeRowData toRowData() {
-    return NoticeRowData(
-      uuid: uuid,
-      type: 'reminder',
-      createdAt: createdAt,
-      taskId: task.id,
-    );
   }
 
   @override

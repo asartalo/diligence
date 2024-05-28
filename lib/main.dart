@@ -24,5 +24,5 @@ import 'diligence_container.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await findSystemLocale();
-  runApp(DiligenceApp(await DiligenceContainer.start()));
+  runApp(DiligenceApp(await DiligenceContainer.containerStart()));
 }

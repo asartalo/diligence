@@ -1,4 +1,5 @@
 import 'package:diligence/di.dart';
+import 'package:diligence/diligence_config.dart';
 import 'package:diligence/services/diligent.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -6,7 +7,9 @@ void main() {
   group('Di', () {
     late Di di;
     setUp(() {
-      di = Di();
+      di = Di(
+        config: const DiligenceConfig(dbPath: 'test.db'),
+      );
     });
 
     test('it should be able to return a Diligent instance', () {

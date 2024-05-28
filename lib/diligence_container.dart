@@ -24,8 +24,10 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
+import 'config_validator.dart';
 import 'di.dart';
 import 'diligence_config.dart';
+import 'services/config_manager.dart';
 import 'services/diligent.dart';
 import 'services/review_data/review_data_bloc.dart';
 import 'services/review_data_service.dart';
@@ -37,6 +39,7 @@ import 'utils/stub_clock.dart';
 final loadAssetString = rootBundle.loadString;
 
 class DiligenceContainer {
+  final ConfigManager configManager;
   final DiligenceConfig config;
   final Diligent diligent;
   final Di di;
@@ -46,6 +49,7 @@ class DiligenceContainer {
     required this.config,
     required this.diligent,
     required this.di,
+    required this.configManager,
     this.test = false,
   });
 
@@ -78,48 +82,62 @@ class DiligenceContainer {
   static bool showDbPath(DiligenceConfig config) =>
       !kReleaseMode && config.showDbPath;
 
-  static Future<DiligenceContainer> start({
-    String envFile = '.env',
-    bool test = false,
-    bool e2e = false,
-  }) async {
-    final fs = Fs();
+  static Future<DiligenceContainer> containerStart({bool test = false}) async {
     final pathToDb = await dbPath(test);
-    final config = await getConfig(fs, envFile, test, pathToDb);
+    final clock = test ? StubClock() : Clock();
+    final fs = Fs();
+    final ConfigValidator validator = ConfigValidator(fs);
+    final configManager = ConfigManager(fs, validator);
+    final config = await getConfig(configManager, test, pathToDb);
+    final di = Di(config: config, isTest: test, clock: clock);
     if (showDbPath(config)) {
       // ignore: avoid_print
-      print('Database path: $pathToDb');
+      print('Database path: ${config.dbPath}');
     }
     if (test) {
       await deleteDb(pathToDb);
     }
-    final clock = test ? StubClock() : Clock();
-    final di = Di(dbPath: pathToDb, isTest: test, clock: clock);
-    final diligent = di.diligent;
+
+    final container = DiligenceContainer(
+      configManager: configManager,
+      config: config,
+      diligent: di.diligent,
+      di: di,
+      test: test,
+    );
+    await container.start();
+
+    return container;
+  }
+
+  Future<DiligenceContainer> reloadContainer() async {
+    await stop();
+    return containerStart(test: test);
+  }
+
+  Future<void> start() async {
     await diligent.runMigrations();
     await diligent.initialAreas(initialAreas);
     di.jobQueue.registerEventHandlers(diligent);
     await di.jobTrack.start();
+  }
 
-    return DiligenceContainer(
-      config: config,
-      diligent: diligent,
-      di: di,
-      test: test,
-    );
+  Future<void> stop() async {
+    await di.jobTrack.stop();
+    await di.db.close();
   }
 
   static Future<DiligenceConfig> getConfig(
-    Fs fs,
-    String envFile,
+    ConfigManager configManager,
     bool test,
     String dbPath,
   ) async {
-    return DiligenceConfig.fromConfigOrDefault(
-      fs,
+    final result = await configManager.loadConfig(
       dbPath: dbPath,
+      showDbPath: !kReleaseMode,
       showReviewPage: test,
     );
+    return result.unwrap();
   }
 
   static Future<Directory> getApplicationDirectory() =>

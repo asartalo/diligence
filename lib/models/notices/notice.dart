@@ -18,12 +18,33 @@ class NoticeAction extends Equatable {
 abstract class Notice extends Equatable {
   final String uuid;
   final DateTime createdAt;
+  final int? taskId = null;
   String get title;
   String? get details;
+  String get type;
 
   Notice({required this.createdAt, String? uuid}) : uuid = uuid ?? uuidv4();
 
-  NoticeRowData toRowData();
+  NoticeRowData toRowData() {
+    return NoticeRowData(
+      uuid: uuid,
+      type: type,
+      createdAt: createdAt,
+      title: title,
+      details: details,
+      taskId: taskId,
+    );
+  }
 
   List<NoticeAction> actions() => [];
+
+  @override
+  List<Object?> get props => [
+        uuid,
+        createdAt,
+        type,
+        title,
+        details,
+        taskId,
+      ];
 }

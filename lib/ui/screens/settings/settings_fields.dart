@@ -35,10 +35,15 @@ class _SettingsFieldsState extends State<SettingsFields> {
           title: const Text('Database Path'),
           subtitle: databasePathField(),
           trailing: IconButton(
-            icon: const Icon(Icons.edit),
+            icon: Icon(_editingDatabasePath ? Icons.done : Icons.edit),
             onPressed: () {
+              if (_editingDatabasePath) {
+                widget.onUpdateConfig(config.copyWith(
+                  dbPath: config.dbPath,
+                ));
+              }
               setState(() {
-                _editingDatabasePath = true;
+                _editingDatabasePath = !_editingDatabasePath;
               });
             },
           ),
