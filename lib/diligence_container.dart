@@ -37,6 +37,7 @@ import 'utils/fs.dart';
 import 'utils/stub_clock.dart';
 
 final loadAssetString = rootBundle.loadString;
+bool _dbDisplayedAlready = false;
 
 class DiligenceContainer {
   final ConfigManager configManager;
@@ -80,7 +81,7 @@ class DiligenceContainer {
   }
 
   static bool showDbPath(DiligenceConfig config) =>
-      !kReleaseMode && config.showDbPath;
+      !kReleaseMode && !_dbDisplayedAlready && config.showDbPath;
 
   static Future<DiligenceContainer> containerStart({bool test = false}) async {
     final pathToDb = await dbPath(test);
@@ -93,6 +94,7 @@ class DiligenceContainer {
     if (showDbPath(config)) {
       // ignore: avoid_print
       print('Database path: ${config.dbPath}');
+      _dbDisplayedAlready = true;
     }
     if (test) {
       await deleteDb(pathToDb);
