@@ -45,14 +45,7 @@ class SetupTaskParam {
 
 void integrationTest(String description, void Function() fn) {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-  group(description, () {
-    tearDown(() async {
-      // Wait for Flutter to finish
-      await Future<void>.delayed(const Duration(seconds: 1));
-    });
-
-    fn();
-  });
+  group(description, fn);
 }
 
 class Dtest extends DtestBase {
