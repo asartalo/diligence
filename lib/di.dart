@@ -1,7 +1,8 @@
 import 'package:sqlite_async/sqlite_async.dart';
 
-import 'config_validator.dart';
 import 'di_scope_cache.dart';
+import 'diligence_config.dart';
+import 'models/notices/error_notice.dart';
 import 'models/notices/notice.dart';
 import 'models/notices/reminder_notice.dart';
 import 'models/reminder_job.dart';
@@ -16,21 +17,23 @@ import 'utils/clock.dart';
 import 'utils/fs.dart';
 
 class Di {
-  final String dbPath;
-
   final Clock clock;
 
   final Fs fs;
 
+  final DiligenceConfig config;
+
   final bool isTest;
 
   Di({
-    this.dbPath = 'diligence_test.db',
+    required this.config,
     Clock? clock,
     Fs? fs,
     this.isTest = false,
   })  : clock = clock ?? Clock(),
         fs = fs ?? Fs();
+
+  String get dbPath => config.dbPath;
 
   final DiScopeCache _cache = DiScopeCache();
 
@@ -44,9 +47,6 @@ class Di {
 
   SqliteDatabase get db =>
       _cache.getSet(#db, () => SqliteDatabase(path: dbPath));
-
-  ConfigValidator get configValidator =>
-      _cache.getSet(#configValidator, () => ConfigValidator(fs));
 
   RunnerFactoryFunc get runnerFactoryFunc => (ScheduledJob inputJob) {
         switch (inputJob) {
@@ -103,6 +103,8 @@ class Di {
             return genericNoticeFactoryFunc(data);
           case 'reminder':
             return reminderNoticeFactoryFunc(data);
+          case 'error':
+            return errorNoticeFactoryFunc(data);
           default:
             throw Exception('Unknown notice type: $data.type');
         }
@@ -116,6 +118,15 @@ class Di {
           createdAt: row.createdAt,
           task: (await diligent.findTask(taskId))!,
           diligent: diligent,
+        );
+      };
+
+  NoticeFactoryFunc<ErrorNotice> get errorNoticeFactoryFunc => (row) async {
+        return ErrorNotice(
+          uuid: row.uuid,
+          createdAt: row.createdAt,
+          title: row.title as String,
+          details: row.details,
         );
       };
 }

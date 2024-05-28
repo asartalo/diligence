@@ -1,31 +1,49 @@
+import 'package:diligence/config_validator.dart';
 import 'package:diligence/diligence_config.dart';
 import 'package:diligence/paths.dart';
+import 'package:diligence/services/config_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:yaml/yaml.dart';
 
-import 'helpers/stub_fs.dart';
+import '../helpers/stub_fs.dart';
+
+class _StubValidator implements ConfigValidator {
+  ConfigValidatorResult result = ConfigValidatorResult(
+    true,
+    'Valid config file',
+  );
+
+  @override
+  Future<ConfigValidatorResult> validate(DiligenceConfig config) async {
+    return result;
+  }
+}
 
 void main() {
-  group('DiligenceConfig', () {
+  group('ConfigManager', () {
     final configPath = getUserConfigPath();
+    late ConfigManager manager;
     late StubFs fs;
+    late _StubValidator validator;
     late DiligenceConfig config;
     const defaultConfig = DiligenceConfig(dbPath: 'diligence.db');
 
     setUp(() {
       fs = StubFs();
+      validator = _StubValidator();
+      manager = ConfigManager(fs, validator);
     });
 
-    group('#fromConfigOrDefault()', () {
+    group('#loadConfig()', () {
       test('it returns default data when there is no config file', () async {
-        config = await DiligenceConfig.fromConfigOrDefault(fs);
-        expect(config, defaultConfig);
+        final result = await manager.loadConfig();
+        expect(result.unwrap(), defaultConfig);
       });
 
       group('if config file exists but empty', () {
         setUp(() async {
           fs.addFile(configPath, '');
-          config = await DiligenceConfig.fromConfigOrDefault(fs);
+          config = (await manager.loadConfig()).unwrap();
         });
 
         test('it still uses default', () {
@@ -38,9 +56,10 @@ void main() {
           fs.addFile(configPath, '[');
         });
 
-        test('it throws an error', () {
-          expectLater(
-            DiligenceConfig.fromConfigOrDefault(fs),
+        test('it throws an error', () async {
+          final result = await manager.loadConfig();
+          expect(
+            () => result.unwrap(),
             throwsA(isA<InvalidYamlConfigError>()),
           );
         });
@@ -49,19 +68,55 @@ void main() {
       group('if config file exists and database path is correctly set', () {
         setUp(() async {
           fs.addFile(configPath, 'database:\n  path: /path/to/database');
-          config = await DiligenceConfig.fromConfigOrDefault(fs);
+          config = (await manager.loadConfig()).unwrap();
         });
 
         test('it correctly parses config', () {
           expect(config, defaultConfig.copyWith(dbPath: '/path/to/database'));
         });
       });
+
+      group('When the loaded config is invalid', () {
+        setUp(() {
+          validator.result = ConfigValidatorResult(
+            false,
+            'validation error message',
+          );
+          fs.addFile(configPath, 'database:\n  path: /path/to/database');
+        });
+
+        test('it throws an error', () async {
+          final result = await manager.loadConfig();
+          expect(
+            () => result.unwrap(),
+            throwsA(isA<ConfigValidationException>()),
+          );
+        });
+      });
     });
 
-    group('#writeToConfig()', () {
+    group('#saveConfig()', () {
+      group('When the config is invalid', () {
+        setUp(() {
+          validator.result = ConfigValidatorResult(
+            false,
+            'validation error message',
+          );
+          config = defaultConfig.copyWith(dbPath: '/path/to/database');
+        });
+
+        test('it throws an error', () async {
+          final result = await manager.saveConfig(config);
+          expect(
+            () => result.unwrap(),
+            throwsA(isA<ConfigValidationException>()),
+          );
+        });
+      });
+
       group('When there is no configuration file present', () {
         setUp(() async {
-          await DiligenceConfig.writeToConfig(fs, defaultConfig);
+          await manager.saveConfig(defaultConfig);
         });
 
         test('it writes the config to the file', () async {
@@ -85,8 +140,10 @@ void main() {
             () async {
               config = defaultConfig.copyWith(dbPath: '/path/to/database.db');
               fs.addFile(
-                  configPath, '# some comments at the top\nfoo:\n  bar: baz');
-              await DiligenceConfig.writeToConfig(fs, config);
+                configPath,
+                '# some comments at the top\nfoo:\n  bar: baz',
+              );
+              await manager.saveConfig(config);
             },
           );
 
@@ -118,7 +175,7 @@ void main() {
               config = defaultConfig.copyWith(dbPath: '/path/to/database.db');
               fs.addFile(
                   configPath, 'database:\n  show: true\n\nfoo:\n  bar: baz');
-              await DiligenceConfig.writeToConfig(fs, config);
+              await manager.saveConfig(config);
             },
           );
 

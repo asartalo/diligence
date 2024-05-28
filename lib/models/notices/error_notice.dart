@@ -1,8 +1,8 @@
 import 'notice.dart';
 
-class GenericNotice extends Notice {
+class ErrorNotice extends Notice {
   @override
-  final String type = 'generic';
+  final String type = 'error';
 
   @override
   final String title;
@@ -10,7 +10,7 @@ class GenericNotice extends Notice {
   @override
   final String? details;
 
-  GenericNotice({
+  ErrorNotice({
     super.uuid,
     required super.createdAt,
     required this.title,

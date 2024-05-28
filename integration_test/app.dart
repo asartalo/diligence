@@ -22,7 +22,7 @@ import 'package:intl/intl_standalone.dart'
 
 Future<DiligenceContainer> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final container = await DiligenceContainer.start(test: true, e2e: true);
+  final container = await DiligenceContainer.containerStart(test: true);
   await findSystemLocale();
   runApp(DiligenceApp(container));
 

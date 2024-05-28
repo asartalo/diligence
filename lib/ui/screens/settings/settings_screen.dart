@@ -22,7 +22,9 @@ import 'settings_fields.dart';
 
 class SettingsScreen extends StatelessWidget {
   final DiligenceConfig config;
-  const SettingsScreen({super.key, required this.config});
+  final void Function(DiligenceConfig config) onUpdateConfig;
+  const SettingsScreen(
+      {super.key, required this.config, required this.onUpdateConfig});
 
   @override
   Widget build(BuildContext context) {
@@ -45,9 +47,7 @@ class SettingsScreen extends StatelessWidget {
             Expanded(
               child: SettingsFields(
                 config: config,
-                onUpdateConfig: (updatedConfig) {
-                  // TODO
-                },
+                onUpdateConfig: onUpdateConfig,
               ),
             ),
           ],

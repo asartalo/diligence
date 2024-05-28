@@ -3,11 +3,18 @@ import 'package:equatable/equatable.dart';
 import 'diligence_config.dart';
 import 'utils/fs.dart';
 
-class ConfigValidator {
+abstract class ConfigValidator {
+  Future<ConfigValidatorResult> validate(DiligenceConfig config);
+
+  factory ConfigValidator(Fs fs) => _ConfigValidator(fs);
+}
+
+class _ConfigValidator implements ConfigValidator {
   final Fs fs;
 
-  ConfigValidator(this.fs);
+  _ConfigValidator(this.fs);
 
+  @override
   Future<ConfigValidatorResult> validate(DiligenceConfig config) async {
     final parentDirectory = fs.parentDirectory(config.dbPath);
     final dbPathDirExists = await fs.directoryExists(parentDirectory);

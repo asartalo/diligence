@@ -29,6 +29,15 @@ class JobTrack implements NextJobListener {
     return await next();
   }
 
+  Future<void> stop() async {
+    if (!isIdle) {
+      if (_queuedTimer is Timer) {
+        _queuedTimer!.cancel();
+      }
+      isIdle = true;
+    }
+  }
+
   Future<ScheduledJob?> next() async {
     final job = await jobQueue.nextJob();
     _setNextJob(job);
