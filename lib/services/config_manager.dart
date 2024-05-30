@@ -10,10 +10,18 @@ import '../utils/fs.dart';
 class ConfigManager {
   final Fs fs;
   final ConfigValidator validator;
+  final bool test;
 
-  ConfigManager(this.fs, this.validator);
+  ConfigManager(this.fs, this.validator, {this.test = false});
 
   // Loads configuration from yaml config file.
+  //
+  // When the constructor is passed with `this.test = true`, the config file
+  // is never loaded and the default values are used. This makes it easier for
+  // testing especially in integration tests.
+  //
+  // Config files are loaded from the user's home directory. If the file does
+  // not exist, the default values are used.
   //
   // The decision to use YAML is simply for easier manipulation with yaml_edit
   // making it possible to edit the config files while preserving formatting and
@@ -24,18 +32,17 @@ class ConfigManager {
     bool? showReviewPage,
     String? dbPath,
   }) async {
-    final path = getUserConfigPath();
     bool realShowDb = showDbPath ?? false;
     bool realShowReview = showReviewPage ?? false;
-    String? realDbPath = dbPath;
+    String? realDbPath = dbPath ?? 'diligence.db';
+    final path = getUserConfigPath();
 
-    if (await fs.fileExists(path)) {
+    if (!test && await fs.fileExists(path)) {
       try {
         final doc = _parseYaml(await fs.contents(path));
 
         if (doc != null) {
-          realDbPath =
-              dbPath ?? _pathValueOrDefault('database.path', realDbPath, doc);
+          realDbPath = _pathValueOrDefault('database.path', realDbPath, doc);
           realShowDb = _pathValueOrDefault('database.show', realShowDb, doc);
           realShowReview =
               _pathValueOrDefault('show_review_page', realShowReview, doc);
@@ -46,7 +53,7 @@ class ConfigManager {
     }
 
     final config = DiligenceConfig(
-      dbPath: realDbPath ?? 'diligence.db',
+      dbPath: realDbPath,
       showDbPath: realShowDb,
       showReviewPage: realShowReview,
     );
@@ -67,6 +74,9 @@ class ConfigManager {
     }
   }
 
+  // Saves the configuration to a local config file
+  //
+  // See `loadConfig()` for more information.
   Future<ConfigManagerResult> saveConfig(DiligenceConfig config) async {
     final validationResult = await validator.validate(config);
     if (!validationResult.success) {

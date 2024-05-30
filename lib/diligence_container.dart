@@ -88,7 +88,7 @@ class DiligenceContainer {
     final clock = test ? StubClock() : Clock();
     final fs = Fs();
     final ConfigValidator validator = ConfigValidator(fs);
-    final configManager = ConfigManager(fs, validator);
+    final configManager = ConfigManager(fs, validator, test: test);
     final config = await getConfig(configManager, test, pathToDb);
     final di = Di(config: config, isTest: test, clock: clock);
     if (showDbPath(config)) {

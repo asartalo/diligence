@@ -16,6 +16,7 @@
 
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
 
 String getScriptDir() {
@@ -30,8 +31,9 @@ String getScriptDir() {
 }
 
 String getUserConfigPath([String type = 'yaml']) {
+  const suffix = kReleaseMode ? '' : '.dev';
   final home = Platform.environment['HOME'];
-  return path.join(home!, '.config', 'diligence.$type');
+  return path.join(home!, '.config', 'diligence$suffix.$type');
 }
 
 var _scriptDir = getScriptDir();
