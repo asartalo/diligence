@@ -1,4 +1,6 @@
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart';
 
 import '../../../diligence_config.dart';
 
@@ -18,7 +20,7 @@ class SettingsFields extends StatefulWidget {
 }
 
 class _SettingsFieldsState extends State<SettingsFields> {
-  bool _editingDatabasePath = false;
+  // bool _editingDatabasePath = false;
 
   DiligenceConfig get config => widget.config;
 
@@ -35,16 +37,20 @@ class _SettingsFieldsState extends State<SettingsFields> {
           title: const Text('Database Path'),
           subtitle: databasePathField(),
           trailing: IconButton(
-            icon: Icon(_editingDatabasePath ? Icons.done : Icons.edit),
-            onPressed: () {
-              if (_editingDatabasePath) {
+            icon: const Icon(Icons.edit),
+            onPressed: () async {
+              final fileName = basename(config.dbPath);
+              final containingDirectory = dirname(config.dbPath);
+              final result = await getSaveLocation(
+                suggestedName: fileName,
+                initialDirectory: containingDirectory,
+              );
+
+              if (result != null) {
                 widget.onUpdateConfig(config.copyWith(
-                  dbPath: config.dbPath,
+                  dbPath: result.path,
                 ));
               }
-              setState(() {
-                _editingDatabasePath = !_editingDatabasePath;
-              });
             },
           ),
         ),
@@ -53,19 +59,19 @@ class _SettingsFieldsState extends State<SettingsFields> {
   }
 
   Widget databasePathField() {
-    if (_editingDatabasePath) {
-      return TextField(
-        controller: TextEditingController(text: config.dbPath),
-        onSubmitted: (value) {
-          setState(() {
-            _editingDatabasePath = false;
-          });
-          widget.onUpdateConfig(config.copyWith(
-            dbPath: value,
-          ));
-        },
-      );
-    }
+    // if (_editingDatabasePath) {
+    //   return TextField(
+    //     controller: TextEditingController(text: config.dbPath),
+    //     onSubmitted: (value) {
+    //       setState(() {
+    //         _editingDatabasePath = false;
+    //       });
+    //       widget.onUpdateConfig(config.copyWith(
+    //         dbPath: value,
+    //       ));
+    //     },
+    //   );
+    // }
 
     return SelectableText(widget.config.dbPath);
   }
