@@ -138,7 +138,6 @@ jobs:
       - name: Build
         if: steps.releaseInfo.outputs.shouldRelease == 'yes'
         run: |
-          touch .env
           flutter build linux --release
 
       - name: Commit Release
