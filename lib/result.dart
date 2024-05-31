@@ -14,25 +14,14 @@ sealed class Result<T, E extends Exception> {
     throw (this as Failure).value;
   }
 
-  void match({
-    required void Function(T value) onSuccess,
-    required void Function(E value) onFailure,
+  S match<S>({
+    required S Function(T value) onSuccess,
+    required S Function(E value) onFailure,
   }) {
     if (isSuccess) {
-      onSuccess((this as Success<T, E>).value);
+      return onSuccess((this as Success<T, E>).value);
     } else {
-      onFailure((this as Failure<T, E>).value);
-    }
-  }
-
-  Future<void> futureMatch({
-    required Future<void> Function(T value) onSuccess,
-    required Future<void> Function(E value) onFailure,
-  }) async {
-    if (isSuccess) {
-      await onSuccess((this as Success<T, E>).value);
-    } else {
-      await onFailure((this as Failure<T, E>).value);
+      return onFailure((this as Failure<T, E>).value);
     }
   }
 }

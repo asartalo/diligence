@@ -95,7 +95,7 @@ class _DiligenceAppState extends State<DiligenceApp> {
 
   Future<void> updateConfigHandler(DiligenceConfig config) async {
     final result = await _container.configManager.saveConfig(config);
-    await result.futureMatch(
+    await result.match(
       onSuccess: (_) async {
         final newContainer = await _container.reloadContainer();
         setState(() {
