@@ -15,6 +15,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 import 'package:date_field/date_field.dart';
+import 'package:diligence/ui/components/notice_item.dart';
 import 'package:diligence/ui/screens/tasks/keys.dart' as keys;
 import 'package:diligence/ui/components/keys.dart' as compkeys;
 import 'package:diligence/ui/screens/tasks/task_item.dart';
@@ -117,6 +118,14 @@ class TestTasksScreen extends TestScreen with TestScreenTaskItemActions {
       matching: find.byKey(keys.reminderDeleteButton),
     );
     await dtest.tapElement(deleteButton);
+  }
+
+  Future<void> focusTaskReminderNotice(String name, DateTime when) async {
+    final focusButton = find.descendant(
+      of: _reminderNotice(name),
+      matching: find.text('FOCUS'),
+    );
+    await dtest.tapElement(focusButton);
   }
 
   // Expectations //
@@ -268,9 +277,13 @@ class TestTasksScreen extends TestScreen with TestScreenTaskItemActions {
 
   Finder _reminderNotice(String name) {
     final noticeArea = find.byKey(compkeys.noticeArea);
-    return find.descendant(
+    final noticeText = find.descendant(
       of: noticeArea,
       matching: find.text('Reminder: $name'),
+    );
+    return find.ancestor(
+      of: noticeText,
+      matching: find.byType(NoticeItem),
     );
   }
 

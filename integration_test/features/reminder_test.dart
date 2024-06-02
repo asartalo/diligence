@@ -73,5 +73,20 @@ Future<void> main() async {
         ts.expectNotToSeeReminder('2 Projects', twoDaysAfter);
       },
     );
+
+    testApp(
+      'A task can be focused through the reminder',
+      (dtest) async {
+        await reminderSetup(dtest);
+        final ts = await dtest.navigateToTasksScreen();
+        final now = dtest.clock.now();
+        final twoDaysAfter = now.add(const Duration(days: 2));
+        await ts.addReminder('2 Projects', twoDaysAfter);
+        await dtest.timeTravel(twoDaysAfter);
+        await ts.focusTaskReminderNotice('2 Projects', twoDaysAfter);
+        final fs = await dtest.navigateToFocusScreen();
+        fs.expectFocusQueue(['2 Projects']);
+      },
+    );
   });
 }
