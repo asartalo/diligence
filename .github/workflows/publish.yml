@@ -10,7 +10,7 @@ jobs:
     name: Publish to Ubuntu Snap Store
     runs-on: ubuntu-latest
     env:
-      SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_TOKEN }}
+      SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
 
     steps:
       - name: Checkout
@@ -18,5 +18,16 @@ jobs:
         with:
           fetch-depth: 0
 
+      # Setup the flutter environment.
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: "stable" # 'beta' # 'dev', 'alpha', default to: 'stable'
+
       - name: Install Snapcraft
         uses: samuelmeuli/action-snapcraft@v2
+
+      - name: Build snap
+        run: |
+          flutter pub get
+          snapcraft
+          snapcraft upload --release=edge ./diligence_*.snap

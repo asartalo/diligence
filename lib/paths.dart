@@ -16,9 +16,8 @@
 
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
-
-const kDefaultMaxIdleMinutes = 30;
 
 String getScriptDir() {
   final scriptDir = path.dirname(Platform.script.path);
@@ -29,6 +28,12 @@ String getScriptDir() {
   }
 
   return scriptDir;
+}
+
+String getUserConfigPath([String type = 'yaml']) {
+  const suffix = kReleaseMode ? '' : '.dev';
+  final home = Platform.environment['HOME'];
+  return path.join(home!, '.config', 'diligence$suffix.$type');
 }
 
 var _scriptDir = getScriptDir();

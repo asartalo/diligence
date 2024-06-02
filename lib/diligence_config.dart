@@ -14,18 +14,11 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
+import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 
-DateTime? _parseDate(String dateString) {
-  try {
-    return DateTime.parse(dateString);
-  } catch (e) {
-    return null;
-  }
-}
-
 @immutable
-class DiligenceConfig {
+class DiligenceConfig with EquatableMixin {
   final DateTime? today;
   final bool showDbPath;
   final String dbPath;
@@ -40,17 +33,18 @@ class DiligenceConfig {
     this.showReviewPage = false,
   });
 
-  DiligenceConfig.fromEnv(
-    Map<String, String> env, {
+  @override
+  List<Object?> get props => [dbPath, today, showDbPath, showReviewPage];
+
+  DiligenceConfig copyWith({
+    String? dbPath,
     bool? showDbPath,
     bool? showReviewPage,
-    String? dbPath,
-  })  : today = _parseDate(env['DILIGENCE_DEV_TODAY'] ?? 'none'),
-        showDbPath = showDbPath is bool
-            ? showDbPath
-            : env['DILIGENCE_SHOW_DB_PATH'] == 'true',
-        showReviewPage = showReviewPage is bool
-            ? showReviewPage
-            : env['DILIGENCE_SHOW_REVIEW_PAGE'] == 'true',
-        dbPath = dbPath ?? env['DILIGENCE_DB_PATH'] ?? 'diligence.db';
+  }) {
+    return DiligenceConfig(
+      dbPath: dbPath ?? this.dbPath,
+      showDbPath: showDbPath ?? this.showDbPath,
+      showReviewPage: showReviewPage ?? this.showReviewPage,
+    );
+  }
 }

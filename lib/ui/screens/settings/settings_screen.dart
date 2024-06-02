@@ -18,10 +18,13 @@ import 'package:flutter/material.dart';
 
 import '../../../diligence_config.dart';
 import '../../components/common_screen.dart';
+import 'settings_fields.dart';
 
 class SettingsScreen extends StatelessWidget {
   final DiligenceConfig config;
-  const SettingsScreen({super.key, required this.config});
+  final void Function(DiligenceConfig config) onUpdateConfig;
+  const SettingsScreen(
+      {super.key, required this.config, required this.onUpdateConfig});
 
   @override
   Widget build(BuildContext context) {
@@ -42,13 +45,9 @@ class SettingsScreen extends StatelessWidget {
             Text('Settings', style: headingStyle),
             const SizedBox(height: 32.0),
             Expanded(
-              child: ListView(
-                children: [
-                  ListTile(
-                    title: const Text('Database Path'),
-                    subtitle: Text(config.dbPath),
-                  ),
-                ],
+              child: SettingsFields(
+                config: config,
+                onUpdateConfig: onUpdateConfig,
               ),
             ),
           ],

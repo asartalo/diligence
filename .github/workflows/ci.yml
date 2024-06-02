@@ -44,9 +44,6 @@ jobs:
           channel: "stable" # 'beta' # 'dev', 'alpha', default to: 'stable'
           # flutter-version: '1.12.x' # you can also specify exact version of flutter
 
-      # Generate a temporary .env file
-      - run: echo "DILIGENCE_DEV_TODAY=2020-12-30" > .env
-
       # Get flutter dependencies.
       - run: flutter pub get
 
@@ -141,7 +138,6 @@ jobs:
       - name: Build
         if: steps.releaseInfo.outputs.shouldRelease == 'yes'
         run: |
-          touch .env
           flutter build linux --release
 
       - name: Commit Release

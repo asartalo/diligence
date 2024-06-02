@@ -20,6 +20,7 @@ class NoticeItem extends StatelessWidget {
       child: Row(
         children: [
           Text(notice.title, style: const TextStyle(fontSize: 18.0)),
+          ...renderDetails(),
           const Spacer(),
           //
           RevealOnHover(
@@ -50,5 +51,17 @@ class NoticeItem extends StatelessWidget {
             ),
           );
         }).toList();
+  }
+
+  List<Widget> renderDetails() {
+    final List<Widget> detailWidgets = [];
+    final details = notice.details;
+    if (details is String) {
+      detailWidgets.add(Text(
+        details,
+        style: const TextStyle(fontSize: 14.0),
+      ));
+    }
+    return detailWidgets;
   }
 }
