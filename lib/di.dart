@@ -8,7 +8,6 @@ import 'models/notices/reminder_notice.dart';
 import 'models/reminder_job.dart';
 import 'models/scheduled_job.dart';
 import 'services/diligent.dart';
-import 'services/jobs/hello_job_runner.dart';
 import 'services/jobs/job_queue.dart';
 import 'services/jobs/job_track.dart';
 import 'services/jobs/reminder_job_runner.dart';
@@ -50,17 +49,12 @@ class Di {
 
   RunnerFactoryFunc get runnerFactoryFunc => (ScheduledJob inputJob) {
         switch (inputJob) {
-          case HelloJob _:
-            return helloJobRunner;
           case ReminderJob _:
             return reminderJobRunner;
           default:
             throw ArgumentError('Unknown job type: ${inputJob.runtimeType}');
         }
       };
-
-  HelloJobRunner get helloJobRunner =>
-      _cache.getSet(#helloJobRunner, () => HelloJobRunner());
 
   ReminderJobRunner get reminderJobRunner => _cache.getSet(
         #reminderJobRunner,
