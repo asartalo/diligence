@@ -1,3 +1,20 @@
+# 0.1.7 (2024-06-02)
+
+## Bug Fixes
+
+- wrong status bar colors ([aa8c22c](commit/aa8c22c))
+- only use .env if it exists ([e79761a](commit/e79761a))
+
+## Features
+
+- better UI for setting database path ([e5f4987](commit/e5f4987))
+- set and save configuration files ([09382cb](commit/09382cb))
+- basic config validation ([4d821db](commit/4d821db))
+- database path in settings is selectable ([2b8ce4a](commit/2b8ce4a))
+- change configuration from toml to yaml ([285ccd2](commit/285ccd2))
+- wip use toml config instead of env ([261e359](commit/261e359))
+- database path in settings is selectable ([ee7d4e9](commit/ee7d4e9))
+
 # 0.1.6 (2024-05-03)
 
 ## Bug Fixes
