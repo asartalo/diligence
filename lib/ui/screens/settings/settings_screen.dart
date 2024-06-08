@@ -16,6 +16,7 @@
 
 import 'package:flutter/material.dart';
 
+import '../../../app_info.dart';
 import '../../../diligence_config.dart';
 import '../../components/common_screen.dart';
 import 'settings_fields.dart';
@@ -42,7 +43,9 @@ class SettingsScreen extends StatelessWidget {
         margin: const EdgeInsets.fromLTRB(64.0, 48.0, 64.0, 0.0),
         child: Column(
           children: [
-            Text('Settings', style: headingStyle),
+            Text('Diligence', style: headingStyle),
+            const SizedBox(height: 8.0),
+            Text('Version: ${AppInfo.version.toString()}'),
             const SizedBox(height: 32.0),
             Expanded(
               child: SettingsFields(

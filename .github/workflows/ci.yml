@@ -129,6 +129,7 @@ jobs:
         run: |
           currentVersion=$(cat VERSION-NO-BUILD.txt)
           release_tools update_version --file="snap/snapcraft.yaml" --template="version: [VERSION]" $currentVersion
+          release_tools update_version --file="lib/app_info.dart" --template="final _fullVersion = Version.parse('[VERSION]');" $currentVersion
           release_tools update_version --file="README.md" --template="/releases/download/[VERSION]/" $currentVersion
 
       - name: Install Build Dependencies

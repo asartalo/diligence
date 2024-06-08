@@ -45,6 +45,7 @@ dependencies:
   path: ^1.8.3 # any until we resolve integration_test upgrade
   path_provider: ^2.1.2
   provider: ^6.1.1
+  pub_semver: ^2.1.4
   sqlite3_flutter_libs: ^0.5.18
   sqlite_async: ^0.6.1
   uuid: ^4.3.3
