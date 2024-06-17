@@ -15,6 +15,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 import 'package:date_field/date_field.dart';
+import 'package:diligence/ui/components/d_checkbox.dart';
 import 'package:diligence/ui/components/notice_item.dart';
 import 'package:diligence/ui/screens/tasks/keys.dart' as keys;
 import 'package:diligence/ui/components/keys.dart' as compkeys;
@@ -232,9 +233,9 @@ class TestTasksScreen extends TestScreen with TestScreenTaskItemActions {
     expect(actual, expected);
   }
 
-  Checkbox findTaskCheckboxWidget(String name) {
+  DCheckbox findTaskCheckboxWidget(String name) {
     final checkboxFinder = findTaskCheckbox(name);
-    return tester.firstWidget<Checkbox>(checkboxFinder);
+    return tester.firstWidget<DCheckbox>(checkboxFinder);
   }
 
   void expectTaskIsDone(String name) {

@@ -23,8 +23,9 @@ import '../../../models/task.dart';
 import '../../../services/diligent.dart';
 import '../../../utils/clock.dart';
 import '../../../utils/types.dart';
-import '../../colors.dart' as colors;
+import '../../colors.dart';
 import '../../components/reveal_on_hover.dart';
+import '../../components/d_checkbox.dart';
 import 'keys.dart' as keys;
 import 'task_menu.dart';
 import 'task_menu_item.dart';
@@ -84,62 +85,76 @@ class _TaskItemState extends State<TaskItem> {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
+    return InkWell(
       key: keys.taskItem,
-      type: MaterialType.transparency,
-      child: ListTile(
-        focusNode: focusNode,
-        focusColor: colors.secondaryColor,
-        contentPadding: _getContentPadding(),
-        title: Text(
-          task.name,
-          key: keys.taskItemName,
-          style: TextStyle(
-            fontSize: _getFontSize(),
-          ),
-        ),
-        subtitle: taskDetails(),
-        onTap: () {
-          widget.onRequestTask(task);
-        },
-        leading: Column(
-          mainAxisSize: MainAxisSize.min,
+      onTap: () {
+        widget.onRequestTask(task);
+      },
+      child: Container(
+        padding: _getContentPadding(),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  width: widget.level == null
-                      ? 0
-                      : widget.level! * widget.levelScale,
-                ),
-                expandTaskButton(),
-                checkbox(),
-              ],
+            Container(
+              margin: _leadSpacing(),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: widget.level == null
+                        ? 0
+                        : widget.level! * widget.levelScale,
+                  ),
+                  expandTaskButton(),
+                  checkbox(),
+                ],
+              ),
             ),
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(0, 8.0, 0.0, 8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      task.name,
+                      key: keys.taskItemName,
+                      style: TextStyle(
+                        fontSize: _getFontSize(),
+                        fontWeight: FontWeight.w300,
+                      ),
+                    ),
+                    taskDetails() ?? const SizedBox(),
+                  ],
+                ),
+              ),
+            ),
+            RevealOnHover(
+              child: Transform.translate(
+                offset: Offset(0, _trailSpacing()),
+                child: TaskMenu(
+                  onClose: focusNode.requestFocus,
+                  menuChildren: taskMenuItems(context),
+                ),
+              ),
+            )
           ],
-        ),
-        trailing: RevealOnHover(
-          child: TaskMenu(
-            onClose: () {
-              focusNode.requestFocus();
-            },
-            menuChildren: taskMenuItems(context),
-          ),
         ),
       ),
     );
   }
 
   Widget checkbox() {
-    return Transform.scale(
-      scale: _getCheckboxScale(),
-      origin: const Offset(9.0, 0),
-      child: RevealOnHover(
-        revealByDefault: task.done,
-        child: Checkbox(
+    return RevealOnHover(
+      child: Transform.translate(
+        offset: Offset(_checkboxXOffset(), 0),
+        child: DCheckbox(
           key: keys.taskItemCheckbox,
           value: task.done,
+          size: _getCheckboxScale() * 24.0,
+          // size: 24.0,
           onChanged: (bool? done) {
             widget.onUpdateTask(
               done == true
@@ -215,7 +230,14 @@ class _TaskItemState extends State<TaskItem> {
     final details = task.details;
 
     if (details is String) {
-      return Text(details, key: keys.taskItemDetails);
+      return Text(
+        details,
+        key: keys.taskItemDetails,
+        style: TextStyle(
+          fontSize: 14,
+          color: grayText,
+        ),
+      );
     }
 
     return null;
@@ -241,6 +263,32 @@ class _TaskItemState extends State<TaskItem> {
     return const SizedBox(width: 0);
   }
 
+  EdgeInsets _leadSpacing() {
+    final top = switch (widget.style) {
+      TaskItemStyle.focusOne => 4.0,
+      TaskItemStyle.focusTwo => 8.0,
+      _ => 0.0,
+    };
+
+    return EdgeInsets.only(top: top);
+  }
+
+  double _trailSpacing() {
+    return switch (widget.style) {
+      TaskItemStyle.focusOne => 24.0,
+      TaskItemStyle.focusTwo => 12.0,
+      _ => 0.0,
+    };
+  }
+
+  double _checkboxXOffset() {
+    return switch (widget.style) {
+      TaskItemStyle.focusOne => 0.0,
+      TaskItemStyle.focusTwo => 0.0,
+      _ => 0.0,
+    };
+  }
+
   double _getFontSize() {
     switch (widget.style) {
       case TaskItemStyle.focusOne:
@@ -255,7 +303,7 @@ class _TaskItemState extends State<TaskItem> {
   double _getCheckboxScale() {
     switch (widget.style) {
       case TaskItemStyle.focusOne:
-        return 1.5;
+        return 2.0;
       case TaskItemStyle.focusTwo:
         return 1.2;
       default:
@@ -266,12 +314,11 @@ class _TaskItemState extends State<TaskItem> {
   EdgeInsets _getContentPadding() {
     switch (widget.style) {
       case TaskItemStyle.focusOne:
-        return const EdgeInsets.fromLTRB(30, 16, 8, 16);
+        return const EdgeInsets.fromLTRB(0, 16, 8, 16);
       case TaskItemStyle.focusTwo:
-        return const EdgeInsets.fromLTRB(20, 8, 8, 8);
-      // return const EdgeInsets.symmetric(vertical: 8, horizontal: 8);
+        return const EdgeInsets.fromLTRB(24, 8, 8, 8);
       default:
-        return const EdgeInsets.fromLTRB(14, 2, 8, 2);
+        return const EdgeInsets.fromLTRB(26, 2, 8, 2);
       // return const EdgeInsets.symmetric(vertical: 2, horizontal: 8);
     }
   }

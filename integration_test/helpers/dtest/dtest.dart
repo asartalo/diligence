@@ -125,6 +125,10 @@ class Dtest extends DtestBase {
     }
   }
 
+  Future<void> waitSeconds(int seconds) async {
+    await tester.pumpAndSettle(Duration(seconds: seconds));
+  }
+
   Future<void> longPressThenDrag(
     Offset start,
     Offset end, {
