@@ -45,47 +45,57 @@ class FocusQueue extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ReorderableListView.builder(
-      key: keys.focusQueueList,
-      buildDefaultDragHandles: false,
-      shrinkWrap: true,
-      scrollController: scrollController,
-      itemBuilder: (context, index) {
-        final task = queue[index];
+    return LayoutBuilder(builder: (context, constraints) {
+      return ReorderableListView.builder(
+        key: keys.focusQueueList,
+        buildDefaultDragHandles: false,
+        shrinkWrap: true,
+        scrollController: scrollController,
+        itemBuilder: (context, index) {
+          final task = queue[index];
 
-        return ReorderableDelayedDragStartListener(
-          key: Key('fQ-${task.id}'),
-          index: index,
-          child: TaskItem(
-            clock: clock,
-            task: task,
-            focused: true,
-            onUpdateTask: (task) => onUpdateTask(task, index),
-            onRequestTask: (task) => onRequestTask(task, index),
-            onCommand: (command) => onCommand(command, index),
-            style: _getTaskItemStyle(index),
-            levelScale: 8.0,
-            level: _marginLeft(index),
-          ),
-        );
-      },
-      itemCount: queue.length,
-      onReorder: onReorderQueue,
-    );
+          return ReorderableDelayedDragStartListener(
+            key: Key('fQ-${task.id}'),
+            index: index,
+            child: TaskItem(
+              clock: clock,
+              task: task,
+              focused: true,
+              onUpdateTask: (task) => onUpdateTask(task, index),
+              onRequestTask: (task) => onRequestTask(task, index),
+              onCommand: (command) => onCommand(command, index),
+              style: _getTaskItemStyle(index, constraints),
+              levelScale: 8.0,
+              level: _marginLeft(index, constraints),
+            ),
+          );
+        },
+        itemCount: queue.length,
+        onReorder: onReorderQueue,
+      );
+    });
   }
 
-  TaskItemStyle _getTaskItemStyle(int index) {
+  TaskItemStyle _getTaskItemStyle(int index, BoxConstraints constraints) {
+    if (constraints.maxWidth > 600) {
+      if (index == 0) {
+        return TaskItemStyle.focusOne;
+      } else if (index == 1) {
+        return TaskItemStyle.focusTwo;
+      } else {
+        return TaskItemStyle.focusThree;
+      }
+    }
+
     if (index == 0) {
-      return TaskItemStyle.focusOne;
-    } else if (index == 1) {
       return TaskItemStyle.focusTwo;
     } else {
       return TaskItemStyle.focusThree;
     }
   }
 
-  int _marginLeft(int index) {
-    switch (_getTaskItemStyle(index)) {
+  int _marginLeft(int index, BoxConstraints constraints) {
+    switch (_getTaskItemStyle(index, constraints)) {
       case TaskItemStyle.focusOne:
         return 0;
       case TaskItemStyle.focusTwo:

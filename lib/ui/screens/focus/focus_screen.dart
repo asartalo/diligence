@@ -40,6 +40,9 @@ class FocusScreen extends StatefulWidget {
   State<FocusScreen> createState() => _FocusScreenState();
 }
 
+const wideScreenInsets = EdgeInsets.fromLTRB(64.0, 48.0, 64.0, 0.0);
+const narrowScreenInsets = EdgeInsets.fromLTRB(0.0, 32.0, 00, 0.0);
+
 class _FocusScreenState extends State<FocusScreen> {
   late TaskList _queue;
   late int _queueSize;
@@ -84,36 +87,34 @@ class _FocusScreenState extends State<FocusScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return CommonScreen(
-      title: 'Focus',
-      child: SingleChildScrollView(
-        child: Container(
-          margin: const EdgeInsets.fromLTRB(64.0, 48.0, 64.0, 0.0),
-          child: Column(
-            // crossAxisAlignment: CrossAxisAlignment.center,
-            // mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              FocusQueue(
-                queue: _queue,
-                clock: clock,
-                onReorderQueue: (oldIndex, newIndex) {
-                  _handleReorderQueue(oldIndex, newIndex);
-                },
-                onRequestTask: (task, index) {
-                  _handleRequestTask(task, index);
-                },
-                onUpdateTask: (task, index) {
-                  _handleUpdateTask(task, index);
-                },
-                onCommand: (command, index) {
-                  _handleCommand(command, index);
-                },
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return CommonScreen(
+          title: 'Focus',
+          child: SingleChildScrollView(
+            child: Container(
+              margin: constraints.maxWidth > 800
+                  ? wideScreenInsets
+                  : narrowScreenInsets,
+              child: Column(
+                // crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  FocusQueue(
+                    queue: _queue,
+                    clock: clock,
+                    onReorderQueue: _handleReorderQueue,
+                    onRequestTask: _handleRequestTask,
+                    onUpdateTask: _handleUpdateTask,
+                    onCommand: _handleCommand,
+                  ),
+                  _moreSection(),
+                ],
               ),
-              _moreSection(),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
