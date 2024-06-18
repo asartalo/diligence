@@ -110,21 +110,11 @@ class _TasksScreenState extends State<TasksScreen> {
       child: TaskTree(
         clock: clock,
         taskNodes: _taskNodes,
-        onUpdateTask: (task, index) {
-          _handleUpdateTask(task, index);
-        },
-        onReorder: (task, index) {
-          _handleReorder(task, index);
-        },
-        onRequestTask: (task, index) {
-          _handleRequestTask(task, index);
-        },
-        onToggleExpandTask: (task, index) {
-          _handleToggleExpandTask(task, index);
-        },
-        onCommand: (command, _) {
-          _handleCommand(command);
-        },
+        onUpdateTask: _handleUpdateTask,
+        onReorder: _handleReorder,
+        onRequestTask: _handleRequestTask,
+        onToggleExpandTask: _handleToggleExpandTask,
+        onCommand: (command, _) => _handleCommand(command),
       ),
     );
   }
