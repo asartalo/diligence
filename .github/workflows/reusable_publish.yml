@@ -14,8 +14,6 @@ on:
     secrets:
       SNAPCRAFT_STORE_CREDENTIALS:
         required: true
-      foo:
-        required: true
 
 jobs:
   snapstore:
@@ -23,12 +21,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
-      FOO: ${{ secrets.foo }}
 
     steps:
-      - name: Print FOO
-        run: "echo ${FOO: -3}"
-
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -44,6 +38,7 @@ jobs:
 
       - name: Build snap
         run: |
+          snapcraft whoami | grep username
           flutter pub get
           sg lxd -c 'snapcraft --use-lxd'
           snapcraft upload --release=edge ./diligence_*.snap

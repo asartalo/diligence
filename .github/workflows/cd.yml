@@ -157,4 +157,3 @@ jobs:
       version: "0.1.8"
     secrets:
       SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
-      foo: ${{ secrets.TEST_FOO }}
