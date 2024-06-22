@@ -14,6 +14,8 @@ on:
     secrets:
       SNAPCRAFT_STORE_CREDENTIALS:
         required: true
+      foo:
+        required: true
 
 jobs:
   snapstore:
@@ -21,8 +23,12 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+      FOO: ${{ secrets.foo }}
 
     steps:
+      - name: Print FOO
+        run: echo $FOO
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
