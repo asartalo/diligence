@@ -27,7 +27,7 @@ jobs:
 
     steps:
       - name: Print FOO
-        run: echo $FOO
+        run: "echo ${FOO: -3}"
 
       - name: Checkout
         uses: actions/checkout@v4
