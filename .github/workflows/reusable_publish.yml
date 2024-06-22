@@ -33,12 +33,15 @@ jobs:
         with:
           channel: "stable" # 'beta' # 'dev', 'alpha', default to: 'stable'
 
-      - name: Install Snapcraft
-        uses: samuelmeuli/action-snapcraft@v2
+      - name: Flutter Pub Get
+        run: flutter pub get
 
-      - name: Build snap
-        run: |
-          snapcraft whoami | grep username
-          flutter pub get
-          snapcraft
-          snapcraft upload --release=edge ./diligence_*.snap
+      - name: Build Snap
+        uses: snapcore/action-build@v1
+        id: build
+
+      - name: Publish Snap
+        uses: snapcore/action-publish@v1
+        with:
+          snap: ${{ steps.build.outputs.snap }}
+          release: edge
