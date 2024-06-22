@@ -1,13 +1,23 @@
 name: Publish to Stores
 
 on:
-  push:
-    tags:
-      - "^[0-9]+.[0-9]+.[0-9]+"
+  workflow_call:
+    inputs:
+      tag:
+        description: "The version tag for this release"
+        type: string
+        required: true
+      version:
+        description: "The version for this release"
+        type: string
+        required: true
+    secrets:
+      SNAPCRAFT_STORE_CREDENTIALS:
+        required: true
 
 jobs:
   snapstore:
-    name: Publish to Ubuntu Snap Store
+    name: Ubuntu Snap Store
     runs-on: ubuntu-latest
     env:
       SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
@@ -16,7 +26,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          ref: ${{ inputs.tag }}
 
       # Setup the flutter environment.
       - uses: subosito/flutter-action@v2

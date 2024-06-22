@@ -20,8 +20,8 @@ jobs:
         id: branchinfo
         run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
 
-  test:
+  tests:
     needs: get_branch
-    uses: asartalo/diligence/.github/workflows/reusable_tests.yml@main
+    uses: ./.github/workflows/reusable_tests.yml
     with:
       from_branch: ${{ needs.get_branch.outputs.branch }}
