@@ -20,7 +20,7 @@ jobs:
     needs: get_branch
     uses: asartalo/diligence/.github/workflows/reusable_tests.yml@main
     with:
-      branch: ${{ needs.get_branch.outputs.branch }}
+      from_branch: ${{ needs.get_branch.outputs.branch }}
 
   release:
     name: Release
