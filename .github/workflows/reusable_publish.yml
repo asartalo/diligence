@@ -39,9 +39,6 @@ jobs:
       - name: Build snap
         run: |
           snapcraft whoami | grep username
-          echo "Before"
-          sg lxd -c 'snapcraft whoami | grep username'
-          echo "After"
           flutter pub get
-          sg lxd -c 'snapcraft'
+          snapcraft
           snapcraft upload --release=edge ./diligence_*.snap
