@@ -8,150 +8,152 @@ on:
     branches: ["release"]
 
 jobs:
-  get_branch:
-    name: Get Branch
-    runs-on: ubuntu-latest
-    outputs:
-      branch: ${{ steps.branchinfo.outputs.branch }}
+  # get_branch:
+  #   name: Get Branch
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     branch: ${{ steps.branchinfo.outputs.branch }}
 
-    steps:
-      - name: Store the branch name
-        id: branchinfo
-        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+  #   steps:
+  #     - name: Store the branch name
+  #       id: branchinfo
+  #       run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
 
-  tests:
-    needs: get_branch
-    uses: ./.github/workflows/reusable_tests.yml
-    with:
-      from_branch: ${{ needs.get_branch.outputs.branch }}
+  # tests:
+  #   needs: get_branch
+  #   uses: ./.github/workflows/reusable_tests.yml
+  #   with:
+  #     from_branch: ${{ needs.get_branch.outputs.branch }}
 
-  release:
-    name: Release
-    runs-on: ubuntu-latest
-    needs:
-      - get_branch
-      - tests
-    if: ${{ needs.get_branch.outputs.branch == 'release' }}
-    outputs:
-      version: ${{ steps.releaseInfo.outputs.version }}
-      versionWithBuild: ${{ steps.releaseInfo.outputs.versionWithBuild }}
-      shouldRelease: ${{ steps.releaseInfo.outputs.shouldRelease }}
-      summary: ${{ steps.releaseInfo.outputs.summary }}
+  # release:
+  #   name: Release
+  #   runs-on: ubuntu-latest
+  #   needs:
+  #     - get_branch
+  #     - tests
+  #   if: ${{ needs.get_branch.outputs.branch == 'release' }}
+  #   outputs:
+  #     version: ${{ steps.releaseInfo.outputs.version }}
+  #     versionWithBuild: ${{ steps.releaseInfo.outputs.versionWithBuild }}
+  #     shouldRelease: ${{ steps.releaseInfo.outputs.shouldRelease }}
+  #     summary: ${{ steps.releaseInfo.outputs.summary }}
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0
 
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: "stable"
+  #     - uses: subosito/flutter-action@v2
+  #       with:
+  #         channel: "stable"
 
-      - run: flutter config --enable-linux-desktop
+  #     - run: flutter config --enable-linux-desktop
 
-      # Get flutter dependencies.
-      - run: flutter pub get
+  #     # Get flutter dependencies.
+  #     - run: flutter pub get
 
-      - name: Install release_tools
-        run: dart pub global activate release_tools
+  #     - name: Install release_tools
+  #       run: dart pub global activate release_tools
 
-      - name: Hookup pub tools
-        run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+  #     - name: Hookup pub tools
+  #       run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
 
-      - name: Prepare release
-        run: |
-          release_tools prepare_release -wn
-          cat VERSION.txt || echo "No Release"
+  #     - name: Prepare release
+  #       run: |
+  #         release_tools prepare_release -wn
+  #         cat VERSION.txt || echo "No Release"
 
-      - name: Get Release Info
-        id: releaseInfo
-        run: |
-          if [ -e VERSION.txt ]
-          then
-            shouldRelease="yes"
-            releaseVersionNoBuild=$(cat VERSION-NO-BUILD.txt)
-            releaseVersion=$(cat VERSION.txt)
-            summary=$(cat RELEASE_SUMMARY.txt)
-            echo "versionWithBuild=${releaseVersion}" >> $GITHUB_OUTPUT
-            echo "version=${releaseVersionNoBuild}" >> $GITHUB_OUTPUT
-            {
-              echo 'summary<<EOF'
-              echo $summary
-              echo EOF
-            } >> $GITHUB_OUTPUT
-          else
-            shouldRelease="false"
-          fi
-          echo "shouldRelease=${shouldRelease}" >> $GITHUB_OUTPUT
+  #     - name: Get Release Info
+  #       id: releaseInfo
+  #       run: |
+  #         if [ -e VERSION.txt ]
+  #         then
+  #           shouldRelease="yes"
+  #           releaseVersionNoBuild=$(cat VERSION-NO-BUILD.txt)
+  #           releaseVersion=$(cat VERSION.txt)
+  #           summary=$(cat RELEASE_SUMMARY.txt)
+  #           echo "versionWithBuild=${releaseVersion}" >> $GITHUB_OUTPUT
+  #           echo "version=${releaseVersionNoBuild}" >> $GITHUB_OUTPUT
+  #           {
+  #             echo 'summary<<EOF'
+  #             echo $summary
+  #             echo EOF
+  #           } >> $GITHUB_OUTPUT
+  #         else
+  #           shouldRelease="false"
+  #         fi
+  #         echo "shouldRelease=${shouldRelease}" >> $GITHUB_OUTPUT
 
-      - name: Update Version on other files
-        run: |
-          currentVersion=$(cat VERSION-NO-BUILD.txt)
-          release_tools update_version --file="snap/snapcraft.yaml" --template="version: [VERSION]" $currentVersion
-          release_tools update_version --file="lib/app_info.dart" --template="final _fullVersion = Version.parse('[VERSION]');" $currentVersion
-          release_tools update_version --file="README.md" --template="/releases/download/[VERSION]/" $currentVersion
+  #     - name: Update Version on other files
+  #       run: |
+  #         currentVersion=$(cat VERSION-NO-BUILD.txt)
+  #         release_tools update_version --file="snap/snapcraft.yaml" --template="version: [VERSION]" $currentVersion
+  #         release_tools update_version --file="lib/app_info.dart" --template="final _fullVersion = Version.parse('[VERSION]');" $currentVersion
+  #         release_tools update_version --file="README.md" --template="/releases/download/[VERSION]/" $currentVersion
 
-      - name: Install Build Dependencies
-        if: steps.releaseInfo.outputs.shouldRelease == 'yes'
-        run: sudo apt-get install clang cmake ninja-build pkg-config libgtk-3-dev libblkid-dev liblzma-dev libsqlite3-dev libfuse2
+  #     - name: Install Build Dependencies
+  #       if: steps.releaseInfo.outputs.shouldRelease == 'yes'
+  #       run: sudo apt-get install clang cmake ninja-build pkg-config libgtk-3-dev libblkid-dev liblzma-dev libsqlite3-dev libfuse2
 
-      - name: Build
-        if: steps.releaseInfo.outputs.shouldRelease == 'yes'
-        run: |
-          flutter build linux --release
+  #     - name: Build
+  #       if: steps.releaseInfo.outputs.shouldRelease == 'yes'
+  #       run: |
+  #         flutter build linux --release
 
-      - name: Commit Release
-        if: steps.releaseInfo.outputs.shouldRelease == 'yes'
-        run: |
-          git diff
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git add .
-          git commit -m "chore(release): prepare release for ${{ steps.releaseInfo.outputs.version }}"
-          git push
+  #     - name: Commit Release
+  #       if: steps.releaseInfo.outputs.shouldRelease == 'yes'
+  #       run: |
+  #         git diff
+  #         git config user.name github-actions
+  #         git config user.email github-actions@github.com
+  #         git add .
+  #         git commit -m "chore(release): prepare release for ${{ steps.releaseInfo.outputs.version }}"
+  #         git push
 
-      - name: Gzip
-        if: steps.releaseInfo.outputs.shouldRelease == 'yes'
-        run: |
-          cd build/linux/x64/
-          tar -czvf release-linux-x64-${{ steps.releaseInfo.outputs.version }}.tar.gz release
+  #     - name: Gzip
+  #       if: steps.releaseInfo.outputs.shouldRelease == 'yes'
+  #       run: |
+  #         cd build/linux/x64/
+  #         tar -czvf release-linux-x64-${{ steps.releaseInfo.outputs.version }}.tar.gz release
 
-      - name: Create AppImage
-        id: appImage
-        if: steps.releaseInfo.outputs.shouldRelease == 'yes'
-        run: |
-          wget https://github.com/AppImage/AppImageKit/releases/download/13/appimagetool-x86_64.AppImage
-          chmod +x appimagetool-x86_64.AppImage
-          cp -r ./build/linux/x64/release/bundle/* ./Diligence.AppDir/
-          ./appimagetool-x86_64.AppImage  Diligence.AppDir/ Diligence-x64-${{ steps.releaseInfo.outputs.version }}.AppImage
+  #     - name: Create AppImage
+  #       id: appImage
+  #       if: steps.releaseInfo.outputs.shouldRelease == 'yes'
+  #       run: |
+  #         wget https://github.com/AppImage/AppImageKit/releases/download/13/appimagetool-x86_64.AppImage
+  #         chmod +x appimagetool-x86_64.AppImage
+  #         cp -r ./build/linux/x64/release/bundle/* ./Diligence.AppDir/
+  #         ./appimagetool-x86_64.AppImage  Diligence.AppDir/ Diligence-x64-${{ steps.releaseInfo.outputs.version }}.AppImage
 
-      - name: Create Release
-        if: steps.releaseInfo.outputs.shouldRelease == 'yes'
-        id: createRelease
-        uses: ncipollo/release-action@v1
-        with:
-          token: ${{ secrets.PAT }}
-          tag: ${{ steps.releaseInfo.outputs.version }}
-          name: Release ${{ steps.releaseInfo.outputs.version }}
-          commit: release
-          artifacts: build/**/release-*.tar.gz,Diligence-*.AppImage
-          body: |
-            Changes in this Release
+  #     - name: Create Release
+  #       if: steps.releaseInfo.outputs.shouldRelease == 'yes'
+  #       id: createRelease
+  #       uses: ncipollo/release-action@v1
+  #       with:
+  #         token: ${{ secrets.PAT }}
+  #         tag: ${{ steps.releaseInfo.outputs.version }}
+  #         name: Release ${{ steps.releaseInfo.outputs.version }}
+  #         commit: release
+  #         artifacts: build/**/release-*.tar.gz,Diligence-*.AppImage
+  #         body: |
+  #           Changes in this Release
 
-            ${{ steps.releaseInfo.outputs.summary }}
+  #           ${{ steps.releaseInfo.outputs.summary }}
 
-          draft: false
-          prerelease: false
+  #         draft: false
+  #         prerelease: false
 
   publish:
-    if: ${{ needs.get_branch.outputs.branch == 'release' }}
-    needs:
-      - get_branch
-      - release
+    # if: ${{ needs.get_branch.outputs.branch == 'release' }}
+    # needs:
+    #   - get_branch
+    #   - release
     uses: ./.github/workflows/reusable_publish.yml
     with:
-      tag: ${{ needs.release.outputs.version }}
-      version: ${{ needs.release.outputs.version }}
+      # tag: ${{ needs.release.outputs.version }}
+      # version: ${{ needs.release.outputs.version }}
+      tag: "0.1.8"
+      version: "0.1.8"
     secrets:
       SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}

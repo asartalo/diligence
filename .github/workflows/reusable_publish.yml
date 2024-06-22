@@ -39,5 +39,5 @@ jobs:
       - name: Build snap
         run: |
           flutter pub get
-          snapcraft
+          sg lxd -c 'snapcraft --use-lxd'
           snapcraft upload --release=edge ./diligence_*.snap
