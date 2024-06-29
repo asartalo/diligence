@@ -36,6 +36,7 @@ import 'diligent/focus_queue_manager.dart';
 import 'diligent/task_db.dart';
 import 'diligent/task_events/added_reminders_event.dart';
 import 'diligent/task_events/added_tasks_event.dart';
+import 'diligent/task_events/deleted_task_event.dart';
 import 'diligent/task_events/removed_reminders_event.dart';
 import 'diligent/task_events/task_event.dart';
 import 'diligent/task_events/task_event_registry.dart';
@@ -549,6 +550,12 @@ class Diligent extends TaskDb {
       if (parent is Task) {
         await _toggleSubtree(task, tx);
       }
+
+      await announceEvent(DeletedTaskEvent(
+        clock.now(),
+        task: task,
+        tx: tx,
+      ));
     });
   }
 

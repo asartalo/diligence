@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -23,6 +24,7 @@ import '../../../models/task.dart';
 import '../../../models/task_list.dart';
 import '../../../services/diligent.dart';
 import '../../../services/diligent/diligent_commander.dart';
+import '../../../services/diligent/focus_queue_manager.dart';
 import '../../../utils/clock.dart';
 import '../../components/common_screen.dart';
 import '../../components/reveal_on_hover.dart';
@@ -47,9 +49,12 @@ class _FocusScreenState extends State<FocusScreen> {
   late TaskList _queue;
   late int _queueSize;
   late int _limit;
+  late StreamSubscription<FocusQueueEvent> _updateStreamSubscription;
 
   Diligent get diligent => widget.diligent;
   Clock get clock => widget.clock;
+  Stream<FocusQueueEvent> get updateStream =>
+      widget.diligent.focusQueueManager.updateEventStream;
 
   @override
   void initState() {
@@ -57,6 +62,17 @@ class _FocusScreenState extends State<FocusScreen> {
     _queue = [];
     _queueSize = 0;
     _limit = 5;
+    _updateStreamSubscription = updateStream.listen(_streamListener);
+  }
+
+  void _streamListener(FocusQueueEvent _) {
+    updateTasks();
+  }
+
+  @override
+  void dispose() {
+    _updateStreamSubscription.cancel();
+    super.dispose();
   }
 
   @override
@@ -127,7 +143,6 @@ class _FocusScreenState extends State<FocusScreen> {
       );
     });
     await diligent.reprioritizeInFocusQueue(task, newIndex);
-    await updateTasks();
   }
 
   Future<void> _handleRequestTask(Task task, int index) async {
@@ -145,14 +160,10 @@ class _FocusScreenState extends State<FocusScreen> {
       _queue[index] = task;
     });
     await diligent.updateTask(task);
-    await updateTasks();
   }
 
   Future<void> _handleCommand(Command command, int _) async {
-    final result = await widget.commander.handle(command);
-    if (result is Success) {
-      await updateTasks();
-    }
+    await widget.commander.handle(command);
   }
 
   Widget _moreSection() {
