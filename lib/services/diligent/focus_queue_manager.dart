@@ -268,10 +268,7 @@ class FocusQueueManager extends TaskDb implements DiligentEventRegister {
   }
 
   Future<void> handleDeletedTaskEvent(DeletedTaskEvent event) async {
-    final DeletedTaskEvent(:task, :tx) = event;
-    if (await isFocused(task.id, tx)) {
-      _broadcastUpdate();
-    }
+    _broadcastUpdate();
   }
 
   @override

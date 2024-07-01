@@ -118,7 +118,7 @@ class DiligenceContainer {
   }
 
   Future<void> start() async {
-    await diligent.runMigrations();
+    await diligent.setUp();
     await diligent.initialAreas(initialAreas);
     di.jobQueue.registerEventHandlers(diligent);
     await di.jobTrack.start();

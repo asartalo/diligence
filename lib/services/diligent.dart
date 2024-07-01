@@ -109,7 +109,8 @@ class Diligent extends TaskDb {
     return Diligent.convenience(isTest: true, db: db, clock: clock);
   }
 
-  Future<void> runMigrations() async {
+  Future<void> setUp() async {
+    await db.execute('PRAGMA foreign_keys = ON');
     await migrations.migrate(db);
   }
 
@@ -117,6 +118,8 @@ class Diligent extends TaskDb {
     if (_isTest) {
       await db.execute('DELETE FROM focusQueue');
       await db.execute('DELETE FROM reminders');
+      await db.execute('DELETE FROM notices');
+      await db.execute('DELETE FROM jobs');
       await db.execute('DELETE FROM tasks');
     }
   }
@@ -550,13 +553,9 @@ class Diligent extends TaskDb {
       if (parent is Task) {
         await _toggleSubtree(task, tx);
       }
-
-      await announceEvent(DeletedTaskEvent(
-        clock.now(),
-        task: task,
-        tx: tx,
-      ));
     });
+
+    await announceEvent(DeletedTaskEvent(clock.now(), task: task));
   }
 
   Future<void> _reorderChildren(SqliteWriteContext tx, int? parentId) async {

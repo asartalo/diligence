@@ -171,6 +171,10 @@ class _FocusScreenState extends State<FocusScreen> {
   }
 
   Widget _moreButton() {
+    if (_limit >= _queueSize) {
+      return const SizedBox.shrink();
+    }
+
     return Container(
       margin: const EdgeInsets.only(top: 16.0),
       child: RevealOnHover(
@@ -179,7 +183,7 @@ class _FocusScreenState extends State<FocusScreen> {
             _toggleLimit();
           },
           child: Text(
-            _limit == 0 ? 'Show Less' : 'Show More',
+            "${(_limit == 0 ? 'Show Less' : 'Show More')} $_limit $_queueSize",
           ),
         ),
       ),

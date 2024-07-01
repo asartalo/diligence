@@ -80,4 +80,27 @@ const migrationQueries = [
   ''',
 
   'CREATE INDEX runAtIdx On jobs(runAt)',
+
+  // Migrations for adding 'ON DELETE CASCADE' to focusQueue taskId foreign key
+  'ALTER TABLE focusQueue RENAME TO _focusQueue',
+
+  '''
+  CREATE TABLE IF NOT EXISTS focusQueue (
+    taskId INTEGER PRIMARY KEY,
+    position INTEGER NOT NULL DEFAULT 0,
+    FOREIGN KEY (taskId) REFERENCES tasks(id) ON DELETE CASCADE
+  )
+  ''',
+
+  'INSERT INTO focusQueue SELECT * FROM _focusQueue',
+
+  // Cleanup focusQueue rows that don't have a corresponding task
+  '''
+  DELETE FROM focusQueue
+  WHERE taskId NOT IN (SELECT id FROM tasks)
+  ''',
+
+  // Delete the old focusQueue table
+  'DROP TABLE _focusQueue',
+  // End of migrations for adding 'ON DELETE CASCADE' to focusQueue
 ];
