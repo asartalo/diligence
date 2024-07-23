@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
+import 'dart:async';
+
 import 'package:collection/collection.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 
@@ -24,17 +26,36 @@ import '../diligent.dart';
 import 'diligent_event_register.dart';
 import 'task_db.dart';
 import 'task_events/added_tasks_event.dart';
+import 'task_events/deleted_task_event.dart';
 import 'task_events/toggled_tasks_done_event.dart';
 import 'task_events/updated_task_event.dart';
 import 'task_fields.dart';
 
+class FocusQueueEvent {
+  final DateTime at;
+
+  FocusQueueEvent(this.at);
+}
+
 class FocusQueueManager extends TaskDb implements DiligentEventRegister {
   @override
   final SqliteDatabase db;
+  final _controller = StreamController<FocusQueueEvent>();
+  Stream<FocusQueueEvent>? _updateEventStream;
 
   final Clock clock;
 
   FocusQueueManager({required this.db, required this.clock});
+
+  Stream<FocusQueueEvent> get updateEventStream {
+    if (_updateEventStream != null) {
+      return _updateEventStream as Stream<FocusQueueEvent>;
+    } else {
+      final theStream = _controller.stream.asBroadcastStream();
+      _updateEventStream = theStream;
+      return theStream;
+    }
+  }
 
   Future<TaskList> focusQueue({int? limit}) async {
     final rows = await db.getAll(
@@ -48,6 +69,10 @@ class FocusQueueManager extends TaskDb implements DiligentEventRegister {
     );
 
     return rows.map(taskFromRow).toList();
+  }
+
+  void _broadcastUpdate() {
+    _controller.sink.add(FocusQueueEvent(clock.now()));
   }
 
   Future<int> getFocusedCount() async {
@@ -137,6 +162,8 @@ class FocusQueueManager extends TaskDb implements DiligentEventRegister {
         }).toList(),
       );
     }
+
+    _broadcastUpdate();
   }
 
   Future<bool> isFocused(int? id, SqliteReadContext tx) async {
@@ -165,6 +192,7 @@ class FocusQueueManager extends TaskDb implements DiligentEventRegister {
       ids,
     );
     await _normalizeFocusQueuePositions(tx);
+    _broadcastUpdate();
   }
 
   Future<void> _normalizeFocusQueuePositions(SqliteWriteContext tx) async {
@@ -209,6 +237,8 @@ class FocusQueueManager extends TaskDb implements DiligentEventRegister {
       );
       await _normalizeFocusQueuePositions(tx);
     });
+
+    _broadcastUpdate();
   }
 
   Future<void> handleAddedTasksEvent(AddedTasksEvent event) async {
@@ -223,6 +253,10 @@ class FocusQueueManager extends TaskDb implements DiligentEventRegister {
     final UpdatedTaskEvent(:modified, :tx) = event;
     if (modified.hasToggledDone() && modified.done == true) {
       await unfocusInContext([modified], tx);
+    } else {
+      if (await isFocused(modified.id, tx)) {
+        _broadcastUpdate();
+      }
     }
   }
 
@@ -233,10 +267,15 @@ class FocusQueueManager extends TaskDb implements DiligentEventRegister {
     }
   }
 
+  Future<void> handleDeletedTaskEvent(DeletedTaskEvent event) async {
+    _broadcastUpdate();
+  }
+
   @override
   void registerEventHandlers(Diligent diligent) {
     diligent.register(handleAddedTasksEvent);
     diligent.register(handleUpdatedTaskEvent);
     diligent.register(handleToggledTasksDoneEvent);
+    diligent.register(handleDeletedTaskEvent);
   }
 }

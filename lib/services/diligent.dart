@@ -36,6 +36,7 @@ import 'diligent/focus_queue_manager.dart';
 import 'diligent/task_db.dart';
 import 'diligent/task_events/added_reminders_event.dart';
 import 'diligent/task_events/added_tasks_event.dart';
+import 'diligent/task_events/deleted_task_event.dart';
 import 'diligent/task_events/removed_reminders_event.dart';
 import 'diligent/task_events/task_event.dart';
 import 'diligent/task_events/task_event_registry.dart';
@@ -108,7 +109,8 @@ class Diligent extends TaskDb {
     return Diligent.convenience(isTest: true, db: db, clock: clock);
   }
 
-  Future<void> runMigrations() async {
+  Future<void> setUp() async {
+    await db.execute('PRAGMA foreign_keys = ON');
     await migrations.migrate(db);
   }
 
@@ -116,6 +118,8 @@ class Diligent extends TaskDb {
     if (_isTest) {
       await db.execute('DELETE FROM focusQueue');
       await db.execute('DELETE FROM reminders');
+      await db.execute('DELETE FROM notices');
+      await db.execute('DELETE FROM jobs');
       await db.execute('DELETE FROM tasks');
     }
   }
@@ -550,6 +554,8 @@ class Diligent extends TaskDb {
         await _toggleSubtree(task, tx);
       }
     });
+
+    await announceEvent(DeletedTaskEvent(clock.now(), task: task));
   }
 
   Future<void> _reorderChildren(SqliteWriteContext tx, int? parentId) async {

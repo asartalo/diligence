@@ -23,7 +23,7 @@ import '../../../models/task.dart';
 import '../../../services/diligent.dart';
 import '../../../utils/clock.dart';
 import '../../../utils/types.dart';
-import '../../colors.dart';
+import '../../colors.dart' as colors;
 import '../../components/reveal_on_hover.dart';
 import '../../components/d_checkbox.dart';
 import 'keys.dart' as keys;
@@ -90,6 +90,8 @@ class _TaskItemState extends State<TaskItem> {
       onTap: () {
         widget.onRequestTask(task);
       },
+      focusNode: focusNode,
+      focusColor: colors.secondaryColor,
       child: Container(
         padding: _getContentPadding(),
         child: Row(
@@ -235,7 +237,7 @@ class _TaskItemState extends State<TaskItem> {
         key: keys.taskItemDetails,
         style: TextStyle(
           fontSize: 14,
-          color: grayText,
+          color: colors.grayText,
         ),
       );
     }

@@ -27,7 +27,7 @@ void main() {
     setUpAll(() async {
       clock = StubClock();
       diligent = Diligent.forTests(db: testDb, clock: clock);
-      await diligent.runMigrations();
+      await diligent.setUp();
     });
 
     tearDown(() async {
