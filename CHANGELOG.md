@@ -1,3 +1,11 @@
+# 0.1.9 (2024-07-23)
+
+## Bug Fixes
+
+- multiple items focus persist ([24d92ed](commit/24d92ed))
+- deleting task from focus view removes it immediately ([d486dd8](commit/d486dd8))
+- update focus queue when pressing focus on notice ([967688b](commit/967688b))
+
 # 0.1.8 (2024-06-22)
 
 ## Bug Fixes
