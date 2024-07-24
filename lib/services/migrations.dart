@@ -82,6 +82,9 @@ const migrationQueries = [
   'CREATE INDEX runAtIdx On jobs(runAt)',
 
   // Migrations for adding 'ON DELETE CASCADE' to focusQueue taskId foreign key
+  // WARNING: I made a mistake here. I should have cleaned up the focusQueue
+  // table before doing the next queries. I should have deleted rows that don't
+  // have a corresponding task.
   'ALTER TABLE focusQueue RENAME TO _focusQueue',
 
   '''

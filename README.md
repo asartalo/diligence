@@ -46,6 +46,12 @@ If you also want to run the integration tests and not want it to interfere with 
 DILIGENCE_APP_ID_PREFIX=test flutter test integration_test/all_tests.dart
 ```
 
+### Updating the SQLite Schema
+
+SQLite is currently used as the backing store. To update the schema, we use database migrations. These are currently defined in `lib/services/migrations.dart`. There are however some important considerations when adding new migrations:
+
+1. Some column operations are tricky to do in SQLite like modifying foreign key constraints. Basically the strategy is to 1.) rename the current table; 2.) create a new table that is basically the old one with the column changes; 3.) copy over the data from the old table to the new table; 4.) Delete the old table. This works but there will be errors when some columns have references to data that no longer exists in some other table. Before doing this, make sure to clean up your data on the old table first removing orphaned references first.
+
 ### Ubuntu Issues (and probably others...)
 
 You might need to install libsqlite3.
