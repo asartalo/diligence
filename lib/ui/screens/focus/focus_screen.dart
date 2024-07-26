@@ -183,7 +183,7 @@ class _FocusScreenState extends State<FocusScreen> {
             _toggleLimit();
           },
           child: Text(
-            "${(_limit == 0 ? 'Show Less' : 'Show More')} $_limit $_queueSize",
+            _limit == 0 ? 'Show Less' : 'Show More',
           ),
         ),
       ),
