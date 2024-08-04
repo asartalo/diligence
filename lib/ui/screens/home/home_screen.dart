@@ -48,47 +48,49 @@ class HomeScreen extends StatelessWidget {
 
     return CommonScreen(
       title: 'Diligence',
-      child: Container(
-        margin: const EdgeInsets.all(16),
-        child: Center(
-          child: ClockWrap(
-            clock: clock,
-            builder: (time) => Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text('Hello!', style: welcomeStyle),
-                const SizedBox(height: 32.0),
-                Text(
-                  timeFormat.format(time),
-                  style: hourStyle,
-                ),
-                Text(
-                  dateFormatWithDay.format(time),
-                  style: theme.textTheme.headlineMedium,
-                ),
-                const SizedBox(height: 32.0),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    FilledButton(
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/tasks');
-                      },
-                      style: buttonStyle,
-                      child: const Text('Organize Tasks'),
-                    ),
-                    const SizedBox(width: 16.0),
-                    FilledButton(
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/focus');
-                      },
-                      style: buttonStyle,
-                      child: const Text('Focus'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 64.0),
-              ],
+      child: SingleChildScrollView(
+        child: Container(
+          margin: const EdgeInsets.all(16),
+          child: Center(
+            child: ClockWrap(
+              clock: clock,
+              builder: (time) => Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('Hello!', style: welcomeStyle),
+                  const SizedBox(height: 32.0),
+                  Text(
+                    timeFormat.format(time),
+                    style: hourStyle,
+                  ),
+                  Text(
+                    dateFormatWithDay.format(time),
+                    style: theme.textTheme.headlineMedium,
+                  ),
+                  const SizedBox(height: 32.0),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      FilledButton(
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/tasks');
+                        },
+                        style: buttonStyle,
+                        child: const Text('Organize Tasks'),
+                      ),
+                      const SizedBox(width: 16.0),
+                      FilledButton(
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/focus');
+                        },
+                        style: buttonStyle,
+                        child: const Text('Focus'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 64.0),
+                ],
+              ),
             ),
           ),
         ),
