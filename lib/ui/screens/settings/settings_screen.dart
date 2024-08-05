@@ -14,12 +14,13 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart';
 
 import '../../../app_info.dart';
 import '../../../diligence_config.dart';
 import '../../components/common_screen.dart';
-import 'settings_fields.dart';
 
 class SettingsScreen extends StatelessWidget {
   final DiligenceConfig config;
@@ -39,23 +40,54 @@ class SettingsScreen extends StatelessWidget {
 
     return CommonScreen(
       title: 'Settings',
-      child: Container(
-        margin: const EdgeInsets.fromLTRB(64.0, 48.0, 64.0, 0.0),
-        child: Column(
-          children: [
-            Text('Diligence', style: headingStyle),
-            const SizedBox(height: 8.0),
-            Text('Version: ${AppInfo.version.toString()}'),
-            const SizedBox(height: 32.0),
-            Expanded(
-              child: SettingsFields(
-                config: config,
-                onUpdateConfig: onUpdateConfig,
+      child: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Container(
+              margin: const EdgeInsets.fromLTRB(64.0, 48.0, 64.0, 0.0),
+              child: Column(
+                children: [
+                  Text('Diligence', style: headingStyle),
+                  const SizedBox(height: 8.0),
+                  Text('Version: ${AppInfo.version.toString()}'),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(64.0, 32.0, 64.0, 0.0),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate(settingsFields()),
+            ),
+          ),
+        ],
       ),
     );
+  }
+
+  List<Widget> settingsFields() {
+    return [
+      ListTile(
+        title: const Text('Database Path'),
+        subtitle: SelectableText(config.dbPath),
+        trailing: IconButton(
+          icon: const Icon(Icons.edit),
+          onPressed: () async {
+            final fileName = basename(config.dbPath);
+            final containingDirectory = dirname(config.dbPath);
+            final result = await getSaveLocation(
+              suggestedName: fileName,
+              initialDirectory: containingDirectory,
+            );
+
+            if (result != null) {
+              onUpdateConfig(config.copyWith(
+                dbPath: result.path,
+              ));
+            }
+          },
+        ),
+      ),
+    ];
   }
 }
