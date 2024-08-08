@@ -15,8 +15,14 @@ class ConfigManager {
   final Fs fs;
   final ConfigValidator validator;
   final bool test;
+  final Logger logger;
 
-  ConfigManager(this.fs, this.validator, {this.test = false});
+  ConfigManager(
+    this.fs,
+    this.validator, {
+    required this.logger,
+    this.test = false,
+  });
 
   // Loads configuration from yaml config file.
   //
@@ -41,8 +47,10 @@ class ConfigManager {
     String? realDbPath = dbPath ?? 'diligence.db';
     LogLevel realLogLevel = _defaultLogLevel;
     final path = getUserConfigPath();
+    final fileExists = await fs.fileExists(path);
 
-    if (!test && await fs.fileExists(path)) {
+    if (!test && fileExists) {
+      logger.info('Loading configuration file $path');
       try {
         final doc = _parseYaml(await fs.contents(path));
 
@@ -57,8 +65,13 @@ class ConfigManager {
           );
         }
       } on InvalidYamlConfigError catch (err) {
+        logger.error('Failed to load configuration file', error: err);
         return Failure(err);
       }
+    }
+
+    if (!test && !fileExists) {
+      logger.info('Configuration file not found on $path');
     }
 
     final config = DiligenceConfig(
@@ -98,8 +111,10 @@ class ConfigManager {
     String contents = '';
 
     if (!configFileExists) {
+      logger.debug('Creating new configuration file $path');
       contents = 'database:\n  path: ${config.dbPath}';
     } else {
+      logger.debug('Updating configuration file $path');
       try {
         final doc = _parseYaml(await fs.contents(path));
 
@@ -118,10 +133,12 @@ class ConfigManager {
 
         contents = editor.toString();
       } on InvalidYamlConfigError catch (err) {
+        logger.error('Failed to update configuration file', error: err);
         return Failure(err);
       }
     }
 
+    logger.info('Saving configuration file $path');
     fs.write(path, contents);
     return Success(config);
   }

@@ -19,6 +19,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:logger/logger.dart' as ologger;
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
@@ -90,7 +91,12 @@ class DiligenceContainer {
     final clock = test ? StubClock() : Clock();
     final fs = Fs();
     final ConfigValidator validator = ConfigValidator(fs);
-    final configManager = ConfigManager(fs, validator, test: test);
+    final configManager = ConfigManager(
+      fs,
+      validator,
+      logger: Logger('ConfigManager', ologger.Logger(), clock),
+      test: test,
+    );
     final config = await getConfig(configManager, test, pathToDb);
     final di = Di(config: config, isTest: test, clock: clock);
     if (showDbPath(config)) {
