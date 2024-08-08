@@ -34,6 +34,7 @@ import 'services/review_data_service.dart';
 import 'services/side_effects.dart';
 import 'utils/clock.dart';
 import 'utils/fs.dart';
+import 'utils/logger.dart';
 import 'utils/stub_clock.dart';
 
 final loadAssetString = rootBundle.loadString;
@@ -61,6 +62,7 @@ class DiligenceContainer {
       Provider(create: (_) => di.clock),
       Provider(create: (_) => _sideEffects()),
       Provider(create: (_) => di.noticeQueue),
+      Provider(create: (_) => di.loggerFactoryFunc),
       BlocProvider(
         create: (_) => ReviewDataBloc(
           ReviewDataService(),
@@ -99,6 +101,8 @@ class DiligenceContainer {
     if (test) {
       await deleteDb(pathToDb);
     }
+
+    Logger.setLevel(config.logLevel);
 
     final container = DiligenceContainer(
       configManager: configManager,

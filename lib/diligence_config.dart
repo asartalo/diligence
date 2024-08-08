@@ -17,11 +17,14 @@
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 
+import 'utils/logger.dart';
+
 @immutable
 class DiligenceConfig with EquatableMixin {
   final DateTime? today;
   final bool showDbPath;
   final String dbPath;
+  final LogLevel logLevel;
 
   /// Whether to show the review page.
   final bool showReviewPage;
@@ -31,20 +34,29 @@ class DiligenceConfig with EquatableMixin {
     this.today,
     this.showDbPath = false,
     this.showReviewPage = false,
+    this.logLevel = LogLevel.info,
   });
 
   @override
-  List<Object?> get props => [dbPath, today, showDbPath, showReviewPage];
+  List<Object?> get props => [
+        dbPath,
+        today,
+        showDbPath,
+        showReviewPage,
+        logLevel,
+      ];
 
   DiligenceConfig copyWith({
     String? dbPath,
     bool? showDbPath,
     bool? showReviewPage,
+    LogLevel? logLevel,
   }) {
     return DiligenceConfig(
       dbPath: dbPath ?? this.dbPath,
       showDbPath: showDbPath ?? this.showDbPath,
       showReviewPage: showReviewPage ?? this.showReviewPage,
+      logLevel: logLevel ?? this.logLevel,
     );
   }
 }

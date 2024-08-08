@@ -1,4 +1,5 @@
 import 'package:sqlite_async/sqlite_async.dart';
+import 'package:logger/logger.dart' as ologger;
 
 import 'di_scope_cache.dart';
 import 'diligence_config.dart';
@@ -14,6 +15,9 @@ import 'services/jobs/reminder_job_runner.dart';
 import 'services/notices/notice_queue.dart';
 import 'utils/clock.dart';
 import 'utils/fs.dart';
+import 'utils/logger.dart';
+
+typedef LogerFactoryFunc = Logger Function(String name);
 
 class Di {
   final Clock clock;
@@ -46,6 +50,22 @@ class Di {
 
   SqliteDatabase get db =>
       _cache.getSet(#db, () => SqliteDatabase(path: dbPath));
+
+  LogerFactoryFunc get loggerFactoryFunc => (name) {
+        return Logger(
+          name,
+          ologger.Logger(
+            filter: null,
+            printer: ologger.HybridPrinter(
+              ologger.SimplePrinter(),
+              error: ologger.PrettyPrinter(),
+              fatal: ologger.PrettyPrinter(),
+            ),
+            output: null,
+          ),
+          clock,
+        );
+      };
 
   RunnerFactoryFunc get runnerFactoryFunc => (ScheduledJob inputJob) {
         switch (inputJob) {

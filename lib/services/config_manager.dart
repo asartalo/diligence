@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:yaml/yaml.dart';
 import 'package:yaml_edit/yaml_edit.dart';
 
@@ -6,6 +7,9 @@ import '../diligence_config.dart';
 import '../paths.dart';
 import '../result.dart';
 import '../utils/fs.dart';
+import '../utils/logger.dart';
+
+LogLevel _defaultLogLevel = kReleaseMode ? LogLevel.warning : LogLevel.info;
 
 class ConfigManager {
   final Fs fs;
@@ -35,6 +39,7 @@ class ConfigManager {
     bool realShowDb = showDbPath ?? false;
     bool realShowReview = showReviewPage ?? false;
     String? realDbPath = dbPath ?? 'diligence.db';
+    LogLevel realLogLevel = _defaultLogLevel;
     final path = getUserConfigPath();
 
     if (!test && await fs.fileExists(path)) {
@@ -46,6 +51,10 @@ class ConfigManager {
           realShowDb = _pathValueOrDefault('database.show', realShowDb, doc);
           realShowReview =
               _pathValueOrDefault('show_review_page', realShowReview, doc);
+          realLogLevel = LogLevel.fromName(
+            _pathValueOrDefault('dev.log_level', _defaultLogLevel.name, doc),
+            _defaultLogLevel,
+          );
         }
       } on InvalidYamlConfigError catch (err) {
         return Failure(err);
@@ -56,6 +65,7 @@ class ConfigManager {
       dbPath: realDbPath,
       showDbPath: realShowDb,
       showReviewPage: realShowReview,
+      logLevel: realLogLevel,
     );
 
     final validationResult = await validator.validate(config);
@@ -98,6 +108,12 @@ class ConfigManager {
           editor.update(['database'], {'path': config.dbPath});
         } else {
           editor.update(['database', 'path'], config.dbPath);
+        }
+
+        if (doc['dev'] == null) {
+          editor.update(['dev'], {'log_level': config.logLevel.name});
+        } else {
+          editor.update(['dev', 'log_level'], config.logLevel.name);
         }
 
         contents = editor.toString();

@@ -20,13 +20,20 @@ import 'package:path/path.dart';
 
 import '../../../app_info.dart';
 import '../../../diligence_config.dart';
+import '../../../utils/logger.dart';
 import '../../components/common_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   final DiligenceConfig config;
+  final Logger logger;
+
   final void Function(DiligenceConfig config) onUpdateConfig;
-  const SettingsScreen(
-      {super.key, required this.config, required this.onUpdateConfig});
+  const SettingsScreen({
+    super.key,
+    required this.config,
+    required this.onUpdateConfig,
+    required this.logger,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -73,6 +80,8 @@ class SettingsScreen extends StatelessWidget {
         trailing: IconButton(
           icon: const Icon(Icons.edit),
           onPressed: () async {
+            logger.info('Edit database path');
+            logger.debug('Yeah!');
             final fileName = basename(config.dbPath);
             final containingDirectory = dirname(config.dbPath);
             final result = await getSaveLocation(
@@ -88,6 +97,45 @@ class SettingsScreen extends StatelessWidget {
           },
         ),
       ),
+      const Padding(
+        padding: EdgeInsets.fromLTRB(16.0, 32.0, 16.0, 8.0),
+        child: Text('Developer Settings', style: TextStyle(fontSize: 24.0)),
+      ),
+      ListTile(
+        title: const Text('Log Level'),
+        subtitle: DropdownButton<LogLevel>(
+          value: config.logLevel,
+          onChanged: (level) {
+            onUpdateConfig(config.copyWith(
+              logLevel: level,
+            ));
+            if (level != null) {
+              logger.info('Log level set to ${level.name}');
+            } else {
+              logger.info('Log level set to null');
+            }
+          },
+          items: LogLevel.values
+              .map((level) => DropdownMenuItem(
+                    value: level,
+                    child: Text(level.label()),
+                  ))
+              .toList(),
+        ),
+      ),
+      SizedBox(
+          width: double.infinity,
+          child: TextButton(
+            onPressed: () {
+              logger.trace('Trace');
+              logger.debug('Debug');
+              logger.info('Info');
+              logger.warning('Warning');
+              logger.error('Error');
+              logger.fatal('Fatal!');
+            },
+            child: const Text('Test Logs'),
+          )),
     ];
   }
 }

@@ -58,6 +58,7 @@ class _DiligenceAppState extends State<DiligenceApp> {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    final loggerFactory = _container.di.loggerFactoryFunc;
     return MultiProvider(
       key: _key,
       providers: _container.providers(),
@@ -86,6 +87,7 @@ class _DiligenceAppState extends State<DiligenceApp> {
           '/review': (context) => const ReviewScreen(title: 'Diligence'),
           '/settings': (context) => SettingsScreen(
                 config: Provider.of<DiligenceConfig>(context),
+                logger: loggerFactory('SettingsScreen'),
                 onUpdateConfig: updateConfigHandler,
               ),
         },
