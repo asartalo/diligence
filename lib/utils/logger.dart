@@ -65,7 +65,6 @@ class Logger {
     return Logger(
       name,
       ologger.Logger(
-        filter: null,
         printer: ologger.HybridPrinter(
           ologger.SimplePrinter(),
           error: ologger.PrettyPrinter(),
@@ -86,7 +85,6 @@ class Logger {
       wrapMessage(message),
       time: _clock.now(),
       error: error,
-      stackTrace: StackTrace.current,
     );
   }
 
@@ -95,7 +93,6 @@ class Logger {
       wrapMessage(message),
       time: _clock.now(),
       error: error,
-      stackTrace: StackTrace.current,
     );
   }
 
@@ -104,7 +101,6 @@ class Logger {
       wrapMessage(message),
       time: _clock.now(),
       error: error,
-      stackTrace: StackTrace.current,
     );
   }
 
@@ -113,7 +109,6 @@ class Logger {
       wrapMessage(message),
       time: _clock.now(),
       error: error,
-      stackTrace: StackTrace.current,
     );
   }
 
@@ -122,7 +117,6 @@ class Logger {
       wrapMessage(message),
       time: _clock.now(),
       error: error,
-      stackTrace: StackTrace.current,
     );
   }
 
@@ -131,7 +125,6 @@ class Logger {
       wrapMessage(message),
       time: _clock.now(),
       error: error,
-      stackTrace: StackTrace.current,
     );
   }
 }
