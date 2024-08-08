@@ -19,7 +19,6 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:logger/logger.dart' as ologger;
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
@@ -39,7 +38,6 @@ import 'utils/logger.dart';
 import 'utils/stub_clock.dart';
 
 final loadAssetString = rootBundle.loadString;
-bool _dbDisplayedAlready = false;
 
 class DiligenceContainer {
   final ConfigManager configManager;
@@ -83,9 +81,6 @@ class DiligenceContainer {
     }
   }
 
-  static bool showDbPath(DiligenceConfig config) =>
-      !kReleaseMode && !_dbDisplayedAlready && config.showDbPath;
-
   static Future<DiligenceContainer> containerStart({bool test = false}) async {
     final pathToDb = await dbPath(test);
     final clock = test ? StubClock() : Clock();
@@ -94,21 +89,19 @@ class DiligenceContainer {
     final configManager = ConfigManager(
       fs,
       validator,
-      logger: Logger('ConfigManager', ologger.Logger(), clock),
+      logger: Logger.create('ConfigManager', clock),
       test: test,
     );
     final config = await getConfig(configManager, test, pathToDb);
+    final containerLogger = Logger.create('DiligenceContainer', clock);
     final di = Di(config: config, isTest: test, clock: clock);
-    if (showDbPath(config)) {
-      // ignore: avoid_print
-      print('Database path: ${config.dbPath}');
-      _dbDisplayedAlready = true;
-    }
+
+    Logger.setLevel(config.logLevel);
+    containerLogger.info('Database path: ${config.dbPath}');
+
     if (test) {
       await deleteDb(pathToDb);
     }
-
-    Logger.setLevel(config.logLevel);
 
     final container = DiligenceContainer(
       configManager: configManager,

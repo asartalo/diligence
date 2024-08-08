@@ -2,6 +2,8 @@ import 'package:diligence/config_validator.dart';
 import 'package:diligence/diligence_config.dart';
 import 'package:diligence/paths.dart';
 import 'package:diligence/services/config_manager.dart';
+import 'package:diligence/utils/clock.dart';
+import 'package:diligence/utils/logger.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:yaml/yaml.dart';
 
@@ -26,12 +28,19 @@ void main() {
     late StubFs fs;
     late _StubValidator validator;
     late DiligenceConfig config;
+    late Logger logger;
+    late Clock clock;
     const defaultConfig = DiligenceConfig(dbPath: 'diligence.db');
 
     setUp(() {
       fs = StubFs();
       validator = _StubValidator();
-      manager = ConfigManager(fs, validator);
+      clock = Clock();
+      logger = Logger.create(
+        'config_manager_test',
+        clock,
+      );
+      manager = ConfigManager(fs, validator, logger: logger);
     });
 
     group('#loadConfig()', () {

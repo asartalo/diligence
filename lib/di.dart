@@ -1,5 +1,4 @@
 import 'package:sqlite_async/sqlite_async.dart';
-import 'package:logger/logger.dart' as ologger;
 
 import 'di_scope_cache.dart';
 import 'diligence_config.dart';
@@ -52,19 +51,7 @@ class Di {
       _cache.getSet(#db, () => SqliteDatabase(path: dbPath));
 
   LogerFactoryFunc get loggerFactoryFunc => (name) {
-        return Logger(
-          name,
-          ologger.Logger(
-            filter: null,
-            printer: ologger.HybridPrinter(
-              ologger.SimplePrinter(),
-              error: ologger.PrettyPrinter(),
-              fatal: ologger.PrettyPrinter(),
-            ),
-            output: null,
-          ),
-          clock,
-        );
+        return Logger.create(name, clock);
       };
 
   RunnerFactoryFunc get runnerFactoryFunc => (ScheduledJob inputJob) {

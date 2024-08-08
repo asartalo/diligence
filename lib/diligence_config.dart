@@ -22,7 +22,6 @@ import 'utils/logger.dart';
 @immutable
 class DiligenceConfig with EquatableMixin {
   final DateTime? today;
-  final bool showDbPath;
   final String dbPath;
   final LogLevel logLevel;
 
@@ -32,7 +31,6 @@ class DiligenceConfig with EquatableMixin {
   const DiligenceConfig({
     required this.dbPath,
     this.today,
-    this.showDbPath = false,
     this.showReviewPage = false,
     this.logLevel = LogLevel.info,
   });
@@ -41,7 +39,6 @@ class DiligenceConfig with EquatableMixin {
   List<Object?> get props => [
         dbPath,
         today,
-        showDbPath,
         showReviewPage,
         logLevel,
       ];
@@ -54,7 +51,6 @@ class DiligenceConfig with EquatableMixin {
   }) {
     return DiligenceConfig(
       dbPath: dbPath ?? this.dbPath,
-      showDbPath: showDbPath ?? this.showDbPath,
       showReviewPage: showReviewPage ?? this.showReviewPage,
       logLevel: logLevel ?? this.logLevel,
     );

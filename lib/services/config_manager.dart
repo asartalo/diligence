@@ -76,7 +76,6 @@ class ConfigManager {
 
     final config = DiligenceConfig(
       dbPath: realDbPath,
-      showDbPath: realShowDb,
       showReviewPage: realShowReview,
       logLevel: realLogLevel,
     );

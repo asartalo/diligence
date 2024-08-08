@@ -61,31 +61,77 @@ class Logger {
     ologger.Logger.level = _levelMapping[level]!;
   }
 
+  static Logger create(String name, Clock clock) {
+    return Logger(
+      name,
+      ologger.Logger(
+        filter: null,
+        printer: ologger.HybridPrinter(
+          ologger.SimplePrinter(),
+          error: ologger.PrettyPrinter(),
+          fatal: ologger.PrettyPrinter(),
+        ),
+        output: null,
+      ),
+      clock,
+    );
+  }
+
   String wrapMessage(dynamic message) {
     return '$name: $message';
   }
 
   void trace(dynamic message, {Object? error}) {
-    _oLogger.t(wrapMessage(message), time: _clock.now(), error: error);
+    _oLogger.t(
+      wrapMessage(message),
+      time: _clock.now(),
+      error: error,
+      stackTrace: StackTrace.current,
+    );
   }
 
   void debug(dynamic message, {Object? error}) {
-    _oLogger.d(wrapMessage(message), time: _clock.now(), error: error);
+    _oLogger.d(
+      wrapMessage(message),
+      time: _clock.now(),
+      error: error,
+      stackTrace: StackTrace.current,
+    );
   }
 
   void info(dynamic message, {Object? error}) {
-    _oLogger.i(wrapMessage(message), time: _clock.now(), error: error);
+    _oLogger.i(
+      wrapMessage(message),
+      time: _clock.now(),
+      error: error,
+      stackTrace: StackTrace.current,
+    );
   }
 
   void warning(dynamic message, {Object? error}) {
-    _oLogger.w(wrapMessage(message), time: _clock.now(), error: error);
+    _oLogger.w(
+      wrapMessage(message),
+      time: _clock.now(),
+      error: error,
+      stackTrace: StackTrace.current,
+    );
   }
 
   void error(dynamic message, {Object? error}) {
-    _oLogger.e(wrapMessage(message), time: _clock.now(), error: error);
+    _oLogger.e(
+      wrapMessage(message),
+      time: _clock.now(),
+      error: error,
+      stackTrace: StackTrace.current,
+    );
   }
 
   void fatal(dynamic message, {Object? error}) {
-    _oLogger.e(wrapMessage(message), time: _clock.now(), error: error);
+    _oLogger.e(
+      wrapMessage(message),
+      time: _clock.now(),
+      error: error,
+      stackTrace: StackTrace.current,
+    );
   }
 }
