@@ -8,23 +8,11 @@
 
 # 0.1.8 (2024-06-22)
 
-## Bug Fixes
-
-- wrong status bar colors ([21a96f9](commit/21a96f9))
-- only use .env if it exists ([a2e454f](commit/a2e454f))
-
 ## Features
 
 - responsive design focus screen ([812bb63](commit/812bb63))
 - tweak checkbox design ([2cf9796](commit/2cf9796))
 - show version info on settings ([4208808](commit/4208808))
-- better UI for setting database path ([9e2c5ec](commit/9e2c5ec))
-- set and save configuration files ([be81673](commit/be81673))
-- basic config validation ([b357f16](commit/b357f16))
-- database path in settings is selectable ([4bc9400](commit/4bc9400))
-- change configuration from toml to yaml ([7b71636](commit/7b71636))
-- wip use toml config instead of env ([7763590](commit/7763590))
-- database path in settings is selectable ([d2e9304](commit/d2e9304))
 
 # 0.1.7 (2024-06-02)
 
