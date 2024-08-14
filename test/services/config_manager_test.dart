@@ -33,6 +33,7 @@ void main() {
     const defaultConfig = DiligenceConfig(dbPath: 'diligence.db');
 
     setUp(() {
+      ConfigManager.overrideUseNonTestLogLevel();
       fs = StubFs();
       validator = _StubValidator();
       clock = Clock();
@@ -41,6 +42,10 @@ void main() {
         clock,
       );
       manager = ConfigManager(fs, validator, logger: logger);
+    });
+
+    tearDown(() {
+      ConfigManager.resetOverrideUseNonTestLogLevel();
     });
 
     group('#loadConfig()', () {
@@ -161,6 +166,7 @@ void main() {
               loadYaml(await fs.contents(configPath)),
               {
                 'database': {'path': '/path/to/database.db'},
+                'dev': {'log_level': 'info'},
                 'foo': {'bar': 'baz'},
               },
             );
@@ -196,6 +202,7 @@ void main() {
                   'path': '/path/to/database.db',
                   'show': true,
                 },
+                'dev': {'log_level': 'info'},
                 'foo': {'bar': 'baz'},
               },
             );

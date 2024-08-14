@@ -2,6 +2,7 @@ import 'package:diligence/models/reminder_job.dart';
 import 'package:diligence/models/scheduled_job.dart';
 import 'package:diligence/services/jobs/job_queue.dart';
 import 'package:diligence/utils/clock.dart';
+import 'package:diligence/utils/logger.dart';
 import 'package:diligence/utils/stub_clock.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite_async/sqlite_async.dart';
@@ -11,6 +12,7 @@ void main() {
     late StubListener listener;
     late JobQueue jobScheduler;
     late Clock clock;
+    late Logger logger;
     final startNow = DateTime(2024, 4, 12, 16);
 
     setUp(() async {
@@ -18,7 +20,15 @@ void main() {
       clock = StubClock(startNow);
       // Tests run in parallel so make each test file unique
       final testDb = SqliteDatabase(path: 'test_job_scheduler.db');
-      jobScheduler = JobQueue.forTests(db: testDb, clock: clock);
+      logger = Logger.create(
+        'job_queue_test',
+        clock,
+      );
+      jobScheduler = JobQueue.forTests(
+        db: testDb,
+        clock: clock,
+        logger: logger,
+      );
       jobScheduler.registerNextJobListener(listener);
       await jobScheduler.runMigrations();
     });

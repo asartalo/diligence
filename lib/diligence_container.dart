@@ -96,7 +96,7 @@ class DiligenceContainer {
     final containerLogger = Logger.create('DiligenceContainer', clock);
     final di = Di(config: config, isTest: test, clock: clock);
 
-    Logger.setLevel(config.logLevel);
+    Logger.setLevel(test ? LogLevel.off : config.logLevel);
     containerLogger.info('Database path: ${config.dbPath}');
 
     if (test) {

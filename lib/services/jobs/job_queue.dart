@@ -6,6 +6,7 @@ import '../../models/reminders/reminder.dart';
 import '../../models/scheduled_job.dart';
 import '../../utils/clock.dart';
 import '../../utils/date_time_from_row_epoch.dart';
+import '../../utils/logger.dart';
 import '../diligent.dart';
 import '../diligent/diligent_event_register.dart';
 import '../diligent/task_events/added_reminders_event.dart';
@@ -27,32 +28,38 @@ class JobQueue implements DiligentEventRegister {
   final Clock clock;
   final bool _isTest;
   final List<NextJobListener> nextJobListeners = [];
+  final Logger logger;
 
   JobQueue._internal({
     required bool isTest,
     required this.db,
+    required this.logger,
     Clock? clock,
   })  : _isTest = isTest,
         clock = clock ?? Clock();
 
   factory JobQueue({
     required SqliteDatabase db,
+    required Logger logger,
     Clock? clock,
   }) {
     return JobQueue._internal(
       db: db,
       isTest: false,
+      logger: logger,
       clock: clock,
     );
   }
 
   factory JobQueue.forTests({
     required SqliteDatabase db,
+    required Logger logger,
     Clock? clock,
   }) {
     return JobQueue._internal(
       db: db,
       isTest: true,
+      logger: logger,
       clock: clock,
     );
   }
@@ -91,6 +98,7 @@ class JobQueue implements DiligentEventRegister {
   }
 
   Future<void> addJob(ScheduledJob job) async {
+    logger.info('Adding job: ${job.runtimeType} ${job.uuid}');
     await _addJobs([job], db);
   }
 
@@ -154,6 +162,7 @@ class JobQueue implements DiligentEventRegister {
   }
 
   Future<void> completeJob(ScheduledJob job) async {
+    logger.info('Completing job: ${job.runtimeType} ${job.uuid}');
     await _completeJobs([job]);
   }
 

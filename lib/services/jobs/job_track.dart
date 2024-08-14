@@ -7,6 +7,7 @@ import 'job_runner.dart';
 
 typedef RunnerFactoryFunc = JobRunner Function(ScheduledJob job);
 
+/// JobTrack is where JobRunners run.
 class JobTrack implements NextJobListener {
   ScheduledJob? nextJob;
   Timer? _queuedTimer;

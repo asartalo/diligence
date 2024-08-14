@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:yaml/yaml.dart';
 import 'package:yaml_edit/yaml_edit.dart';
@@ -9,13 +11,31 @@ import '../result.dart';
 import '../utils/fs.dart';
 import '../utils/logger.dart';
 
-LogLevel _defaultLogLevel = kReleaseMode ? LogLevel.warning : LogLevel.info;
+Map<String, String> _env = Platform.environment;
+bool _isTest = _env.containsKey('FLUTTER_TEST');
+LogLevel _nonTestLogLevel = kReleaseMode ? LogLevel.warning : LogLevel.info;
+LogLevel _defaultTestLogLevel = _env.containsKey('DILIGENCE_LOG_LEVEL')
+    ? LogLevel.fromName(_env['DILIGENCE_LOG_LEVEL']!, LogLevel.off)
+    : LogLevel.off;
+LogLevel _defaultLogLevel = _isTest ? _defaultTestLogLevel : _nonTestLogLevel;
 
 class ConfigManager {
   final Fs fs;
   final ConfigValidator validator;
   final bool test;
   final Logger logger;
+
+  static void overrideUseNonTestLogLevel() {
+    if (_isTest) {
+      _defaultLogLevel = _nonTestLogLevel;
+    }
+  }
+
+  static void resetOverrideUseNonTestLogLevel() {
+    if (_isTest) {
+      _defaultLogLevel = _defaultTestLogLevel;
+    }
+  }
 
   ConfigManager(
     this.fs,
@@ -48,6 +68,8 @@ class ConfigManager {
     LogLevel realLogLevel = _defaultLogLevel;
     final path = getUserConfigPath();
     final fileExists = await fs.fileExists(path);
+
+    Logger.setLevel(_defaultLogLevel);
 
     if (!test && fileExists) {
       logger.info('Loading configuration file $path');

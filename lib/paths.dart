@@ -30,8 +30,11 @@ String getScriptDir() {
   return scriptDir;
 }
 
+bool _isTest = Platform.environment.containsKey('FLUTTER_TEST');
+
+// TODO: Consider if having a separate config file for test is necessary
 String getUserConfigPath([String type = 'yaml']) {
-  const suffix = kReleaseMode ? '' : '.dev';
+  final suffix = kReleaseMode ? '' : (_isTest ? '.test' : '.dev');
   final home = Platform.environment['HOME'];
   return path.join(home!, '.config', 'diligence$suffix.$type');
 }

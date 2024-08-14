@@ -75,8 +75,16 @@ class Di {
   JobQueue get jobQueue => _cache.getSet(
         #jobQueue,
         () => isTest
-            ? JobQueue.forTests(db: db, clock: clock)
-            : JobQueue(db: db, clock: clock),
+            ? JobQueue.forTests(
+                db: db,
+                logger: loggerFactoryFunc('JobQueue for Tests'),
+                clock: clock,
+              )
+            : JobQueue(
+                db: db,
+                logger: loggerFactoryFunc('JobQueue'),
+                clock: clock,
+              ),
       );
 
   JobTrack get jobTrack => _cache.getSet(
