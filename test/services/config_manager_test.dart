@@ -2,12 +2,12 @@ import 'package:diligence/config_validator.dart';
 import 'package:diligence/diligence_config.dart';
 import 'package:diligence/paths.dart';
 import 'package:diligence/services/config_manager.dart';
-import 'package:diligence/utils/clock.dart';
 import 'package:diligence/utils/logger.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:yaml/yaml.dart';
 
 import '../helpers/stub_fs.dart';
+import '../helpers/stub_logger.dart';
 
 class _StubValidator implements ConfigValidator {
   ConfigValidatorResult result = ConfigValidatorResult(
@@ -29,23 +29,18 @@ void main() {
     late _StubValidator validator;
     late DiligenceConfig config;
     late Logger logger;
-    late Clock clock;
     const defaultConfig = DiligenceConfig(dbPath: 'diligence.db');
 
     setUp(() {
-      ConfigManager.overrideUseNonTestLogLevel();
+      ConfigManager.useNonTestLogLevel();
       fs = StubFs();
       validator = _StubValidator();
-      clock = Clock();
-      logger = Logger.create(
-        'config_manager_test',
-        clock,
-      );
+      logger = StubLogger();
       manager = ConfigManager(fs, validator, logger: logger);
     });
 
     tearDown(() {
-      ConfigManager.resetOverrideUseNonTestLogLevel();
+      ConfigManager.resetUseNonTestLogLevel();
     });
 
     group('#loadConfig()', () {
