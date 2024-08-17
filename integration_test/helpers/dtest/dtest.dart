@@ -21,6 +21,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:meta/meta.dart';
 
 import '../../app.dart' as app;
 import 'dtest_base.dart';
@@ -172,6 +173,7 @@ class Dtest extends DtestBase {
 
 typedef TestAppCallback = Future<void> Function(Dtest dtest);
 
+@isTest
 void testApp(
   String description,
   TestAppCallback callback, {
