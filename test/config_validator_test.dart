@@ -19,7 +19,7 @@ void main() {
         'succeeds when config path directory exists',
         () async {
           fs.addFile('/existing/path.db', '');
-          const config = DiligenceConfig(dbPath: '/existing/path.db');
+          final config = DiligenceConfig(dbPath: '/existing/path.db');
           expect(
             await validator.validate(config),
             ConfigValidatorResult(true, 'Valid config file'),
@@ -28,7 +28,7 @@ void main() {
       );
 
       test('fails when config path directory does not exist', () async {
-        const config = DiligenceConfig(dbPath: '/non/existent/path.db');
+        final config = DiligenceConfig(dbPath: '/non/existent/path.db');
         expect(
           await validator.validate(config),
           ConfigValidatorResult(

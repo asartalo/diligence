@@ -116,11 +116,19 @@ bool yamlPathExists(dynamic yamlDoc, List<String> path) {
   return true;
 }
 
+final _configFieldToYamlPath = {
+  'dbPath': 'database.path',
+  'showReviewPage': 'dev.show_review_page',
+  'logLevel': 'dev.log_level',
+  'logToFile': 'dev.log_to_file',
+  'logFilePath': 'dev.log_file_path',
+};
+
 class ConfigManager {
   final Fs fs;
   final ConfigValidator validator;
   final bool test;
-  final Logger logger;
+  Logger logger;
 
   static void useNonTestLogLevel() {
     if (_isTest) {
@@ -140,6 +148,10 @@ class ConfigManager {
     required this.logger,
     this.test = false,
   });
+
+  void setLogger(Logger logger) {
+    this.logger = logger;
+  }
 
   // Loads configuration from yaml config file.
   //
@@ -163,6 +175,8 @@ class ConfigManager {
     bool realShowReview = showReviewPage ?? false;
     String? realDbPath = dbPath ?? 'diligence.db';
     LogLevel realLogLevel = _defaultLogLevel;
+    bool realLogToFile = false;
+    String realLogFilePath = '';
     final path = getUserConfigPath();
     final fileExists = await fs.fileExists(path);
 
@@ -182,6 +196,8 @@ class ConfigManager {
             _pathValueOrDefault('dev.log_level', _defaultLogLevel.name, doc),
             _defaultLogLevel,
           );
+          realLogToFile = _pathValueOrDefault('dev.log_to_file', false, doc);
+          realLogFilePath = _pathValueOrDefault('dev.log_file_path', '', doc);
         }
       } on InvalidYamlConfigError catch (err) {
         logger.error('Failed to load configuration file', error: err);
@@ -197,6 +213,8 @@ class ConfigManager {
       dbPath: realDbPath,
       showReviewPage: realShowReview,
       logLevel: realLogLevel,
+      logToFile: realLogToFile,
+      logFilePath: realLogFilePath,
     );
 
     final validationResult = await validator.validate(config);
@@ -213,6 +231,14 @@ class ConfigManager {
     } catch (err) {
       throw InvalidYamlConfigError(getUserConfigPath());
     }
+  }
+
+  dynamic _yamlValue(DiligenceConfig config, String field) {
+    if (field == 'logLevel') {
+      return config.logLevel.name;
+    }
+
+    return config.get(field);
   }
 
   /// Saves the configuration to a local config file
@@ -236,12 +262,11 @@ class ConfigManager {
       final fileContents = fileExists ? await fs.contents(path) : '';
 
       YamlEditor editor = YamlEditor(fileContents);
-      if (config.isFieldModified('dbPath')) {
-        _writeToYamlPath(editor, 'database.path', config.dbPath);
-      }
-      if (config.isFieldModified('logLevel')) {
-        _writeToYamlPath(editor, 'dev.log_level', config.logLevel.name);
-      }
+      _configFieldToYamlPath.forEach((field, path) {
+        if (config.isFieldModified(field)) {
+          _writeToYamlPath(editor, path, _yamlValue(config, field));
+        }
+      });
 
       contents = editor.toString();
     } on InvalidYamlConfigError catch (err) {
@@ -254,6 +279,7 @@ class ConfigManager {
     }
 
     logger.info('Saving configuration file $path');
+    logger.debug('Configuration file contents:\n$contents');
     await fs.write(path, contents);
     return Success(config);
   }

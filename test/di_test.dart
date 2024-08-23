@@ -8,7 +8,7 @@ void main() {
     late Di di;
     setUp(() {
       di = Di(
-        config: const DiligenceConfig(dbPath: 'test.db'),
+        config: DiligenceConfig(dbPath: 'test.db'),
       );
     });
 

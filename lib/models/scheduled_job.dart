@@ -15,4 +15,9 @@ abstract class ScheduledJob extends Equatable {
 
   @override
   List<Object?> get props => [uuid, runAt, type];
+
+  @override
+  String toString() {
+    return 'ScheduledJob ($type) $uuid $runAt';
+  }
 }

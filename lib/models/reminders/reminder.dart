@@ -33,4 +33,9 @@ class Reminder extends Equatable {
         remindAt.millisecondsSinceEpoch,
         dismissed,
       ];
+
+  @override
+  String toString() {
+    return 'Reminder $taskId $remindAt dismissed: $dismissed';
+  }
 }

@@ -30,6 +30,8 @@ class DiligenceConfig with EquatableMixin {
   /// Whether to show the review page.
   final bool showReviewPage;
 
+  final Map<String, dynamic> _fields;
+
   DiligenceConfig({
     required this.dbPath,
     this.today,
@@ -37,7 +39,23 @@ class DiligenceConfig with EquatableMixin {
     this.logLevel = LogLevel.info,
     this.logToFile = false,
     this.logFilePath = '',
-  });
+  }) : _fields = {
+          'dbPath': dbPath,
+          'showReviewPage': showReviewPage,
+          'logLevel': logLevel,
+          'logToFile': logToFile,
+          'logFilePath': logFilePath,
+        };
+
+  dynamic get(String key) {
+    if (_fields.containsKey(key)) {
+      return _fields[key];
+    }
+
+    throw ArgumentError('Invalid config field key: $key');
+  }
+
+  List<String> get fields => _fields.keys.toList();
 
   @override
   List<Object?> get props => [
@@ -89,33 +107,8 @@ class DiligenceConfig with EquatableMixin {
 }
 
 @immutable
-class _FieldModified<T> {
-  final String key;
-  final T originalValue;
-  final T value;
-
-  const _FieldModified(this.key, this.value, this.originalValue);
-
-  bool isModified() {
-    return this.value != this.originalValue;
-  }
-}
-
-List<String> _markModfiedFields(List<_FieldModified<dynamic>> modFields) {
-  final fields = <String>[];
-  for (var field in modFields) {
-    if (field.isModified()) {
-      fields.add(field.key);
-    }
-  }
-
-  return fields;
-}
-
-@immutable
 class ModifiedDiligenceConfig extends DiligenceConfig {
   final DiligenceConfig original;
-  final List<String> _actualModifiedFields;
 
   ModifiedDiligenceConfig({
     required this.original,
@@ -124,27 +117,21 @@ class ModifiedDiligenceConfig extends DiligenceConfig {
     super.logLevel,
     super.logToFile,
     super.logFilePath,
-  }) : _actualModifiedFields = _markModfiedFields([
-          _FieldModified('dbPath', dbPath, original.dbPath),
-          _FieldModified(
-              'showReviewPage', showReviewPage, original.showReviewPage),
-          _FieldModified('logLevel', logLevel, original.logLevel),
-          _FieldModified('logToFile', logToFile, original.logToFile),
-          _FieldModified('logFilePath', logFilePath, original.logFilePath),
-        ]);
+  });
 
   @override
   bool isFieldModified(String field) {
-    return _actualModifiedFields.contains(field);
+    return get(field) != original.get(field);
   }
 
   @override
   bool isModified() {
-    return _actualModifiedFields.isNotEmpty;
+    return modifiedFields.isNotEmpty;
   }
 
   @override
-  List<String> get modifiedFields => _actualModifiedFields;
+  List<String> get modifiedFields =>
+      fields.where((field) => isFieldModified(field)).toList();
 
   @override
   DiligenceConfig commit() {

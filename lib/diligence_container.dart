@@ -86,15 +86,19 @@ class DiligenceContainer {
     final clock = test ? StubClock() : Clock();
     final fs = Fs();
     final ConfigValidator validator = ConfigValidator(fs);
+    final loggerFactory = LoggerFactory.create(clock);
     final configManager = ConfigManager(
       fs,
       validator,
-      logger: Logger.create('ConfigManager', clock),
+      logger: loggerFactory.createLogger('ConfigManager'),
       test: test,
     );
     final config = await getConfig(configManager, test, pathToDb);
-    final containerLogger = Logger.create('DiligenceContainer', clock);
     final di = Di(config: config, isTest: test, clock: clock);
+    final containerLogger = di.loggerFactory.createLogger('DiligenceContainer');
+
+    // update config Logger
+    configManager.setLogger(di.loggerFactory.createLogger('ConfigManager'));
 
     Logger.setLevel(test ? LogLevel.off : config.logLevel);
     containerLogger.info('Database path: ${config.dbPath}');

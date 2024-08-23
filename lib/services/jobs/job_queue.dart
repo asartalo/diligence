@@ -7,6 +7,7 @@ import '../../models/scheduled_job.dart';
 import '../../utils/clock.dart';
 import '../../utils/date_time_from_row_epoch.dart';
 import '../../utils/logger.dart';
+import '../../utils/stringers.dart';
 import '../diligent.dart';
 import '../diligent/diligent_event_register.dart';
 import '../diligent/task_events/added_reminders_event.dart';
@@ -162,12 +163,13 @@ class JobQueue implements DiligentEventRegister {
   }
 
   Future<void> completeJob(ScheduledJob job) async {
-    logger.info('Completing job: ${job.runtimeType} ${job.uuid}');
     await _completeJobs([job]);
   }
 
   Future<void> _completeJobs(List<ScheduledJob> jobs) async {
+    if (jobs.isEmpty) return;
     await db.writeTransaction((tx) async {
+      logger.debug('Completing jobs:\n${newlineJoin(jobs, padding: '  - ')}');
       final uuids = jobs.map((job) => [job.uuid]).toList();
       final nextBefore = await _nextJob(tx);
       await tx.executeBatch('DELETE FROM jobs WHERE uuid = ?', uuids);
@@ -180,11 +182,17 @@ class JobQueue implements DiligentEventRegister {
   }
 
   Future<void> handleAddedRemindersEvent(AddedRemindersEvent event) async {
+    logger.debug(
+      'handleAddedRemindersEvent()\n${newlineJoin(event.reminders, padding: '  - ')}',
+    );
     final jobs = await _newJobsFromReminders(event.reminders);
     _addJobs(jobs, db);
   }
 
   Future<void> handleRemovedRemindersEvent(RemovedRemindersEvent event) async {
+    logger.debug(
+      'handleRemovedRemindersEvent()\n${newlineJoin(event.reminders, padding: '  - ')}',
+    );
     final jobs = await _queryJobsFromReminders(event.reminders);
     _completeJobs(jobs);
   }

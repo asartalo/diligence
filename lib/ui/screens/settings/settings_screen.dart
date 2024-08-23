@@ -17,13 +17,15 @@
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../../../app_info.dart';
 import '../../../diligence_config.dart';
 import '../../../utils/logger.dart';
 import '../../components/common_screen.dart';
+import '../../components/snacker.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatelessWidget with Snacker {
   final DiligenceConfig config;
   final Logger logger;
 
@@ -64,7 +66,7 @@ class SettingsScreen extends StatelessWidget {
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(64.0, 32.0, 64.0, 0.0),
             sliver: SliverList(
-              delegate: SliverChildListDelegate(settingsFields()),
+              delegate: SliverChildListDelegate(settingsFields(context)),
             ),
           ),
         ],
@@ -72,7 +74,8 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  List<Widget> settingsFields() {
+  List<Widget> settingsFields(BuildContext context) {
+    final themeData = Theme.of(context);
     return [
       ListTile(
         title: const Text('Database Path'),
@@ -80,8 +83,6 @@ class SettingsScreen extends StatelessWidget {
         trailing: IconButton(
           icon: const Icon(Icons.edit),
           onPressed: () async {
-            logger.info('Edit database path');
-            logger.debug('Yeah!');
             final fileName = basename(config.dbPath);
             final containingDirectory = dirname(config.dbPath);
             final result = await getSaveLocation(
@@ -90,9 +91,8 @@ class SettingsScreen extends StatelessWidget {
             );
 
             if (result != null) {
-              onUpdateConfig(config.copyWith(
-                dbPath: result.path,
-              ));
+              logger.info('Setting database path to ${result.path}');
+              onUpdateConfig(config.copyWith(dbPath: result.path));
             }
           },
         ),
@@ -123,19 +123,54 @@ class SettingsScreen extends StatelessWidget {
               .toList(),
         ),
       ),
-      SizedBox(
-          width: double.infinity,
-          child: TextButton(
-            onPressed: () {
-              logger.trace('Trace');
-              logger.debug('Debug');
-              logger.info('Info');
-              logger.warning('Warning');
-              logger.error('Error');
-              logger.fatal('Fatal!');
-            },
-            child: const Text('Test Logs'),
-          )),
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 8.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Log to File', style: themeData.textTheme.bodyLarge),
+            Switch(
+              value: config.logToFile,
+              onChanged: (value) {
+                onUpdateConfig(config.copyWith(logToFile: value));
+                logger.info('Log to file set to $value');
+              },
+            ),
+          ],
+        ),
+      ),
+      ListTile(
+        title: const Text('Log File Path'),
+        subtitle: SelectableText(config.logFilePath),
+        trailing: IconButton(
+          icon: const Icon(Icons.edit),
+          onPressed: config.logToFile
+              ? (() async {
+                  final tempDir = await getTemporaryDirectory();
+                  final result = await getSaveLocation(
+                    suggestedName: 'diligence.log',
+                    initialDirectory: tempDir.path,
+                  );
+
+                  if (result != null) {
+                    logger.info('Setting log file path to; ${result.path}');
+                    onUpdateConfig(config.copyWith(logFilePath: result.path));
+                  }
+                })
+              : null,
+        ),
+      ),
+      TextButton(
+        onPressed: () {
+          logger.trace('Trace');
+          logger.debug('Debug');
+          logger.info('Info');
+          logger.warning('Warning');
+          logger.error('Error');
+          logger.fatal('Fatal!');
+        },
+        child: const Text('Test Logs'),
+      ),
     ];
   }
 }

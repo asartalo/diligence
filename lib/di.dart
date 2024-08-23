@@ -50,8 +50,16 @@ class Di {
   SqliteDatabase get db =>
       _cache.getSet(#db, () => SqliteDatabase(path: dbPath));
 
+  LoggerFactory get loggerFactory => _cache.getSet(
+        #loggerFactory,
+        () => LoggerFactory.create(
+          clock,
+          logFile: config.logToFile ? config.logFilePath : '',
+        ),
+      );
+
   LogerFactoryFunc get loggerFactoryFunc => (name) {
-        return Logger.create(name, clock);
+        return loggerFactory.createLogger(name);
       };
 
   RunnerFactoryFunc get runnerFactoryFunc => (ScheduledJob inputJob) {
@@ -93,6 +101,7 @@ class Di {
           clock: clock,
           runnerFactoryFunc: runnerFactoryFunc,
           jobQueue: jobQueue,
+          logger: loggerFactoryFunc('JobTrack'),
         ),
       );
 

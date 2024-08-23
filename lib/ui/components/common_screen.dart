@@ -48,14 +48,14 @@ class CommonScreen extends StatelessWidget {
         ),
       ),
       backgroundColor: theme.colorScheme.surface,
-      body: Stack(
-        children: [
-          Builder(
-            builder: (BuildContext context) => child,
-          ),
-          NoticeArea(noticeQueue: Provider.of<NoticeQueue>(context)),
-        ],
-      ),
+      body: Builder(builder: (context) {
+        return Stack(
+          children: [
+            child,
+            NoticeArea(noticeQueue: Provider.of<NoticeQueue>(context)),
+          ],
+        );
+      }),
       floatingActionButton: floatingActionButton,
       drawer: Builder(
         builder: (context) => DiligenceDrawer(

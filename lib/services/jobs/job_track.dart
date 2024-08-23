@@ -2,6 +2,7 @@ import 'dart:async';
 
 import '../../models/scheduled_job.dart';
 import '../../utils/clock.dart';
+import '../../utils/logger.dart';
 import 'job_queue.dart';
 import 'job_runner.dart';
 
@@ -15,11 +16,13 @@ class JobTrack implements NextJobListener {
   final Clock clock;
   final RunnerFactoryFunc runnerFactoryFunc;
   final JobQueue jobQueue;
+  final Logger logger;
 
   JobTrack({
     required this.clock,
     required this.runnerFactoryFunc,
     required this.jobQueue,
+    required this.logger,
   });
 
   Future<ScheduledJob?> start() async {
@@ -57,6 +60,7 @@ class JobTrack implements NextJobListener {
       if (await jobQueue.isPending(job)) {
         final runner = runnerFactoryFunc(job);
         // TODO: How to handle job run failures?
+        logger.info('Running $job');
         await runner.runJob(job);
         await jobQueue.completeJob(job);
       }
