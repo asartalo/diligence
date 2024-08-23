@@ -29,7 +29,7 @@ void main() {
     late _StubValidator validator;
     late DiligenceConfig config;
     late Logger logger;
-    const defaultConfig = DiligenceConfig(dbPath: 'diligence.db');
+    final defaultConfig = DiligenceConfig(dbPath: 'diligence.db');
 
     setUp(() {
       ConfigManager.useNonTestLogLevel();
@@ -81,7 +81,10 @@ void main() {
         });
 
         test('it correctly parses config', () {
-          expect(config, defaultConfig.copyWith(dbPath: '/path/to/database'));
+          expect(
+            config,
+            (defaultConfig.copyWith(dbPath: '/path/to/database')).commit(),
+          );
         });
       });
 
@@ -125,7 +128,9 @@ void main() {
 
       group('When there is no configuration file present', () {
         setUp(() async {
-          await manager.saveConfig(defaultConfig);
+          await manager.saveConfig(defaultConfig.copyWith(
+            dbPath: 'mydiligence.db',
+          ));
         });
 
         test('it writes the config to the file', () async {
@@ -136,7 +141,7 @@ void main() {
           expect(
             loadYaml(await fs.contents(configPath)),
             {
-              'database': {'path': 'diligence.db'}
+              'database': {'path': 'mydiligence.db'}
             },
           );
         });
@@ -161,7 +166,6 @@ void main() {
               loadYaml(await fs.contents(configPath)),
               {
                 'database': {'path': '/path/to/database.db'},
-                'dev': {'log_level': 'info'},
                 'foo': {'bar': 'baz'},
               },
             );
@@ -182,7 +186,7 @@ void main() {
         () {
           setUp(
             () async {
-              config = defaultConfig.copyWith(dbPath: '/path/to/database.db');
+              config = defaultConfig.copyWith(dbPath: '/a/path/to/database.db');
               fs.addFile(
                   configPath, 'database:\n  show: true\n\nfoo:\n  bar: baz');
               await manager.saveConfig(config);
@@ -194,10 +198,9 @@ void main() {
               loadYaml(await fs.contents(configPath)),
               {
                 'database': {
-                  'path': '/path/to/database.db',
+                  'path': '/a/path/to/database.db',
                   'show': true,
                 },
-                'dev': {'log_level': 'info'},
                 'foo': {'bar': 'baz'},
               },
             );

@@ -19,19 +19,116 @@ LogLevel _defaultTestLogLevel = _env.containsKey('DILIGENCE_LOG_LEVEL')
     : LogLevel.off;
 LogLevel _defaultLogLevel = _isTest ? _defaultTestLogLevel : _nonTestLogLevel;
 
+Map<String, dynamic> _constructNodes(List<String> pathParts, dynamic value) {
+  final last = pathParts.length - 1;
+  Map<String, dynamic> nodes = {};
+  Map<String, dynamic> current = nodes;
+
+  for (var i = 0; i < pathParts.length; i++) {
+    final part = pathParts[i];
+    if (i == last) {
+      current[part] = value;
+    } else {
+      current[part] = <String, dynamic>{};
+      current = current[part] as Map<String, dynamic>;
+    }
+  }
+
+  return nodes;
+}
+
+final nullNode = wrapAsYamlNode(null);
+
+// TODO: This function is not robust enough.
+void _writeToYamlPath(
+  YamlEditor editor,
+  String path,
+  dynamic value,
+) {
+  // Leaf node exists already
+  final pathParts = path.split('.');
+
+  if (pathParts.length > 1) {
+    final parentAtPath = editor.parseAt(
+        pathParts.sublist(0, pathParts.length - 1),
+        orElse: () => nullNode);
+    if (parentAtPath != nullNode) {
+      editor.update(pathParts, value);
+      return;
+    }
+  }
+
+  if (editor.toString().isEmpty) {
+    editor.update(
+      [],
+      wrapAsYamlNode(
+        _constructNodes(pathParts, value),
+        collectionStyle: CollectionStyle.BLOCK,
+      ),
+    );
+    return;
+  }
+
+  List<String>? missingParts;
+  List<String> pathToStartConstruction = pathParts;
+  for (var i = 0; i < pathParts.length; i++) {
+    final currentPath = pathParts.sublist(0, i + 1);
+    final nodeAtPath = editor.parseAt(currentPath, orElse: () => nullNode);
+
+    if (nodeAtPath == nullNode) {
+      missingParts = currentPath;
+      pathToStartConstruction = pathParts.sublist(i + 1);
+      break;
+    }
+  }
+
+  if (missingParts == null) {
+    return;
+  }
+
+  final constructed = _constructNodes(pathToStartConstruction, value);
+  editor.update(
+    missingParts,
+    wrapAsYamlNode(
+      constructed,
+      collectionStyle: CollectionStyle.BLOCK,
+    ),
+  );
+}
+
+bool yamlPathExists(dynamic yamlDoc, List<String> path) {
+  if (yamlDoc == null) {
+    return false;
+  }
+  if (path.isEmpty) {
+    return true;
+  }
+
+  dynamic current = yamlDoc as Map;
+
+  for (var i = 0; i < path.length; i++) {
+    final part = path[i];
+    current = current[part];
+    if (current == null) {
+      return false;
+    }
+  }
+  return true;
+}
+
 class ConfigManager {
   final Fs fs;
   final ConfigValidator validator;
   final bool test;
   final Logger logger;
 
-  static void overrideUseNonTestLogLevel() {
+  static void useNonTestLogLevel() {
     if (_isTest) {
       _defaultLogLevel = _nonTestLogLevel;
     }
   }
 
-  static void resetOverrideUseNonTestLogLevel() {
+  static void resetUseNonTestLogLevel() {
     if (_isTest) {
       _defaultLogLevel = _defaultTestLogLevel;
     }
@@ -118,49 +215,46 @@ class ConfigManager {
     }
   }
 
-  // Saves the configuration to a local config file
-  //
-  // See `loadConfig()` for more information.
+  /// Saves the configuration to a local config file
+  ///
+  /// See `loadConfig()` for more information.
   Future<ConfigManagerResult> saveConfig(DiligenceConfig config) async {
+    if (config.runtimeType != ModifiedDiligenceConfig) {
+      return Success(config, message: 'No changes to save');
+    }
+
     final validationResult = await validator.validate(config);
     if (!validationResult.success) {
       return Failure(ConfigValidationException(validationResult.message));
     }
 
     final path = getUserConfigPath();
-    final configFileExists = await fs.fileExists(path);
     String contents = '';
+    logger.debug('Updating configuration file $path');
+    try {
+      final fileExists = await fs.fileExists(path);
+      final fileContents = fileExists ? await fs.contents(path) : '';
 
-    if (!configFileExists) {
-      logger.debug('Creating new configuration file $path');
-      contents = 'database:\n  path: ${config.dbPath}';
-    } else {
-      logger.debug('Updating configuration file $path');
-      try {
-        final doc = _parseYaml(await fs.contents(path));
-
-        YamlEditor editor = YamlEditor(await fs.contents(path));
-        if (doc['database'] == null) {
-          editor.update(['database'], {'path': config.dbPath});
-        } else {
-          editor.update(['database', 'path'], config.dbPath);
-        }
-
-        if (doc['dev'] == null) {
-          editor.update(['dev'], {'log_level': config.logLevel.name});
-        } else {
-          editor.update(['dev', 'log_level'], config.logLevel.name);
-        }
-
-        contents = editor.toString();
-      } on InvalidYamlConfigError catch (err) {
-        logger.error('Failed to update configuration file', error: err);
-        return Failure(err);
+      YamlEditor editor = YamlEditor(fileContents);
+      if (config.isFieldModified('dbPath')) {
+        _writeToYamlPath(editor, 'database.path', config.dbPath);
       }
+      if (config.isFieldModified('logLevel')) {
+        _writeToYamlPath(editor, 'dev.log_level', config.logLevel.name);
+      }
+
+      contents = editor.toString();
+    } on InvalidYamlConfigError catch (err) {
+      logger.error('Failed to update configuration file', error: err);
+      return Failure(err);
+    } on Exception catch (err) {
+      logger.error('Failed to update configuration file', error: err);
+      return Failure(
+          ConfigManagerException('Failed to update configuration file'));
     }
 
     logger.info('Saving configuration file $path');
-    fs.write(path, contents);
+    await fs.write(path, contents);
     return Success(config);
   }
 }
