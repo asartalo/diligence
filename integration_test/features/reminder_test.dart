@@ -71,6 +71,8 @@ Future<void> main() async {
         await ts.addReminder('2 Projects', twoDaysAfter);
         await ts.removeReminder('2 Projects', twoDaysAfter);
         ts.expectNotToSeeReminder('2 Projects', twoDaysAfter);
+        await dtest.timeTravel(twoDaysAfter);
+        ts.expectNotToSeeReminderNotice('2 Projects');
       },
     );
 

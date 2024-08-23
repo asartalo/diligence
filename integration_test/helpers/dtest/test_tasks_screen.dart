@@ -119,6 +119,7 @@ class TestTasksScreen extends TestScreen with TestScreenTaskItemActions {
       matching: find.byKey(keys.reminderDeleteButton),
     );
     await dtest.tapElement(deleteButton);
+    await dtest.tapByKey(keys.saveTaskButton);
   }
 
   Future<void> focusTaskReminderNotice(String name, DateTime when) async {
