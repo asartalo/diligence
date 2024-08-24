@@ -1,3 +1,19 @@
+# 0.1.10 (2024-08-24)
+
+## Bug Fixes
+
+- workaround jobs not firing ([d63241e](commit/d63241e))
+- better config file saving ([3dc4119](commit/3dc4119))
+- scrolling issues on settings page ([c367e55](commit/c367e55))
+- overflow problem on home screen ([9f0aeba](commit/9f0aeba))
+- remove debug info on show more button ([80e351a](commit/80e351a))
+- double focus on checkbox ([1fe13d2](commit/1fe13d2))
+
+## Features
+
+- logging to file settings ([4aa5549](commit/4aa5549))
+- proper logging with setting level ([98a09c6](commit/98a09c6))
+
 # 0.1.9 (2024-07-23)
 
 ## Bug Fixes
