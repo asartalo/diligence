@@ -18,6 +18,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
+import 'app_observer.dart';
 import 'diligence_config.dart';
 import 'diligence_container.dart';
 import 'models/notices/error_notice.dart';
@@ -62,35 +63,38 @@ class _DiligenceAppState extends State<DiligenceApp> {
     return MultiProvider(
       key: _key,
       providers: _container.providers(),
-      child: MaterialApp(
-        title: 'Diligence',
-        theme: diligenceTheme,
-        initialRoute: _initialRoute,
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [
-          Locale('en'), // English
-        ],
-        routes: {
-          '/': (context) => HomeScreen(clock: Provider.of<Clock>(context)),
-          '/tasks': (context) => TasksScreen(
-                diligent: Provider.of<Diligent>(context),
-                clock: Provider.of<Clock>(context),
-              ),
-          '/focus': (context) => FocusScreen(
-                diligent: Provider.of<Diligent>(context),
-                clock: Provider.of<Clock>(context),
-              ),
-          '/review': (context) => const ReviewScreen(title: 'Diligence'),
-          '/settings': (context) => SettingsScreen(
-                config: Provider.of<DiligenceConfig>(context),
-                logger: loggerFactory('SettingsScreen'),
-                onUpdateConfig: updateConfigHandler,
-              ),
-        },
+      child: AppObserver(
+        logger: loggerFactory('AppObserver'),
+        child: MaterialApp(
+          title: 'Diligence',
+          theme: diligenceTheme,
+          initialRoute: _initialRoute,
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en'), // English
+          ],
+          routes: {
+            '/': (context) => HomeScreen(clock: Provider.of<Clock>(context)),
+            '/tasks': (context) => TasksScreen(
+                  diligent: Provider.of<Diligent>(context),
+                  clock: Provider.of<Clock>(context),
+                ),
+            '/focus': (context) => FocusScreen(
+                  diligent: Provider.of<Diligent>(context),
+                  clock: Provider.of<Clock>(context),
+                ),
+            '/review': (context) => const ReviewScreen(title: 'Diligence'),
+            '/settings': (context) => SettingsScreen(
+                  config: Provider.of<DiligenceConfig>(context),
+                  logger: loggerFactory('SettingsScreen'),
+                  onUpdateConfig: updateConfigHandler,
+                ),
+          },
+        ),
       ),
     );
   }
