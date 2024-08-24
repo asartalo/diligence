@@ -7,11 +7,15 @@ import 'job_queue.dart';
 import 'job_runner.dart';
 
 typedef RunnerFactoryFunc = JobRunner Function(ScheduledJob job);
+typedef JobFunc = void Function();
 
 /// JobTrack is where JobRunners run.
 class JobTrack implements NextJobListener {
   ScheduledJob? nextJob;
   Timer? _queuedTimer;
+  Timer? _pulseTimer;
+  DateTime? _nextJobIn;
+  JobFunc? _jobFunc;
   bool isIdle = true;
   final Clock clock;
   final RunnerFactoryFunc runnerFactoryFunc;
@@ -30,6 +34,20 @@ class JobTrack implements NextJobListener {
       jobQueue.registerNextJobListener(this);
       isIdle = false;
     }
+    _pulseTimer ??= Timer.periodic(const Duration(seconds: 1), (timer) {
+      final now = clock.now();
+      final currentTimer = _queuedTimer;
+      final nextJobIn = _nextJobIn;
+      final jobFunc = _jobFunc;
+      if (currentTimer is Timer &&
+          nextJobIn is DateTime &&
+          jobFunc is JobFunc) {
+        if (now.isAfter(nextJobIn)) {
+          logger.trace('Manually running past job');
+          jobFunc();
+        }
+      }
+    });
     return await next();
   }
 
@@ -38,6 +56,8 @@ class JobTrack implements NextJobListener {
       if (_queuedTimer is Timer) {
         _queuedTimer!.cancel();
       }
+      _pulseTimer?.cancel();
+      _jobFunc = null;
       isIdle = true;
     }
   }
@@ -49,23 +69,32 @@ class JobTrack implements NextJobListener {
   }
 
   void _setNextJob(ScheduledJob? job) {
-    if (job == null) return;
+    if (job == null) {
+      _nextJobIn = null;
+      return;
+    }
 
     if (_queuedTimer is Timer) {
       _queuedTimer!.cancel();
     }
 
     final doItIn = _doItIn(job.runAt);
-    _queuedTimer = clock.timer(doItIn, () async {
+    _nextJobIn = job.runAt;
+    logger.debug('Scheduling job ($job) to run in $doItIn');
+    jobFunc() async {
       if (await jobQueue.isPending(job)) {
         final runner = runnerFactoryFunc(job);
+        logger.info('Running job -> $job');
         // TODO: How to handle job run failures?
-        logger.info('Running $job');
         await runner.runJob(job);
         await jobQueue.completeJob(job);
       }
+      _jobFunc = null;
       next();
-    });
+    }
+
+    _jobFunc = jobFunc;
+    _queuedTimer = clock.timer(doItIn, jobFunc);
   }
 
   Duration _doItIn(DateTime runAt) {
