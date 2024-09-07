@@ -32,11 +32,32 @@ String getScriptDir() {
 
 bool _isTest = Platform.environment.containsKey('FLUTTER_TEST');
 
+// TODO: Needs testing in other platforms
+String getHomeConfigDir() {
+  if (Platform.isWindows || Platform.isAndroid) {
+    return path.join(Platform.environment['APPDATA']!, 'Diligence');
+  }
+
+  if (Platform.isIOS) {
+    return path.join(
+      Platform.environment['HOME']!,
+      'Library',
+      'Application Support',
+      'Diligence',
+    );
+  }
+
+  if (Platform.isLinux) {
+    return path.join(Platform.environment['HOME']!, '.config', 'diligence');
+  }
+
+  return path.join(Platform.environment['HOME']!, 'diligence');
+}
+
 // TODO: Consider if having a separate config file for test is necessary
 String getUserConfigPath([String type = 'yaml']) {
   final suffix = kReleaseMode ? '' : (_isTest ? '.test' : '.dev');
-  final home = Platform.environment['HOME'];
-  return path.join(home!, '.config', 'diligence$suffix.$type');
+  return path.join(getHomeConfigDir(), 'diligence$suffix.$type');
 }
 
 var _scriptDir = getScriptDir();

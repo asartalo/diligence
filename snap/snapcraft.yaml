@@ -1,6 +1,7 @@
 name: diligence
 version: 0.1.10
 summary: Diligence
+license: GPL-3.0+
 description: |
   Diligence is a tree-based task management app that lets you breakdown tasks to
   actionable tasks lessening overwhelm and minimal next view to keep you on track.
@@ -21,8 +22,19 @@ apps:
     extensions: [gnome] # gnome includes the libraries required by flutter
     plugs:
     - network
+    - home
+    - diligence-data-files
     slots:
       - dbus-diligence
+
+plugs:
+  diligence-data-files:
+    interface: personal-files
+    read:
+      - $HOME/.config/diligence
+    write:
+      - $HOME/.config/diligence
+
 parts:
   diligence:
     override-pull: |
