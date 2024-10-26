@@ -1,3 +1,9 @@
+# 0.1.11 (2024-10-26)
+
+## Bug Fixes
+
+- attempt cross-platform config save ([1532aa1](commit/1532aa1))
+
 # 0.1.10 (2024-08-24)
 
 ## Bug Fixes
