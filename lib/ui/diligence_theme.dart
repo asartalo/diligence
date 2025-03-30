@@ -89,7 +89,7 @@ class DiligenceTheme {
         secondary: colors.secondaryColor,
         surface: backgroundColor,
       ),
-      dialogBackgroundColor: Colors.white,
+      dialogTheme: DialogThemeData(backgroundColor: Colors.white),
     );
   }
 }
