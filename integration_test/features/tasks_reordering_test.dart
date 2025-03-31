@@ -24,7 +24,11 @@ Future<void> main() async {
       'Moving task down in order',
       (dtest) async {
         final ts = await dtest.navigateToTasksScreen();
-        await ts.moveTask('Work', to: 'Projects');
+        await ts.moveTask(
+          'Work',
+          to: 'Projects',
+          overshoot: Offset.zero,
+        );
         ts.expectTaskLayout([
           'Life',
           'Projects',
@@ -33,7 +37,6 @@ Future<void> main() async {
           'Inbox',
         ]);
       },
-      skip: true,
     );
 
     testApp('Moving task up in order', (dtest) async {
@@ -126,7 +129,7 @@ Future<void> main() async {
       });
 
       testApp(
-        "Moving a parent's sibling task to that parent's children",
+        "Moving a child task to down to parent's sibling",
         (dtest) async {
           await setupTasks(dtest);
           final ts = await dtest.navigateToTasksScreen();
@@ -152,7 +155,6 @@ Future<void> main() async {
         },
       );
 
-      // TODO: Figure out why this test keeps failing while the rest do not
       testApp(
         "Moving a child as a parent's sibling",
         (dtest) async {
@@ -162,7 +164,8 @@ Future<void> main() async {
           await ts.moveTask(
             '2 Life',
             to: 'Miscellaneous',
-            duration: const Duration(milliseconds: 300),
+            overshoot: const Offset(0, 20),
+            endPause: const Duration(milliseconds: 300),
           );
           ts.expectTaskLayout([
             'Life',
@@ -178,7 +181,6 @@ Future<void> main() async {
             'Inbox',
           ]);
         },
-        skip: true,
       );
     });
   });

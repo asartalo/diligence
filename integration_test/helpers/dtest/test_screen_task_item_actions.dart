@@ -15,7 +15,6 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 import 'package:diligence/ui/screens/tasks/keys.dart' as tkeys;
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -84,6 +83,11 @@ mixin TestScreenTaskItemActions on TestScreen {
     String name, {
     required String to,
     Duration? duration,
+    Duration? startPause,
+    Duration? endPause,
+
+    // Sometimes we need to overshoot the drag to get the task to move as we want
+    Offset overshoot = const Offset(0, 5),
   }) async {
     final task = findTaskItem(name);
     final destination = findTaskItem(to);
@@ -92,11 +96,12 @@ mixin TestScreenTaskItemActions on TestScreen {
     await dtest.longPressThenDrag(
       fromCoords,
       toCoords.translate(
-        0,
-        // Offset so we make sure to get past the destination
-        fromCoords.dy > toCoords.dy ? 5 : -5,
+        fromCoords.dx > toCoords.dx ? overshoot.dx : -overshoot.dx,
+        fromCoords.dy > toCoords.dy ? overshoot.dy : -overshoot.dy,
       ),
       duration: duration,
+      startPause: startPause,
+      endPause: endPause,
     );
   }
 
