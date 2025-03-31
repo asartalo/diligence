@@ -101,36 +101,68 @@ class _FocusScreenState extends State<FocusScreen> {
     updateQueue(queue, queueSize);
   }
 
+  bool get hasTasks {
+    return _queue.isNotEmpty;
+  }
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        final wideScreen = constraints.maxWidth > 800;
         return CommonScreen(
           title: 'Focus',
-          child: SingleChildScrollView(
-            child: Container(
-              margin: constraints.maxWidth > 800
-                  ? wideScreenInsets
-                  : narrowScreenInsets,
-              child: Column(
-                // crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  FocusQueue(
-                    queue: _queue,
-                    clock: clock,
-                    onReorderQueue: _handleReorderQueue,
-                    onRequestTask: _handleRequestTask,
-                    onUpdateTask: _handleUpdateTask,
-                    onCommand: _handleCommand,
-                  ),
-                  _moreSection(),
-                ],
+          child: Align(
+            alignment: hasTasks ? Alignment.topCenter : Alignment.center,
+            child: SingleChildScrollView(
+              child: Container(
+                margin: wideScreen ? wideScreenInsets : narrowScreenInsets,
+                child: hasTasks ? withItemsAvailable() : withNoItemsAvailable(),
               ),
             ),
           ),
         );
       },
+    );
+  }
+
+  Widget withItemsAvailable() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        FocusQueue(
+          queue: _queue,
+          clock: clock,
+          onReorderQueue: _handleReorderQueue,
+          onRequestTask: _handleRequestTask,
+          onUpdateTask: _handleUpdateTask,
+          onCommand: _handleCommand,
+        ),
+        _moreSection(),
+      ],
+    );
+  }
+
+  Widget withNoItemsAvailable() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        const Text(
+          'You’re all caught up!',
+          style: TextStyle(
+            fontSize: 24.0,
+            // fontWeight: FontWeight.w300,
+          ),
+        ),
+        const Text(
+          'Or are you?',
+          style: TextStyle(
+            fontSize: 16.0,
+            // fontWeight: FontWeight.w300,
+          ),
+        ),
+      ],
     );
   }
 
