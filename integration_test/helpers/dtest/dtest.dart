@@ -133,37 +133,42 @@ class Dtest extends DtestBase {
   Future<void> longPressThenDrag(
     Offset start,
     Offset end, {
-    Duration? duration,
+    Duration? duration, // Duration in milliseconds
+    Duration? startPause,
+    Duration? endPause,
   }) async {
     final TestGesture gesture = await tester.startGesture(start);
     // Long press first
     await tester.pump(kLongPressTimeout + kPressTimeout);
 
+    if (startPause is Duration) {
+      await tester.pump(startPause);
+    }
+
     // Sometimes the drag does not work so duration is needed because there are
     // intervening events that have to fire first somehow.
-    // TODO: Investigate why this is the case and report it if necessary
     if (duration is Duration) {
-      const frequency = 60.0;
-      final int intervals = duration.inMicroseconds * frequency ~/ 1E6;
-      final offset = end - start;
+      const fps = 60.0;
+      final int frames =
+          (duration.inMicroseconds.toDouble() * fps / 1E6).round().toInt();
 
-      final List<Duration> timeStamps = <Duration>[
-        for (int t = 0; t <= intervals; t += 1) duration * t ~/ intervals,
-      ];
-      final List<Offset> offsets = <Offset>[
-        start,
-        for (int t = 0; t <= intervals; t += 1)
-          start + offset * (t / intervals),
-      ];
       await tester.pump(kLongPressTimeout + kPressTimeout);
-
-      for (int i = 0; i < timeStamps.length; i++) {
-        await gesture.moveTo(offsets[i]);
-        await tester.pump();
+      for (int nthFrame = 1; nthFrame <= frames; nthFrame++) {
+        final offsetAtNthFrame = start + (end - start) * (nthFrame / frames);
+        await gesture.moveTo(offsetAtNthFrame);
+        if (nthFrame == frames) {
+          await tester.pumpAndSettle();
+        } else {
+          await tester.pump(const Duration(milliseconds: 1000 ~/ fps));
+        }
       }
     } else {
       await gesture.moveTo(end);
       await tester.pump();
+    }
+
+    if (endPause is Duration) {
+      await tester.pump(endPause);
     }
 
     await gesture.up();
