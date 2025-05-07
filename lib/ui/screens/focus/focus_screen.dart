@@ -65,7 +65,7 @@ class _FocusScreenState extends State<FocusScreen> {
     _updateStreamSubscription = updateStream.listen(_streamListener);
   }
 
-  void _streamListener(FocusQueueEvent _) {
+  void _streamListener(FocusQueueEvent e) {
     updateTasks();
   }
 
