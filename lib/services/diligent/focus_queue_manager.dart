@@ -17,11 +17,13 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 
 import '../../models/task.dart';
 import '../../models/task_list.dart';
 import '../../utils/clock.dart';
+import '../../utils/debounce.dart';
 import '../diligent.dart';
 import 'diligent_event_register.dart';
 import 'task_db.dart';
@@ -42,10 +44,15 @@ class FocusQueueManager extends TaskDb implements DiligentEventRegister {
   final SqliteDatabase db;
   final _controller = StreamController<FocusQueueEvent>();
   Stream<FocusQueueEvent>? _updateEventStream;
+  late VoidCallback _broadcastUpdate;
 
   final Clock clock;
 
-  FocusQueueManager({required this.db, required this.clock});
+  FocusQueueManager({required this.db, required this.clock}) {
+    // We use debounce to prevent broadcasting too quickly
+    _broadcastUpdate =
+        debounce(() => _controller.sink.add(FocusQueueEvent(clock.now())));
+  }
 
   Stream<FocusQueueEvent> get updateEventStream {
     if (_updateEventStream != null) {
@@ -69,10 +76,6 @@ class FocusQueueManager extends TaskDb implements DiligentEventRegister {
     );
 
     return rows.map(taskFromRow).toList();
-  }
-
-  void _broadcastUpdate() {
-    _controller.sink.add(FocusQueueEvent(clock.now()));
   }
 
   Future<int> getFocusedCount() async {
