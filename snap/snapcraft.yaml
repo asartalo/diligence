@@ -22,12 +22,12 @@ apps:
     extensions: [gnome] # gnome includes the libraries required by flutter
     plugs:
     - network
-    - diligence-data-files
+    - dot-config-diligence
     slots:
       - dbus-diligence
 
 plugs:
-  diligence-data-files:
+  dot-config-diligence:
     interface: personal-files
     read:
       - $HOME/.config/diligence/
