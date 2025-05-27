@@ -109,7 +109,7 @@ class _FocusScreenState extends State<FocusScreen> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final wideScreen = constraints.maxWidth > 800;
+        final wideScreen = constraints.minWidth > 800;
         return CommonScreen(
           title: 'Focus',
           child: Align(
