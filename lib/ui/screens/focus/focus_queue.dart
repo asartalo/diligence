@@ -23,6 +23,41 @@ import '../../../utils/types.dart';
 import '../tasks/task_item.dart';
 import 'keys.dart' as keys;
 
+@immutable
+abstract class TaskStyler {
+  TaskItemStyle style(int index);
+}
+
+@immutable
+class TaskStylerWide extends TaskStyler {
+  TaskStylerWide();
+
+  @override
+  TaskItemStyle style(int index) {
+    if (index == 0) {
+      return focus1stTaskItemStyle;
+    } else if (index == 1) {
+      return focus2ndTaskItemStyle;
+    } else {
+      return focusOthersTaskItemStyle;
+    }
+  }
+}
+
+@immutable
+class TaskStylerNarrow extends TaskStyler {
+  TaskStylerNarrow();
+
+  @override
+  TaskItemStyle style(int index) {
+    if (index == 0) {
+      return focus1stNarrowTaskItemStyle;
+    } else {
+      return focusOthersNarrowTaskItemStyle;
+    }
+  }
+}
+
 class FocusQueue extends StatelessWidget {
   final TaskList queue;
   final Clock clock;
@@ -46,6 +81,8 @@ class FocusQueue extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
+      final styler =
+          constraints.maxWidth < 600 ? TaskStylerNarrow() : TaskStylerWide();
       return ReorderableListView.builder(
         key: keys.focusQueueList,
         buildDefaultDragHandles: false,
@@ -53,6 +90,7 @@ class FocusQueue extends StatelessWidget {
         scrollController: scrollController,
         itemBuilder: (context, index) {
           final task = queue[index];
+          final style = styler.style(index);
 
           return ReorderableDelayedDragStartListener(
             key: Key('fQ-${task.id}'),
@@ -64,9 +102,9 @@ class FocusQueue extends StatelessWidget {
               onUpdateTask: (task) => onUpdateTask(task, index),
               onRequestTask: (task) => onRequestTask(task, index),
               onCommand: (command) => onCommand(command, index),
-              style: _getTaskItemStyle(index, constraints),
+              style: style,
               levelScale: 8.0,
-              level: _marginLeft(index, constraints),
+              level: style.marginLeft,
             ),
           );
         },
@@ -74,34 +112,5 @@ class FocusQueue extends StatelessWidget {
         onReorder: onReorderQueue,
       );
     });
-  }
-
-  TaskItemStyle _getTaskItemStyle(int index, BoxConstraints constraints) {
-    if (constraints.maxWidth > 600) {
-      if (index == 0) {
-        return TaskItemStyle.focusOne;
-      } else if (index == 1) {
-        return TaskItemStyle.focusTwo;
-      } else {
-        return TaskItemStyle.focusThree;
-      }
-    }
-
-    if (index == 0) {
-      return TaskItemStyle.focusTwo;
-    } else {
-      return TaskItemStyle.focusThree;
-    }
-  }
-
-  int _marginLeft(int index, BoxConstraints constraints) {
-    switch (_getTaskItemStyle(index, constraints)) {
-      case TaskItemStyle.focusOne:
-        return 0;
-      case TaskItemStyle.focusTwo:
-        return 1;
-      default:
-        return 2;
-    }
   }
 }

@@ -57,7 +57,7 @@ class TaskItem extends StatefulWidget {
     this.level,
     this.levelScale = 30.0,
     this.childrenCount,
-    this.style = TaskItemStyle.normal,
+    this.style = normalTaskItemStyle,
   });
 
   @override
@@ -85,6 +85,7 @@ class _TaskItemState extends State<TaskItem> {
 
   @override
   Widget build(BuildContext context) {
+    final style = widget.style;
     return InkWell(
       key: keys.taskItem,
       onTap: () {
@@ -93,13 +94,13 @@ class _TaskItemState extends State<TaskItem> {
       focusNode: focusNode,
       focusColor: colors.secondaryColor,
       child: Container(
-        padding: _getContentPadding(),
+        padding: style.contentPadding,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              margin: _leadSpacing(),
+              margin: EdgeInsets.only(top: style.leadSpacing),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -124,7 +125,7 @@ class _TaskItemState extends State<TaskItem> {
                       task.name,
                       key: keys.taskItemName,
                       style: TextStyle(
-                        fontSize: _getFontSize(),
+                        fontSize: style.nameFontSize,
                         fontWeight: FontWeight.w300,
                       ),
                     ),
@@ -135,7 +136,7 @@ class _TaskItemState extends State<TaskItem> {
             ),
             RevealOnHover(
               child: Transform.translate(
-                offset: Offset(0, _trailSpacing()),
+                offset: Offset(0, style.trailSpacing),
                 child: TaskMenu(
                   onClose: focusNode.requestFocus,
                   menuChildren: taskMenuItems(context),
@@ -149,13 +150,14 @@ class _TaskItemState extends State<TaskItem> {
   }
 
   Widget checkbox() {
+    final style = widget.style;
     return RevealOnHover(
       child: Transform.translate(
-        offset: Offset(_checkboxXOffset(), 0),
+        offset: Offset(style.checkboxXOffset, 0),
         child: DCheckbox(
           key: keys.taskItemCheckbox,
           value: task.done,
-          size: _getCheckboxScale() * 24.0,
+          size: style.checkboxScale * 24.0,
           // size: 24.0,
           onChanged: (bool? done) {
             widget.onUpdateTask(
@@ -263,65 +265,5 @@ class _TaskItemState extends State<TaskItem> {
     }
 
     return const SizedBox(width: 0);
-  }
-
-  EdgeInsets _leadSpacing() {
-    final top = switch (widget.style) {
-      TaskItemStyle.focusOne => 4.0,
-      TaskItemStyle.focusTwo => 8.0,
-      _ => 0.0,
-    };
-
-    return EdgeInsets.only(top: top);
-  }
-
-  double _trailSpacing() {
-    return switch (widget.style) {
-      TaskItemStyle.focusOne => 24.0,
-      TaskItemStyle.focusTwo => 12.0,
-      _ => 0.0,
-    };
-  }
-
-  double _checkboxXOffset() {
-    return switch (widget.style) {
-      TaskItemStyle.focusOne => 0.0,
-      TaskItemStyle.focusTwo => 0.0,
-      _ => 0.0,
-    };
-  }
-
-  double _getFontSize() {
-    switch (widget.style) {
-      case TaskItemStyle.focusOne:
-        return 48;
-      case TaskItemStyle.focusTwo:
-        return 32;
-      default:
-        return 18;
-    }
-  }
-
-  double _getCheckboxScale() {
-    switch (widget.style) {
-      case TaskItemStyle.focusOne:
-        return 2.0;
-      case TaskItemStyle.focusTwo:
-        return 1.2;
-      default:
-        return 1.0;
-    }
-  }
-
-  EdgeInsets _getContentPadding() {
-    switch (widget.style) {
-      case TaskItemStyle.focusOne:
-        return const EdgeInsets.fromLTRB(0, 16, 8, 16);
-      case TaskItemStyle.focusTwo:
-        return const EdgeInsets.fromLTRB(24, 8, 8, 8);
-      default:
-        return const EdgeInsets.fromLTRB(26, 2, 8, 2);
-      // return const EdgeInsets.symmetric(vertical: 2, horizontal: 8);
-    }
   }
 }
