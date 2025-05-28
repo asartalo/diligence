@@ -69,6 +69,7 @@ class _TaskItemState extends State<TaskItem> {
 
   Task get task => widget.task;
   Clock get clock => widget.clock;
+  TaskItemStyle get style => widget.style;
 
   @override
   void initState() {
@@ -85,12 +86,9 @@ class _TaskItemState extends State<TaskItem> {
 
   @override
   Widget build(BuildContext context) {
-    final style = widget.style;
     return InkWell(
       key: keys.taskItem,
-      onTap: () {
-        widget.onRequestTask(task);
-      },
+      onTap: () => widget.onRequestTask(task),
       focusNode: focusNode,
       focusColor: colors.secondaryColor,
       child: Container(
@@ -99,57 +97,67 @@ class _TaskItemState extends State<TaskItem> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              margin: EdgeInsets.only(top: style.leadSpacing),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox(
-                    width: widget.level == null
-                        ? 0
-                        : widget.level! * widget.levelScale,
-                  ),
-                  expandTaskButton(),
-                  checkbox(),
-                ],
-              ),
-            ),
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.fromLTRB(0, 8.0, 0.0, 8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      task.name,
-                      key: keys.taskItemName,
-                      style: TextStyle(
-                        fontSize: style.nameFontSize,
-                        fontWeight: FontWeight.w300,
-                      ),
-                    ),
-                    taskDetails() ?? const SizedBox(),
-                  ],
-                ),
-              ),
-            ),
-            RevealOnHover(
-              child: Transform.translate(
-                offset: Offset(0, style.trailSpacing),
-                child: TaskMenu(
-                  onClose: focusNode.requestFocus,
-                  menuChildren: taskMenuItems(context),
-                ),
-              ),
-            )
+            _leader(),
+            _mainContent(),
+            _trailer(context),
           ],
         ),
       ),
     );
   }
 
-  Widget checkbox() {
+  Expanded _mainContent() {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              task.name,
+              key: keys.taskItemName,
+              style: TextStyle(
+                fontSize: style.nameFontSize,
+                fontWeight: FontWeight.w300,
+              ),
+            ),
+            _taskDetails() ?? const SizedBox(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Container _leader() {
+    return Container(
+      margin: EdgeInsets.only(top: style.leadSpacing),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: widget.level == null ? 0 : widget.level! * widget.levelScale,
+          ),
+          _expandTaskButton(),
+          _checkbox(),
+        ],
+      ),
+    );
+  }
+
+  RevealOnHover _trailer(BuildContext context) {
+    return RevealOnHover(
+      child: Transform.translate(
+        offset: Offset(0, style.trailSpacing),
+        child: TaskMenu(
+          onClose: focusNode.requestFocus,
+          menuChildren: _taskMenuItems(context),
+        ),
+      ),
+    );
+  }
+
+  Widget _checkbox() {
     final style = widget.style;
     return RevealOnHover(
       child: Transform.translate(
@@ -158,7 +166,6 @@ class _TaskItemState extends State<TaskItem> {
           key: keys.taskItemCheckbox,
           value: task.done,
           size: style.checkboxScale * 24.0,
-          // size: 24.0,
           onChanged: (bool? done) {
             widget.onUpdateTask(
               done == true
@@ -171,24 +178,20 @@ class _TaskItemState extends State<TaskItem> {
     );
   }
 
-  List<Widget> taskMenuItems(BuildContext context) {
+  List<Widget> _taskMenuItems(BuildContext context) {
     final diligent = Provider.of<Diligent>(context);
     return [
       TaskMenuItem(
         key: keys.taskMenuEdit,
         icon: Icons.edit,
         label: 'Edit',
-        onPressed: () {
-          widget.onRequestTask(task);
-        },
+        onPressed: () => widget.onRequestTask(task),
       ),
       TaskMenuItem(
         key: keys.taskMenuAdd,
         icon: Icons.add,
         label: 'Add Task',
-        onPressed: () {
-          widget.onRequestTask(diligent.newTask(parent: task));
-        },
+        onPressed: () => widget.onRequestTask(diligent.newTask(parent: task)),
       ),
       ...task is PersistedTask
           ? _taskMenuItemsPersisted(task as PersistedTask)
@@ -206,31 +209,29 @@ class _TaskItemState extends State<TaskItem> {
           widget.onCommand(DeleteTaskCommand(task: task, at: clock.now()));
         },
       ),
-      focusToggle(),
+      _focusToggle(),
     ];
   }
 
-  Widget focusToggle() {
+  Widget _focusToggle() {
     return widget.focused
         ? TaskMenuItem(
+            label: 'Unfocus',
             key: keys.taskMenuUnfocus,
             icon: Icons.visibility_off,
-            onPressed: () {
-              widget.onCommand(UnfocusTaskCommand(task: task, at: clock.now()));
-            },
-            label: 'Unfocus',
+            onPressed: () => widget
+                .onCommand(UnfocusTaskCommand(task: task, at: clock.now())),
           )
         : TaskMenuItem(
+            label: 'Focus',
             key: keys.taskMenuFocus,
             icon: Icons.visibility,
-            onPressed: () {
-              widget.onCommand(FocusTaskCommand(task: task, at: clock.now()));
-            },
-            label: 'Focus',
+            onPressed: () =>
+                widget.onCommand(FocusTaskCommand(task: task, at: clock.now())),
           );
   }
 
-  Widget? taskDetails() {
+  Widget? _taskDetails() {
     final details = task.details;
 
     if (details is String) {
@@ -247,20 +248,25 @@ class _TaskItemState extends State<TaskItem> {
     return null;
   }
 
-  Widget expandTaskButton() {
-    if (widget.childrenCount != null) {
-      if (widget.childrenCount! > 0 && widget.onToggleExpandTask != null) {
-        return RevealOnHover(
-          child: IconButton(
-            key: keys.taskExpandButton,
-            icon: Icon(task.expanded ? Icons.expand_less : Icons.expand_more),
-            onPressed: () {
-              widget.onToggleExpandTask!(task);
-            },
-          ),
-        );
-      }
+  bool get hasChildrenAssigned => widget.childrenCount != null;
+  bool get showExpandButton =>
+      (widget.childrenCount ?? 0) > 0 && widget.onToggleExpandTask != null;
 
+  Widget _expandTaskButton() {
+    if (showExpandButton) {
+      return RevealOnHover(
+        child: IconButton(
+          key: keys.taskExpandButton,
+          icon: Icon(task.expanded ? Icons.expand_less : Icons.expand_more),
+          onPressed: () {
+            widget.onToggleExpandTask!(task);
+          },
+        ),
+      );
+    }
+
+    if (hasChildrenAssigned) {
+      // Add space for alignment
       return const SizedBox(width: 40);
     }
 
