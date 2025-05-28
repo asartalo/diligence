@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-const _defaultSize = 24.0;
-const _defaultContainerSize = 40.0;
+const dCbDefaultSize = 24.0;
+const dCbDefaultContainerSize = 40.0;
 
 class DCheckbox extends StatefulWidget {
   final bool value;
@@ -13,8 +13,8 @@ class DCheckbox extends StatefulWidget {
     super.key,
     required this.value,
     required this.onChanged,
-    this.size = _defaultSize,
-  }) : containerSize = (size * _defaultContainerSize / _defaultSize);
+    this.size = dCbDefaultSize,
+  }) : containerSize = (size * dCbDefaultContainerSize / dCbDefaultSize);
 
   @override
   State<DCheckbox> createState() => _DCheckboxState();

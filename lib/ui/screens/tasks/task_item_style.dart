@@ -68,7 +68,7 @@ const focus1stTaskItemStyle = TaskItemStyle(
 );
 const focus2ndTaskItemStyle = TaskItemStyle(
   checkboxScale: 1.2,
-  contentPadding: EdgeInsets.fromLTRB(24, 8, 8, 8),
+  contentPadding: EdgeInsets.fromLTRB(18, 8, 8, 8),
   leadSpacing: 8.0,
   nameFontSize: 32,
   trailSpacing: 12.0,

@@ -137,6 +137,7 @@ class _FocusScreenState extends State<FocusScreen> {
           onRequestTask: _handleRequestTask,
           onUpdateTask: _handleUpdateTask,
           onCommand: _handleCommand,
+          getAncestors: _getAncestors,
         ),
         _moreSection(),
       ],
@@ -196,6 +197,10 @@ class _FocusScreenState extends State<FocusScreen> {
 
   Future<void> _handleCommand(Command command, int _) async {
     await widget.commander.handle(command);
+  }
+
+  Future<List<Task>> _getAncestors(Task task) {
+    return diligent.ancestors(task);
   }
 
   Widget _moreSection() {

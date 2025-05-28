@@ -458,18 +458,9 @@ class Diligent extends TaskDb {
     return count == doneCount ? doneAt : null;
   }
 
-  Future<TaskList> ancestors(Task task) => _ancestors(task, db);
+  Future<TaskList> ancestors(Task task) => _ancestors(task, db, reverse: true);
 
-  Future<TaskList> _ancestors(
-    Task task,
-    SqliteWriteContext tx, {
-    bool includeTaskAsAncestor = false,
-  }) async {
-    final id = includeTaskAsAncestor ? task.id : task.parentId;
-    final rows = await tx.getAll(
-      _cachedQuery(
-        'ancestors',
-        '''
+  static const String _ancestorsQuery = '''
         WITH RECURSIVE
           ancestors AS (
             SELECT * FROM tasks WHERE id = ?
@@ -478,8 +469,29 @@ class Diligent extends TaskDb {
             JOIN ancestors ON tasks.id = ancestors.parentId
           )
         SELECT * FROM ancestors
-        ''',
-      ),
+        ''';
+
+  static const String _ancestorsQueryReverse = '''
+        WITH RECURSIVE
+          ancestors AS (
+            SELECT *, 0 AS lvl FROM tasks WHERE id = ?
+            UNION ALL
+            SELECT tasks.*, ancestors.lvl + 1 FROM tasks
+            JOIN ancestors ON tasks.id = ancestors.parentId
+          )
+        SELECT * FROM ancestors
+        ORDER BY lvl DESC;
+        ''';
+
+  Future<TaskList> _ancestors(
+    Task task,
+    SqliteWriteContext tx, {
+    bool includeTaskAsAncestor = false,
+    bool reverse = false,
+  }) async {
+    final id = includeTaskAsAncestor ? task.id : task.parentId;
+    final rows = await tx.getAll(
+      reverse ? _ancestorsQueryReverse : _ancestorsQuery,
       [id],
     );
 

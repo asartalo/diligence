@@ -32,13 +32,17 @@ import 'task_menu_item.dart';
 
 part 'task_item_style.dart';
 
+typedef TaskAncestorsCallback = Future<List<Task>> Function(Task task);
+
 class TaskItem extends StatefulWidget {
   final Task task;
   final TaskCallback onUpdateTask;
   final TaskCallback onRequestTask;
-  final TaskCallback? onToggleExpandTask;
   final TaskCommandCallback onCommand;
+  final TaskCallback? onToggleExpandTask;
+  final TaskAncestorsCallback? getAncestors;
   final bool focused;
+  final bool showAncestry;
   final int? level;
   final int? childrenCount;
   final TaskItemStyle style;
@@ -52,6 +56,8 @@ class TaskItem extends StatefulWidget {
     required this.onRequestTask,
     required this.onCommand,
     required this.clock,
+    this.getAncestors,
+    this.showAncestry = false,
     this.focused = false,
     this.onToggleExpandTask,
     this.level,
@@ -66,14 +72,21 @@ class TaskItem extends StatefulWidget {
 
 class _TaskItemState extends State<TaskItem> {
   late FocusNode focusNode;
+  late List<Task> _ancestors;
 
   Task get task => widget.task;
   Clock get clock => widget.clock;
   TaskItemStyle get style => widget.style;
+  bool get showAncestry => widget.showAncestry;
+  TaskAncestorsCallback? get getAncestors => widget.getAncestors;
 
   @override
   void initState() {
     super.initState();
+    _ancestors = [];
+    if (showAncestry) {
+      _getAncestors();
+    }
     focusNode =
         FocusNode(debugLabel: 'TaskItem Focus Node ${task.id} ${task.name}');
   }
@@ -82,6 +95,15 @@ class _TaskItemState extends State<TaskItem> {
   void dispose() {
     focusNode.dispose();
     super.dispose();
+  }
+
+  Future<void> _getAncestors() async {
+    if (getAncestors != null) {
+      final ancestors = await getAncestors!(task);
+      setState(() {
+        _ancestors = ancestors.sublist(1); // Do not include Root task
+      });
+    }
   }
 
   @override
@@ -93,13 +115,19 @@ class _TaskItemState extends State<TaskItem> {
       focusColor: colors.secondaryColor,
       child: Container(
         padding: style.contentPadding,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _leader(),
-            _mainContent(),
-            _trailer(context),
+            _breadcrumbs(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _leader(),
+                _mainContent(),
+                _trailer(context),
+              ],
+            ),
           ],
         ),
       ),
@@ -128,6 +156,55 @@ class _TaskItemState extends State<TaskItem> {
     );
   }
 
+  Widget _breadcrumbs() {
+    if (showAncestry) {
+      final leftSpace = _expandSpacerWidth +
+          style.checkboxXOffset +
+          // The following value is based on containerSize calculation
+          // on DCheckbox
+          (_checkBoxSize * dCbDefaultContainerSize / dCbDefaultSize) -
+          12.0;
+      return Container(
+        margin: EdgeInsets.fromLTRB(
+          leftSpace,
+          8.0,
+          0.0,
+          0.0,
+        ),
+        child: RevealOnHover(
+          child: Wrap(
+            direction: Axis.horizontal,
+            alignment: WrapAlignment.start,
+            children: _breadcrumbElements(),
+          ),
+        ),
+      );
+    }
+
+    return SizedBox(width: 0.0);
+  }
+
+  List<Widget> _breadcrumbElements() {
+    final List<Widget> crumbs = [];
+    for (int i = 0; i < _ancestors.length; i++) {
+      if (i > 0) {
+        crumbs.add(const Text(' › '));
+      }
+      final ancestor = _ancestors[i];
+      crumbs.add(
+        TextButton(
+          onPressed: () {},
+          child: Text(ancestor.name),
+        ),
+      );
+    }
+
+    return crumbs;
+  }
+
+  double get _levelSpace =>
+      widget.level == null ? 0 : widget.level! * widget.levelScale;
+
   Container _leader() {
     return Container(
       margin: EdgeInsets.only(top: style.leadSpacing),
@@ -135,9 +212,7 @@ class _TaskItemState extends State<TaskItem> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(
-            width: widget.level == null ? 0 : widget.level! * widget.levelScale,
-          ),
+          SizedBox(width: _levelSpace),
           _expandTaskButton(),
           _checkbox(),
         ],
@@ -157,24 +232,26 @@ class _TaskItemState extends State<TaskItem> {
     );
   }
 
+  double get _checkBoxSize => style.checkboxScale * 24.0;
+
   Widget _checkbox() {
-    final style = widget.style;
     return RevealOnHover(
       child: Transform.translate(
         offset: Offset(style.checkboxXOffset, 0),
         child: DCheckbox(
           key: keys.taskItemCheckbox,
           value: task.done,
-          size: style.checkboxScale * 24.0,
-          onChanged: (bool? done) {
-            widget.onUpdateTask(
-              done == true
-                  ? task.markDone(clock.now())
-                  : task.markNotDone(clock.now()),
-            );
-          },
+          size: _checkBoxSize,
+          onChanged: _handleCheckToggle,
         ),
       ),
+    );
+  }
+
+  void _handleCheckToggle(bool? done) {
+    final now = clock.now();
+    widget.onUpdateTask(
+      done == true ? task.markDone(now) : task.markNotDone(now),
     );
   }
 
@@ -252,6 +329,8 @@ class _TaskItemState extends State<TaskItem> {
   bool get showExpandButton =>
       (widget.childrenCount ?? 0) > 0 && widget.onToggleExpandTask != null;
 
+  double get _expandSpacerWidth => hasChildrenAssigned ? 40.0 : 0;
+
   Widget _expandTaskButton() {
     if (showExpandButton) {
       return RevealOnHover(
@@ -265,11 +344,6 @@ class _TaskItemState extends State<TaskItem> {
       );
     }
 
-    if (hasChildrenAssigned) {
-      // Add space for alignment
-      return const SizedBox(width: 40);
-    }
-
-    return const SizedBox(width: 0);
+    return SizedBox(width: _expandSpacerWidth);
   }
 }

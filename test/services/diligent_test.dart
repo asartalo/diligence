@@ -304,12 +304,12 @@ void main() {
         setupResult = await testTreeSetup(Diligent.forTests(db: testDb));
       });
 
-      test('it returns all ancestors of a task', () async {
+      test('it returns all ancestors of a task except root', () async {
         final task = setupResult['B2i - leaf']!;
         final ancestors = await diligent.ancestors(task);
         expect(
           taskNames(ancestors),
-          equals(['B2', 'B', 'Root']),
+          equals(['Root', 'B', 'B2']),
         );
       });
     });

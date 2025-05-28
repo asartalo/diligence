@@ -64,6 +64,7 @@ class FocusQueue extends StatelessWidget {
   final void Function(int oldIndex, int newIndex) onReorderQueue;
   final TaskIndexCallback onUpdateTask;
   final TaskIndexCallback onRequestTask;
+  final TaskAncestorsCallback getAncestors;
   final void Function(Command command, int index) onCommand;
   final ScrollController? scrollController;
 
@@ -75,6 +76,7 @@ class FocusQueue extends StatelessWidget {
     required this.onUpdateTask,
     required this.onRequestTask,
     required this.onCommand,
+    required this.getAncestors,
     this.scrollController,
   });
 
@@ -99,6 +101,8 @@ class FocusQueue extends StatelessWidget {
               clock: clock,
               task: task,
               focused: true,
+              showAncestry: index == 0,
+              getAncestors: getAncestors,
               onUpdateTask: (task) => onUpdateTask(task, index),
               onRequestTask: (task) => onRequestTask(task, index),
               onCommand: (command) => onCommand(command, index),
