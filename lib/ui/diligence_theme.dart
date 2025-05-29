@@ -81,11 +81,12 @@ class DiligenceTheme {
       ).apply(
         displayColor: colors.black,
       ),
-      cardTheme: const CardTheme(
+      cardTheme: const CardThemeData(
         elevation: 0,
       ),
-      colorScheme:
-          ColorScheme.fromSwatch(primarySwatch: colors.twilightBlue).copyWith(
+      colorScheme: ColorScheme.fromSwatch(
+        primarySwatch: colors.twilightBlue,
+      ).copyWith(
         secondary: colors.secondaryColor,
         surface: backgroundColor,
       ),
