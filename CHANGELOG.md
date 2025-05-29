@@ -1,3 +1,16 @@
+# 0.1.12 (2025-05-29)
+
+## Bug Fixes
+
+- upgraded sdks to flutter 3.27.4 and dart  3.8 ([8b54ad7](commit/8b54ad7))
+- focus page not updating when changing tasks on there ([8409d1d](commit/8409d1d))
+- upgraded project ([17b688a](commit/17b688a))
+
+## Features
+
+- **focus:** no focused items text ([09e10eb](commit/09e10eb))
+- show ancestry of tasks in focus view ([881b28e](commit/881b28e))
+
 # 0.1.11 (2024-10-26)
 
 ## Bug Fixes

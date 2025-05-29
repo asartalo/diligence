@@ -1,6 +1,6 @@
 import 'package:pub_semver/pub_semver.dart';
 
-final _fullVersion = Version.parse('0.1.11');
+final _fullVersion = Version.parse('0.1.12');
 
 class AppInfo {
   static Version version = Version(

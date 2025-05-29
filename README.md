@@ -20,7 +20,7 @@ As of the moment, Diligence is available as an AppImage and as a snap on the Sna
 
 ### Linux
 
-- [AppImage](https://github.com/asartalo/diligence/releases/download/0.1.11/Diligence-x64.AppImage)
+- [AppImage](https://github.com/asartalo/diligence/releases/download/0.1.12/Diligence-x64.AppImage)
 - [Snap Store](https://snapcraft.io/diligence)
 
 For the source code and other (future) binaries, head onto [Releases](https://github.com/asartalo/diligence/releases).
