@@ -1,3 +1,10 @@
+# 0.1.13 (2025-06-02)
+
+## Bug Fixes
+
+- show ancestry when task is moved to top on focus page ([9a11f0c](commit/9a11f0c))
+- snapcraft personal files declaration ([a33e4d2](commit/a33e4d2))
+
 # 0.1.12 (2025-05-29)
 
 ## Bug Fixes
