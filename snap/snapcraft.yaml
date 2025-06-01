@@ -30,9 +30,9 @@ plugs:
   dot-config-diligence:
     interface: personal-files
     read:
-      - $HOME/.config/diligence/
+      - $HOME/.config/diligence
     write:
-      - $HOME/.config/diligence/
+      - $HOME/.config/diligence
 
 parts:
   diligence:
