@@ -84,9 +84,7 @@ class _TaskItemState extends State<TaskItem> {
   void initState() {
     super.initState();
     _ancestors = [];
-    if (showAncestry) {
-      _getAncestors();
-    }
+    _getAncestors();
     focusNode =
         FocusNode(debugLabel: 'TaskItem Focus Node ${task.id} ${task.name}');
   }
@@ -98,11 +96,19 @@ class _TaskItemState extends State<TaskItem> {
   }
 
   Future<void> _getAncestors() async {
-    if (getAncestors != null) {
+    if (showAncestry && getAncestors != null) {
       final ancestors = await getAncestors!(task);
       setState(() {
         _ancestors = ancestors.sublist(1); // Do not include Root task
       });
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant TaskItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.showAncestry != oldWidget.showAncestry) {
+      _getAncestors();
     }
   }
 
