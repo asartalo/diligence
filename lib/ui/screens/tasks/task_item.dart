@@ -26,6 +26,8 @@ import '../../../utils/types.dart';
 import '../../colors.dart' as colors;
 import '../../components/reveal_on_hover.dart';
 import '../../components/d_checkbox.dart';
+import 'breadcrumb.dart';
+import 'breadcrumbs.dart';
 import 'keys.dart' as keys;
 import 'task_menu.dart';
 import 'task_menu_item.dart';
@@ -177,35 +179,17 @@ class _TaskItemState extends State<TaskItem> {
           0.0,
           0.0,
         ),
-        child: RevealOnHover(
-          child: Wrap(
-            direction: Axis.horizontal,
-            alignment: WrapAlignment.start,
-            children: _breadcrumbElements(),
-          ),
-        ),
+        child: Breadcrumbs(crumbs: _breadcrumbElements()),
       );
     }
 
     return SizedBox(width: 0.0);
   }
 
-  List<Widget> _breadcrumbElements() {
-    final List<Widget> crumbs = [];
-    for (int i = 0; i < _ancestors.length; i++) {
-      if (i > 0) {
-        crumbs.add(const Text(' › '));
-      }
-      final ancestor = _ancestors[i];
-      crumbs.add(
-        TextButton(
-          onPressed: () {},
-          child: Text(ancestor.name),
-        ),
-      );
-    }
-
-    return crumbs;
+  List<Breadcrumb> _breadcrumbElements() {
+    return _ancestors
+        .map((ancestor) => Breadcrumb(ancestor.name, onPressed: () {}))
+        .toList();
   }
 
   double get _levelSpace =>
