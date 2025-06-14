@@ -13,6 +13,7 @@ abstract class PlatformWrapped {
   bool get isAndroid;
   bool get isIOS;
   bool get isFuchsia;
+  bool get isFlutterTest;
   Map<String, String> get environment;
 
   static PlatformWrapped instance() {
@@ -45,4 +46,7 @@ class _ActualPlaformWrapped extends PlatformWrapped {
 
   @override
   bool get isWindows => Platform.isWindows;
+
+  @override
+  bool get isFlutterTest => Platform.environment.containsKey('FLUTTER_TEST');
 }

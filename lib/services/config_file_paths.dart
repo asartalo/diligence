@@ -1,12 +1,10 @@
 import 'package:file/file.dart';
-import 'package:meta/meta.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
 
 import '../platform_wrapped.dart';
 import '../utils/fs.dart';
 import 'file_write_viability_checker.dart';
-
-const _configFileName = 'diligence.yaml';
 
 typedef _FWVCs = List<FileWriteViabilityChecker>;
 
@@ -22,6 +20,12 @@ class ConfigFilePaths {
   final Fs fs;
   final PlatformWrapped platform;
   _FWVCs? _locations;
+
+  String get _configFileName {
+    final suffix =
+        kReleaseMode ? '' : (platform.isFlutterTest ? '.test' : '.dev');
+    return 'diligence$suffix.yaml';
+  }
 
   ConfigFilePaths({required this.fs, required this.platform});
 
