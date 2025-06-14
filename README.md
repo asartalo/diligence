@@ -71,7 +71,10 @@ In Ubuntu you can run the following
 snapcraft
 ```
 
-This creates a snap file `diligence_<VERSION>_amd64.snap`. Install it with the following command:
+This creates a snap file `diligence_<VERSION>_amd64.snap`. If for some reason, you run into some errors, try running `snapcraft clean` before running the snapcraft command.
+
+You can then install the snap with the following command:
+
 
 ```sh
 sudo snap install ./diligence_<VERSION>_amd64.snap --dangerous
