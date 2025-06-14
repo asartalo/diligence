@@ -6,10 +6,10 @@ import 'package:yaml_edit/yaml_edit.dart';
 
 import '../config_validator.dart';
 import '../diligence_config.dart';
-import '../paths.dart';
 import '../result.dart';
 import '../utils/fs.dart';
-import '../utils/logger.dart';
+import 'logger/logger.dart';
+import 'config_file_paths.dart';
 
 Map<String, String> _env = Platform.environment;
 bool _isTest = _env.containsKey('FLUTTER_TEST');
@@ -125,6 +125,7 @@ final _configFieldToYamlPath = {
 };
 
 class ConfigManager {
+  final ConfigFilePaths configFilePaths;
   final Fs fs;
   final ConfigValidator validator;
   final bool test;
@@ -145,13 +146,10 @@ class ConfigManager {
   ConfigManager(
     this.fs,
     this.validator, {
+    required this.configFilePaths,
     required this.logger,
     this.test = false,
   });
-
-  void setLogger(Logger logger) {
-    this.logger = logger;
-  }
 
   // Loads configuration from yaml config file.
   //
@@ -177,7 +175,7 @@ class ConfigManager {
     LogLevel realLogLevel = _defaultLogLevel;
     bool realLogToFile = false;
     String realLogFilePath = '';
-    final path = getUserConfigPath();
+    final path = await getUserConfigPath();
     final fileExists = await fs.fileExists(path);
 
     Logger.setLevel(_defaultLogLevel);
@@ -185,7 +183,7 @@ class ConfigManager {
     if (!test && fileExists) {
       logger.info('Loading configuration file $path');
       try {
-        final doc = _parseYaml(await fs.contents(path));
+        final doc = _parseYaml(await fs.contents(path), path);
 
         if (doc != null) {
           realDbPath = _pathValueOrDefault('database.path', realDbPath, doc);
@@ -225,11 +223,11 @@ class ConfigManager {
     return Success(config);
   }
 
-  static dynamic _parseYaml(String yamlContents) {
+  dynamic _parseYaml(String yamlContents, String path) {
     try {
       return loadYaml(yamlContents);
     } catch (err) {
-      throw InvalidYamlConfigError(getUserConfigPath());
+      throw InvalidYamlConfigError(path);
     }
   }
 
@@ -254,7 +252,7 @@ class ConfigManager {
       return Failure(ConfigValidationException(validationResult.message));
     }
 
-    final path = getUserConfigPath();
+    final path = await getUserConfigPath();
     String contents = '';
     logger.debug('Updating configuration file $path');
     try {
@@ -282,6 +280,22 @@ class ConfigManager {
     logger.debug('Configuration file contents:\n$contents');
     await fs.write(path, contents);
     return Success(config);
+  }
+
+  Future<String> getUserConfigPath() async {
+    for (var possible in configFilePaths.getProbableConfigFilePaths()) {
+      final viability = await possible.checkViability();
+      logger.info(
+        'Checking if `${possible.fullPath}` is viable as a config file',
+      );
+      if (viability.viable) {
+        logger.info('`${possible.fullPath} is viable.');
+        return possible.fullPath;
+      }
+    }
+
+    logger.warning('No config path is viable for writing.');
+    return '';
   }
 }
 

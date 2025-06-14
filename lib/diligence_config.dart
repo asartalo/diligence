@@ -17,7 +17,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 
-import 'utils/logger.dart';
+import 'services/logger/logger.dart';
 
 @immutable
 class DiligenceConfig with EquatableMixin {

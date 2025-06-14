@@ -1,5 +1,5 @@
 import 'package:diligence/diligence_config.dart';
-import 'package:diligence/utils/logger.dart';
+import 'package:diligence/services/logger/logger.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

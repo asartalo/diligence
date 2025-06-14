@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-import 'utils/logger.dart';
+import 'services/logger/logger.dart';
 
 class AppObserver extends StatefulWidget {
   final Logger logger;

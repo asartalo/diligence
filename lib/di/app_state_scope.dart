@@ -1,43 +1,57 @@
+import 'package:file/file.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 
-import 'di_scope_cache.dart';
-import 'diligence_config.dart';
-import 'models/notices/error_notice.dart';
-import 'models/notices/notice.dart';
-import 'models/notices/reminder_notice.dart';
-import 'models/reminder_job.dart';
-import 'models/scheduled_job.dart';
-import 'services/diligent.dart';
-import 'services/jobs/job_queue.dart';
-import 'services/jobs/job_track.dart';
-import 'services/jobs/reminder_job_runner.dart';
-import 'services/notices/notice_queue.dart';
-import 'utils/clock.dart';
-import 'utils/fs.dart';
-import 'utils/logger.dart';
+import '../di_scope_cache.dart';
+import '../diligence_config.dart';
+import '../models/notices/error_notice.dart';
+import '../models/notices/notice.dart';
+import '../models/notices/reminder_notice.dart';
+import '../models/reminder_job.dart';
+import '../models/scheduled_job.dart';
+import '../platform_wrapped.dart';
+import '../services/config_manager.dart';
+import '../services/diligent.dart';
+import '../services/jobs/job_queue.dart';
+import '../services/jobs/job_track.dart';
+import '../services/jobs/reminder_job_runner.dart';
+import '../services/logger/logger_factory.dart';
+import '../services/logger/observer_logger.dart';
+import '../services/notices/notice_queue.dart';
+import '../utils/clock.dart';
+import '../services/logger/logger.dart';
+import 'root_scope.dart';
 
 typedef LogerFactoryFunc = Logger Function(String name);
 
-class Di {
-  final Clock clock;
-
-  final Fs fs;
+class AppStateScope {
+  final RootScope parent;
 
   final DiligenceConfig config;
 
-  final bool isTest;
+  final DiScopeCache _cache;
 
-  Di({
+  Clock get clock => parent.clock;
+
+  FileSystem get fileSystem => parent.fileSystem;
+
+  PlatformWrapped get platform => parent.platform;
+
+  bool get isTest => parent.isTest;
+
+  ConfigManager get configManager => parent.configManager;
+
+  AppStateScope({
+    required this.parent,
     required this.config,
-    Clock? clock,
-    Fs? fs,
-    this.isTest = false,
-  })  : clock = clock ?? Clock(),
-        fs = fs ?? Fs();
+  }) : _cache = DiScopeCache() {
+    actualConfigManagerLogger;
+  }
+
+  void stop() {
+    actualConfigManagerLogger.stop();
+  }
 
   String get dbPath => config.dbPath;
-
-  final DiScopeCache _cache = DiScopeCache();
 
   Diligent get diligent => _cache.getSet(
       #diligent,
@@ -59,8 +73,11 @@ class Di {
       );
 
   LogerFactoryFunc get loggerFactoryFunc => (name) {
-        return loggerFactory.createLogger(name);
+        return loggerFactory.createBasicLogger(name);
       };
+
+  ObserverLogger get actualConfigManagerLogger => _cache.getSet(#acml,
+      () => loggerFactory.createObserverLogger(parent.configManagerLogger));
 
   RunnerFactoryFunc get runnerFactoryFunc => (ScheduledJob inputJob) {
         switch (inputJob) {

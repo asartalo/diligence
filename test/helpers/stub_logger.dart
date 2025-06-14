@@ -1,6 +1,9 @@
-import 'package:diligence/utils/logger.dart';
+import 'package:diligence/services/logger/logger.dart';
 
 class StubLogger implements Logger {
+  @override
+  final String name = '';
+
   @override
   void debug(message, {Object? error}) {}
 

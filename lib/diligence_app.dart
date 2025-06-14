@@ -21,7 +21,6 @@ import 'package:provider/provider.dart';
 import 'app_observer.dart';
 import 'diligence_config.dart';
 import 'diligence_container.dart';
-import 'models/notices/error_notice.dart';
 import 'services/diligent.dart';
 import 'ui/diligence_theme.dart';
 import 'ui/screens/focus/focus_screen.dart';
@@ -88,37 +87,28 @@ class _DiligenceAppState extends State<DiligenceApp> {
                   clock: Provider.of<Clock>(context),
                 ),
             '/review': (context) => const ReviewScreen(title: 'Diligence'),
-            '/settings': (context) => SettingsScreen(
-                  config: Provider.of<DiligenceConfig>(context),
-                  logger: loggerFactory('SettingsScreen'),
-                  onUpdateConfig: updateConfigHandler,
-                ),
+            '/settings': (context) {
+              return SettingsScreen(
+                config: Provider.of<DiligenceConfig>(context),
+                logger: loggerFactory('SettingsScreen'),
+                onUpdateConfig: updateConfigHandler,
+                configManager: _container.di.configManager,
+              );
+            },
           },
         ),
       ),
     );
   }
 
-  Future<void> updateConfigHandler(DiligenceConfig config) async {
-    final result = await _container.configManager.saveConfig(config);
-    await result.match(
-      onSuccess: (_) async {
-        final newContainer = await _container.reloadContainer();
-        setState(() {
-          _container = newContainer;
-          _key = Key(uuidv4());
-          _initialRoute = '/settings';
-        });
-      },
-      onFailure: (e) async {
-        await _container.di.noticeQueue.addNotice(
-          ErrorNotice(
-            createdAt: _container.di.clock.now(),
-            title: 'Error saving config',
-            details: e.message,
-          ),
-        );
-      },
-    );
+  Future<void> updateConfigHandler(DiligenceConfig config) {
+    return _container.updateConfig(config, () async {
+      final newContainer = await _container.reloadContainer();
+      setState(() {
+        _container = newContainer;
+        _key = Key(uuidv4());
+        _initialRoute = '/settings';
+      });
+    });
   }
 }

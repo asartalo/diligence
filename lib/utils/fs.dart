@@ -1,32 +1,63 @@
-import 'dart:io';
+import 'package:file/file.dart';
+import 'package:meta/meta.dart';
 
 // File system utilities
 abstract class Fs {
-  factory Fs() => const _Fs();
+  factory Fs(FileSystem fs) => _Fs(fs);
 
   Future<bool> fileExists(String path);
   Future<bool> directoryExists(String path);
   String parentDirectory(String path);
   Future<String> contents(String path);
   Future<void> write(String path, String contents);
+  Future<RandomAccessFile> fileOpen(String path,
+      {FileMode mode = FileMode.read});
+  Future<Directory> createDirectory(String path, {bool recursive = false});
+  Future<File> createFile(String path,
+      {bool recursive = false, bool exclusive = false});
 }
 
+@immutable
 class _Fs implements Fs {
-  const _Fs();
+  final FileSystem fileSystem;
+
+  const _Fs(this.fileSystem);
 
   @override
-  Future<bool> fileExists(String path) => File(path).exists();
+  Future<bool> fileExists(String path) => fileSystem.file(path).exists();
 
   @override
-  String parentDirectory(String path) => Directory(path).parent.path;
+  String parentDirectory(String path) => fileSystem.directory(path).parent.path;
 
   @override
-  Future<bool> directoryExists(String path) => Directory(path).exists();
+  Future<bool> directoryExists(String path) =>
+      fileSystem.directory(path).exists();
 
   @override
-  Future<String> contents(String path) => File(path).readAsString();
+  Future<String> contents(String path) => fileSystem.file(path).readAsString();
 
   @override
   Future<void> write(String path, String contents) =>
-      File(path).writeAsString(contents);
+      fileSystem.file(path).writeAsString(contents);
+
+  @override
+  Future<RandomAccessFile> fileOpen(String path,
+          {FileMode mode = FileMode.read}) =>
+      fileSystem.file(path).open(mode: mode);
+
+  @override
+  Future<Directory> createDirectory(String path, {bool recursive = false}) {
+    return fileSystem.directory(path).create(recursive: recursive);
+  }
+
+  @override
+  Future<File> createFile(
+    String path, {
+    bool recursive = false,
+    bool exclusive = false,
+  }) {
+    return fileSystem
+        .file(path)
+        .create(recursive: recursive, exclusive: exclusive);
+  }
 }

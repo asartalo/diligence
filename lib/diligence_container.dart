@@ -24,33 +24,29 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
-import 'config_validator.dart';
-import 'di.dart';
+import 'di/app_state_scope.dart';
+import 'di/root_scope.dart';
 import 'diligence_config.dart';
+import 'models/notices/error_notice.dart';
 import 'services/config_manager.dart';
 import 'services/diligent.dart';
 import 'services/review_data/review_data_bloc.dart';
 import 'services/review_data_service.dart';
 import 'services/side_effects.dart';
-import 'utils/clock.dart';
-import 'utils/fs.dart';
-import 'utils/logger.dart';
-import 'utils/stub_clock.dart';
+import 'services/logger/logger.dart';
 
 final loadAssetString = rootBundle.loadString;
 
 class DiligenceContainer {
-  final ConfigManager configManager;
   final DiligenceConfig config;
   final Diligent diligent;
-  final Di di;
+  final AppStateScope di;
   final bool test;
 
   DiligenceContainer({
     required this.config,
     required this.diligent,
     required this.di,
-    required this.configManager,
     this.test = false,
   });
 
@@ -83,24 +79,14 @@ class DiligenceContainer {
 
   static Future<DiligenceContainer> containerStart({bool test = false}) async {
     final pathToDb = await dbPath(test);
-    final clock = test ? StubClock() : Clock();
-    final fs = Fs();
-    final ConfigValidator validator = ConfigValidator(fs);
-    final loggerFactory = LoggerFactory.create(clock);
-    final configManager = ConfigManager(
-      fs,
-      validator,
-      logger: loggerFactory.createLogger('ConfigManager'),
-      test: test,
-    );
-    final config = await getConfig(configManager, test, pathToDb);
-    final di = Di(config: config, isTest: test, clock: clock);
-    final containerLogger = di.loggerFactory.createLogger('DiligenceContainer');
-
-    // update config Logger
-    configManager.setLogger(di.loggerFactory.createLogger('ConfigManager'));
+    final rootScope = RootScope(isTest: test);
+    final config = await getConfig(rootScope.configManager, test, pathToDb);
+    final di = AppStateScope(parent: rootScope, config: config);
 
     Logger.setLevel(test ? LogLevel.off : config.logLevel);
+    final containerLogger = di.loggerFactory.createBasicLogger(
+      'DiligenceContainer',
+    );
     containerLogger.info('Database path: ${config.dbPath}');
 
     if (test) {
@@ -108,7 +94,6 @@ class DiligenceContainer {
     }
 
     final container = DiligenceContainer(
-      configManager: configManager,
       config: config,
       diligent: di.diligent,
       di: di,
@@ -122,6 +107,27 @@ class DiligenceContainer {
   Future<DiligenceContainer> reloadContainer() async {
     await stop();
     return containerStart(test: test);
+  }
+
+  Future<void> updateConfig(
+    DiligenceConfig config,
+    VoidCallback onSuccess,
+  ) async {
+    final result = await di.configManager.saveConfig(config);
+    await result.match(
+      onSuccess: (_) async {
+        onSuccess();
+      },
+      onFailure: (e) async {
+        await di.noticeQueue.addNotice(
+          ErrorNotice(
+            createdAt: di.clock.now(),
+            title: 'Error saving config',
+            details: e.message,
+          ),
+        );
+      },
+    );
   }
 
   Future<void> start() async {

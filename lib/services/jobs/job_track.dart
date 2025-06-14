@@ -2,7 +2,7 @@ import 'dart:async';
 
 import '../../models/scheduled_job.dart';
 import '../../utils/clock.dart';
-import '../../utils/logger.dart';
+import '../logger/logger.dart';
 import 'job_queue.dart';
 import 'job_runner.dart';
 

@@ -1,6 +1,6 @@
-import 'dart:io';
-
+import 'dart:io' as io;
 import 'package:diligence/utils/fs.dart';
+import 'package:file/file.dart';
 
 class StubFs implements Fs {
   final Map<String, String> _files = {};
@@ -26,7 +26,7 @@ class StubFs implements Fs {
   }
 
   @override
-  String parentDirectory(String path) => Directory(path).parent.path;
+  String parentDirectory(String path) => io.Directory(path).parent.path;
 
   @override
   Future<String> contents(String path) async {
@@ -36,5 +36,25 @@ class StubFs implements Fs {
   @override
   Future<void> write(String path, String contents) async {
     _files[path] = contents;
+  }
+
+  @override
+  Future<RandomAccessFile> fileOpen(String path,
+      {FileMode mode = FileMode.read}) {
+    // TODO: implement fileOpen
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Directory> createDirectory(String path,
+      {bool recursive = false}) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<File> createFile(String path,
+      {bool recursive = false, bool exclusive = false}) {
+    // TODO: implement createFile
+    throw UnimplementedError();
   }
 }

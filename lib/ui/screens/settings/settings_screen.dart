@@ -14,6 +14,9 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
+import 'dart:io';
+
+import 'package:collection/collection.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
@@ -21,20 +24,24 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../../app_info.dart';
 import '../../../diligence_config.dart';
-import '../../../utils/logger.dart';
+import '../../../services/config_manager.dart';
+import '../../../services/logger/logger.dart';
 import '../../components/common_screen.dart';
 import '../../components/snacker.dart';
 
 class SettingsScreen extends StatelessWidget with Snacker {
   final DiligenceConfig config;
   final Logger logger;
+  final ConfigManager configManager;
 
   final void Function(DiligenceConfig config) onUpdateConfig;
+
   const SettingsScreen({
     super.key,
     required this.config,
     required this.onUpdateConfig,
     required this.logger,
+    required this.configManager,
   });
 
   @override
@@ -59,6 +66,17 @@ class SettingsScreen extends StatelessWidget with Snacker {
                   Text('Diligence', style: headingStyle),
                   const SizedBox(height: 8.0),
                   Text('Version: ${AppInfo.version.toString()}'),
+                  const SizedBox(height: 16.0),
+                  FutureBuilder(
+                      future: configManager.getUserConfigPath(),
+                      builder: (context, snapShot) {
+                        if (snapShot.hasData) {
+                          return Text('Config file: ${snapShot.data}');
+                        } else {
+                          return Text('Loading configuration location...');
+                        }
+                      }),
+                  _envVars(),
                 ],
               ),
             ),
@@ -71,6 +89,19 @@ class SettingsScreen extends StatelessWidget with Snacker {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _envVars() {
+    return Column(
+      children: Platform.environment.entries
+          .sorted((a, b) => a.key.compareTo(b.key))
+          .map((entry) {
+        return ListTile(
+          title: Text(entry.key),
+          subtitle: Text(entry.value),
+        );
+      }).toList(),
     );
   }
 

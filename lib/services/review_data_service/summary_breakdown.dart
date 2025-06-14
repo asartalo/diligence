@@ -50,7 +50,6 @@ class SummaryBreakdown {
     return items.fold<Map<int, num>>({}, (map, item) {
       final match = _pathMatch(path, item.path);
       if (match.isNotEmpty) {
-        // print(match);
         final key = match.first;
         final value = map[key] ?? 0.0;
         map[key] = value + item.value;

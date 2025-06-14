@@ -1,14 +1,27 @@
-import 'dart:io';
-
 import 'package:diligence/utils/fs.dart';
+import 'package:file/file.dart';
+import 'package:file/memory.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('Fs', () {
     late Fs fs;
+    late FileSystem fileSystem;
 
-    setUp(() {
-      fs = Fs();
+    setUp(() async {
+      fileSystem = MemoryFileSystem();
+      fs = Fs(fileSystem);
+
+      // Setup test files
+      await fileSystem.directory('test/utils').create(recursive: true);
+      await fileSystem
+          .file('test/utils/fs_test.dart')
+          .writeAsString('void main() {\n \n}');
+    });
+
+    tearDown(() async {
+      await fileSystem.file('test/utils/fs_test.dart').delete();
+      await fileSystem.directory('test/utils').delete();
     });
 
     group('fileExists()', () {
@@ -51,7 +64,7 @@ void main() {
 
     group('write()', () {
       setUp(() {
-        final dir = Directory('test/tmp');
+        final dir = fileSystem.directory('test/tmp');
         if (!dir.existsSync()) {
           dir.createSync();
         } else {

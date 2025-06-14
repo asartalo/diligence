@@ -1,12 +1,15 @@
 import 'package:diligence/config_validator.dart';
 import 'package:diligence/diligence_config.dart';
-import 'package:diligence/paths.dart';
+import 'package:diligence/services/config_file_paths.dart';
 import 'package:diligence/services/config_manager.dart';
-import 'package:diligence/utils/logger.dart';
+import 'package:diligence/services/file_write_viability_checker.dart';
+import 'package:diligence/services/logger/logger.dart';
+import 'package:diligence/utils/fs.dart';
+import 'package:file/memory.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:yaml/yaml.dart';
 
-import '../helpers/stub_fs.dart';
 import '../helpers/stub_logger.dart';
 
 class _StubValidator implements ConfigValidator {
@@ -21,23 +24,48 @@ class _StubValidator implements ConfigValidator {
   }
 }
 
+class MockConfigFilePaths extends Mock implements ConfigFilePaths {}
+
 void main() {
   group('ConfigManager', () {
-    final configPath = getUserConfigPath();
+    final configPath = '/home/john/diligence.yaml';
     late ConfigManager manager;
-    late StubFs fs;
+    late MemoryFileSystem fileSystem;
+    late Fs fs;
     late _StubValidator validator;
     late DiligenceConfig config;
     late Logger logger;
     final defaultConfig = DiligenceConfig(dbPath: 'diligence.db');
+    final configFilePaths = MockConfigFilePaths();
 
-    setUp(() {
+    setUp(() async {
       ConfigManager.useNonTestLogLevel();
-      fs = StubFs();
+      fileSystem = MemoryFileSystem();
+      fs = Fs(fileSystem);
       validator = _StubValidator();
       logger = StubLogger();
-      manager = ConfigManager(fs, validator, logger: logger);
+      await fileSystem.directory('/home/john').create(recursive: true);
+      manager = ConfigManager(
+        fs,
+        validator,
+        configFilePaths: configFilePaths,
+        logger: logger,
+      );
+      final List<FileWriteViabilityChecker> paths = [
+        FileWriteViabilityChecker(
+          fs: fs,
+          unOwnedParentPath: '/home/john/',
+          subPath: 'diligence.yaml',
+        ),
+      ];
+      when(() => configFilePaths.getProbableConfigFilePaths())
+          .thenAnswer((_) => paths);
     });
+
+    Future<void> setConfigContent(String content) async {
+      await fileSystem.directory('/home/john').create(recursive: true);
+      await fileSystem.file('/home/john/diligence.yaml').writeAsString(content);
+    }
 
     tearDown(() {
       ConfigManager.resetUseNonTestLogLevel();
@@ -51,7 +79,7 @@ void main() {
 
       group('if config file exists but empty', () {
         setUp(() async {
-          fs.addFile(configPath, '');
+          await setConfigContent('');
           config = (await manager.loadConfig()).unwrap();
         });
 
@@ -61,8 +89,8 @@ void main() {
       });
 
       group('if config file exists but is an invalid yaml doc', () {
-        setUp(() {
-          fs.addFile(configPath, '[');
+        setUp(() async {
+          await setConfigContent('[');
         });
 
         test('it throws an error', () async {
@@ -76,7 +104,7 @@ void main() {
 
       group('if config file exists and database path is correctly set', () {
         setUp(() async {
-          fs.addFile(configPath, 'database:\n  path: /path/to/database');
+          await setConfigContent('database:\n  path: /path/to/database');
           config = (await manager.loadConfig()).unwrap();
         });
 
@@ -89,12 +117,12 @@ void main() {
       });
 
       group('When the loaded config is invalid', () {
-        setUp(() {
+        setUp(() async {
           validator.result = ConfigValidatorResult(
             false,
             'validation error message',
           );
-          fs.addFile(configPath, 'database:\n  path: /path/to/database');
+          await setConfigContent('database:\n  path: /path/to/database');
         });
 
         test('it throws an error', () async {
@@ -153,8 +181,7 @@ void main() {
           setUp(
             () async {
               config = defaultConfig.copyWith(dbPath: '/path/to/database.db');
-              fs.addFile(
-                configPath,
+              await setConfigContent(
                 '# some comments at the top\nfoo:\n  bar: baz',
               );
               await manager.saveConfig(config);
@@ -187,8 +214,9 @@ void main() {
           setUp(
             () async {
               config = defaultConfig.copyWith(dbPath: '/a/path/to/database.db');
-              fs.addFile(
-                  configPath, 'database:\n  show: true\n\nfoo:\n  bar: baz');
+              await setConfigContent(
+                'database:\n  show: true\n\nfoo:\n  bar: baz',
+              );
               await manager.saveConfig(config);
             },
           );

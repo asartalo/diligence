@@ -6,7 +6,7 @@ import '../../models/reminders/reminder.dart';
 import '../../models/scheduled_job.dart';
 import '../../utils/clock.dart';
 import '../../utils/date_time_from_row_epoch.dart';
-import '../../utils/logger.dart';
+import '../logger/logger.dart';
 import '../../utils/stringers.dart';
 import '../diligent.dart';
 import '../diligent/diligent_event_register.dart';

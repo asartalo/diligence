@@ -1,8 +1,6 @@
-import 'dart:io';
-
 import 'package:logger/logger.dart' as ologger;
 
-import 'clock.dart';
+import '../../utils/clock.dart';
 
 enum LogLevel {
   all,
@@ -55,38 +53,9 @@ Map<LogLevel, String> _levelLabel = {
   LogLevel.off: 'Off',
 };
 
-class LoggerFactory {
-  final Clock _clock;
-  final ologger.Logger _logger;
-
-  LoggerFactory(this._clock, this._logger);
-
-  static LoggerFactory create(Clock clock, {String logFile = ''}) {
-    final logOutput = logFile.isNotEmpty
-        ? ologger.MultiOutput([
-            ologger.ConsoleOutput(),
-            ologger.FileOutput(file: File(logFile)),
-          ])
-        : null;
-    return LoggerFactory(
-      clock,
-      ologger.Logger(
-        printer: ologger.HybridPrinter(
-          ologger.SimplePrinter(),
-          error: ologger.PrettyPrinter(),
-          fatal: ologger.PrettyPrinter(),
-        ),
-        output: logOutput,
-      ),
-    );
-  }
-
-  Logger createLogger(String name, {String logFile = ''}) {
-    return Logger.create(name, _logger, _clock);
-  }
-}
-
 abstract class Logger {
+  String get name;
+
   void trace(dynamic message, {Object? error}) {}
 
   void debug(dynamic message, {Object? error}) {}
@@ -104,17 +73,23 @@ abstract class Logger {
   }
 
   static Logger create(
-      String name, ologger.Logger originalLogger, Clock clock) {
-    return _Logger(name, originalLogger, clock);
+    String name,
+    ologger.Logger originalLogger,
+    Clock clock,
+  ) {
+    return BaseLogger(name, originalLogger, clock);
   }
 }
 
-class _Logger extends Logger {
+class BaseLogger extends Logger {
   final ologger.Logger _oLogger;
-  final String name;
+
   final Clock _clock;
 
-  _Logger(this.name, this._oLogger, this._clock);
+  @override
+  final String name;
+
+  BaseLogger(this.name, this._oLogger, this._clock);
 
   String wrapMessage(dynamic message) {
     return '$name: $message';
