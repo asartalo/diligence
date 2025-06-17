@@ -93,6 +93,7 @@ class _DiligenceAppState extends State<DiligenceApp> {
                 logger: loggerFactory('SettingsScreen'),
                 onUpdateConfig: updateConfigHandler,
                 configManager: _container.di.configManager,
+                platform: _container.di.platform,
               );
             },
           },

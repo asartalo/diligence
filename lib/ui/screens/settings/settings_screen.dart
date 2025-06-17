@@ -14,9 +14,6 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-import 'dart:io';
-
-import 'package:collection/collection.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
@@ -24,20 +21,24 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../../app_info.dart';
 import '../../../diligence_config.dart';
+import '../../../platform_wrapped.dart';
 import '../../../services/config_manager.dart';
 import '../../../services/logger/logger.dart';
 import '../../components/common_screen.dart';
 import '../../components/snacker.dart';
+import 'env_display.dart';
 
 class SettingsScreen extends StatelessWidget with Snacker {
   final DiligenceConfig config;
   final Logger logger;
   final ConfigManager configManager;
+  final PlatformWrapped platform;
 
   final void Function(DiligenceConfig config) onUpdateConfig;
 
   const SettingsScreen({
     super.key,
+    required this.platform,
     required this.config,
     required this.onUpdateConfig,
     required this.logger,
@@ -76,7 +77,6 @@ class SettingsScreen extends StatelessWidget with Snacker {
                           return Text('Loading configuration location...');
                         }
                       }),
-                  _envVars(),
                 ],
               ),
             ),
@@ -89,19 +89,6 @@ class SettingsScreen extends StatelessWidget with Snacker {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _envVars() {
-    return Column(
-      children: Platform.environment.entries
-          .sorted((a, b) => a.key.compareTo(b.key))
-          .map((entry) {
-        return ListTile(
-          title: Text(entry.key),
-          subtitle: Text(entry.value),
-        );
-      }).toList(),
     );
   }
 
@@ -202,6 +189,7 @@ class SettingsScreen extends StatelessWidget with Snacker {
         },
         child: const Text('Test Logs'),
       ),
+      EnvDisplay(env: platform.environment),
     ];
   }
 }
