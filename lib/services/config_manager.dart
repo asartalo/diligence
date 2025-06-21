@@ -8,8 +8,8 @@ import '../config_validator.dart';
 import '../diligence_config.dart';
 import '../result.dart';
 import '../utils/fs.dart';
+import 'file_write_viability_checker.dart';
 import 'logger/logger.dart';
-import 'config_file_paths.dart';
 
 Map<String, String> _env = Platform.environment;
 bool _isTest = _env.containsKey('FLUTTER_TEST');
@@ -125,7 +125,7 @@ final _configFieldToYamlPath = {
 };
 
 class ConfigManager {
-  final ConfigFilePaths configFilePaths;
+  final List<FileWriteViabilityChecker> configFilePaths;
   final Fs fs;
   final ConfigValidator validator;
   final bool test;
@@ -151,14 +151,24 @@ class ConfigManager {
     this.test = false,
   });
 
+  // Checks to see if there are any viable config file paths for loading and saving.
+  Future<bool> hasViableConfigFilePaths() async {
+    return (await getUserConfigPath() != '');
+  }
+
+  // Lists the probable config file paths as strings
+  List<String> getPrioritizedConfigFilePaths() {
+    return configFilePaths.map((viability) => viability.fullPath).toList();
+  }
+
   // Loads configuration from yaml config file.
   //
   // When the constructor is passed with `this.test = true`, the config file
   // is never loaded and the default values are used. This makes it easier for
   // testing especially in integration tests.
   //
-  // Config files are loaded from the user's home directory. If the file does
-  // not exist, the default values are used.
+  // Config files are loaded based on possible locations specified in
+  // ConfigFilePaths.
   //
   // The decision to use YAML is simply for easier manipulation with yaml_edit
   // making it possible to edit the config files while preserving formatting and
@@ -180,31 +190,31 @@ class ConfigManager {
 
     Logger.setLevel(_defaultLogLevel);
 
-    if (!test && fileExists) {
-      logger.info('Loading configuration file $path');
-      try {
-        final doc = _parseYaml(await fs.contents(path), path);
+    if (!test) {
+      if (fileExists) {
+        logger.info('Loading configuration file $path');
+        try {
+          final doc = _parseYaml(await fs.contents(path), path);
 
-        if (doc != null) {
-          realDbPath = _pathValueOrDefault('database.path', realDbPath, doc);
-          realShowDb = _pathValueOrDefault('database.show', realShowDb, doc);
-          realShowReview =
-              _pathValueOrDefault('show_review_page', realShowReview, doc);
-          realLogLevel = LogLevel.fromName(
-            _pathValueOrDefault('dev.log_level', _defaultLogLevel.name, doc),
-            _defaultLogLevel,
-          );
-          realLogToFile = _pathValueOrDefault('dev.log_to_file', false, doc);
-          realLogFilePath = _pathValueOrDefault('dev.log_file_path', '', doc);
+          if (doc != null) {
+            realDbPath = _pathValueOrDefault('database.path', realDbPath, doc);
+            realShowDb = _pathValueOrDefault('database.show', realShowDb, doc);
+            realShowReview =
+                _pathValueOrDefault('show_review_page', realShowReview, doc);
+            realLogLevel = LogLevel.fromName(
+              _pathValueOrDefault('dev.log_level', _defaultLogLevel.name, doc),
+              _defaultLogLevel,
+            );
+            realLogToFile = _pathValueOrDefault('dev.log_to_file', false, doc);
+            realLogFilePath = _pathValueOrDefault('dev.log_file_path', '', doc);
+          }
+        } on InvalidYamlConfigError catch (err) {
+          logger.error('Failed to load configuration file', error: err);
+          return Failure(err);
         }
-      } on InvalidYamlConfigError catch (err) {
-        logger.error('Failed to load configuration file', error: err);
-        return Failure(err);
+      } else {
+        logger.info('Configuration file not found on $path');
       }
-    }
-
-    if (!test && !fileExists) {
-      logger.info('Configuration file not found on $path');
     }
 
     final config = DiligenceConfig(
@@ -253,6 +263,13 @@ class ConfigManager {
     }
 
     final path = await getUserConfigPath();
+    if (path == '') {
+      return Failure(
+        ConfigManagerException(
+          'No viable file is available.',
+        ),
+      );
+    }
     String contents = '';
     logger.debug('Updating configuration file $path');
     try {
@@ -273,7 +290,8 @@ class ConfigManager {
     } on Exception catch (err) {
       logger.error('Failed to update configuration file', error: err);
       return Failure(
-          ConfigManagerException('Failed to update configuration file'));
+        ConfigManagerException('Failed to update configuration file'),
+      );
     }
 
     logger.info('Saving configuration file $path');
@@ -283,7 +301,7 @@ class ConfigManager {
   }
 
   Future<String> getUserConfigPath() async {
-    for (var possible in configFilePaths.getProbableConfigFilePaths()) {
+    for (var possible in configFilePaths) {
       final viability = await possible.checkViability();
       logger.info(
         'Checking if `${possible.fullPath}` is viable as a config file',

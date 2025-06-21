@@ -37,7 +37,7 @@ class ConfigFilePaths {
       } else if (platform.isIOS) {
         _addIosCFLs(locations);
       } else if (platform.isLinux) {
-        if (platform.environment['SNAP_NAME'] == 'diligence') {
+        if (platform.isSnap) {
           _addLinuxSnapCFLs(locations);
         }
         _addLinuxCFLs(locations);

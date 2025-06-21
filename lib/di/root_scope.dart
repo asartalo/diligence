@@ -7,6 +7,7 @@ import '../di_scope_cache.dart';
 import '../platform_wrapped.dart';
 import '../services/config_file_paths.dart';
 import '../services/config_manager.dart';
+import '../services/file_write_viability_checker.dart';
 import '../services/logger/log_observable.dart';
 import '../utils/clock.dart';
 import '../utils/fs.dart';
@@ -52,6 +53,8 @@ class RootScope {
   LogObservable get configManagerLogger =>
       _cache.getSet(#logger, () => LogObservable('ConfigManager'));
 
-  ConfigFilePaths get configFilePaths => _cache.getSet(
-      #configFilePaths, () => ConfigFilePaths(fs: fs, platform: platform));
+  List<FileWriteViabilityChecker> get configFilePaths => _cache
+      .getSet(
+          #configFilePaths, () => ConfigFilePaths(fs: fs, platform: platform))
+      .getProbableConfigFilePaths();
 }

@@ -67,16 +67,8 @@ class SettingsScreen extends StatelessWidget with Snacker {
                   Text('Diligence', style: headingStyle),
                   const SizedBox(height: 8.0),
                   Text('Version: ${AppInfo.version.toString()}'),
-                  const SizedBox(height: 16.0),
-                  FutureBuilder(
-                      future: configManager.getUserConfigPath(),
-                      builder: (context, snapShot) {
-                        if (snapShot.hasData) {
-                          return Text('Config file: ${snapShot.data}');
-                        } else {
-                          return Text('Loading configuration location...');
-                        }
-                      }),
+                  const SizedBox(height: 32.0),
+                  configFileInfo(),
                 ],
               ),
             ),
@@ -89,6 +81,45 @@ class SettingsScreen extends StatelessWidget with Snacker {
           ),
         ],
       ),
+    );
+  }
+
+  Widget configFileInfo() {
+    return FutureBuilder(
+      future: configManager.getUserConfigPath(),
+      builder: (context, snapShot) {
+        if (snapShot.hasData) {
+          final path = snapShot.data;
+          if (path != '') {
+            return Text('Config file: $path');
+          }
+
+          return Column(children: [
+            Text(
+              'Unable to find a viable config file path. Attempted to load the following:',
+            ),
+            SizedBox(height: 8.0),
+            ...configManager
+                .getPrioritizedConfigFilePaths()
+                .map((pathCandidate) => ListTile(title: Text(pathCandidate))),
+            SizedBox(height: 8.0),
+            Text(
+              'Make sure the app has write access to any of the listed paths.',
+            ),
+          ]);
+        } else if (snapShot.hasError) {
+          return Column(children: [
+            Text('Unable to load configuration file.'),
+            Text(
+              snapShot.error == null
+                  ? snapShot.error!.toString()
+                  : 'No error found.',
+            ),
+          ]);
+        } else {
+          return Text('Loading configuration location...');
+        }
+      },
     );
   }
 

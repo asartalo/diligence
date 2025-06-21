@@ -14,6 +14,7 @@ abstract class PlatformWrapped {
   bool get isIOS;
   bool get isFuchsia;
   bool get isFlutterTest;
+  bool get isSnap;
   Map<String, String> get environment;
 
   static PlatformWrapped instance() {
@@ -40,6 +41,10 @@ class _ActualPlaformWrapped extends PlatformWrapped {
 
   @override
   bool get isLinux => Platform.isLinux;
+
+  @override
+  bool get isSnap =>
+      Platform.isLinux && environment['SNAP_NAME'] == 'diligence';
 
   @override
   bool get isMacOS => Platform.isMacOS;
