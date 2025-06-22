@@ -1,7 +1,7 @@
 import 'package:diligence/models/commands/commands.dart';
 import 'package:diligence/models/new_task.dart';
 import 'package:diligence/models/persisted_task.dart';
-import 'package:diligence/services/diligent.dart';
+import 'package:diligence/services/diligent/diligent.dart';
 import 'package:diligence/services/diligent/diligent_commander.dart';
 import 'package:diligence/utils/stub_clock.dart';
 import 'package:flutter_test/flutter_test.dart';

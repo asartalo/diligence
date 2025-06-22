@@ -1,12 +1,13 @@
 import 'package:diligence/models/reminders/reminder.dart';
 import 'package:diligence/models/reminders/reminder_list.dart';
 import 'package:diligence/models/task.dart';
-import 'package:diligence/services/diligent.dart';
+import 'package:diligence/services/diligent/diligent.dart';
+import 'package:diligence/services/diligent/initial_areas.dart';
 import 'package:diligence/utils/stub_clock.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../helpers/error_matcher.dart';
-import '../helpers/test_db.dart';
+import '../../helpers/error_matcher.dart';
+import '../../helpers/test_db.dart';
 
 List<String> taskNames(List<Task?> tasks) {
   final List<String> names = [];
@@ -504,7 +505,7 @@ void main() {
 
     group('Initial Data', () {
       setUp(() async {
-        await diligent.initialAreas(initialAreas);
+        await diligent.initialAreas(initialAreas(clock.now()));
       });
 
       test('creates root node', () async {
@@ -524,7 +525,7 @@ void main() {
       });
 
       test('it does nothing when called again', () async {
-        await diligent.initialAreas(initialAreas);
+        await diligent.initialAreas(initialAreas(clock.now()));
         final tasks = await diligent.subtreeFlat(1);
         expect(
           taskNames(tasks.map((taskNode) => taskNode.task).toList()),

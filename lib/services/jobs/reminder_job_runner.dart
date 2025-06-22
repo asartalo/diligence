@@ -1,7 +1,7 @@
 import '../../models/notices/reminder_notice.dart';
 import '../../models/reminder_job.dart';
 import '../../utils/clock.dart';
-import '../diligent.dart';
+import '../diligent/diligent.dart';
 import '../notices/notice_queue.dart';
 import 'job_runner.dart';
 

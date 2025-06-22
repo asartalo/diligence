@@ -20,7 +20,7 @@ import 'package:provider/provider.dart';
 import '../../../models/commands/commands.dart';
 import '../../../models/persisted_task.dart';
 import '../../../models/task.dart';
-import '../../../services/diligent.dart';
+import '../../../services/diligent/diligent.dart';
 import '../../../utils/clock.dart';
 import '../../../utils/types.dart';
 import '../../colors.dart' as colors;

@@ -17,7 +17,7 @@
 import '../../../models/commands/commands.dart';
 
 import '../../../models/tasks.dart';
-import '../../diligent.dart';
+import '../diligent.dart';
 import 'fails_on_exception.dart';
 
 Future<CommandResult> newTaskHandler(

@@ -16,7 +16,7 @@
 
 import '../../../models/commands/commands.dart';
 
-import '../../diligent.dart';
+import '../diligent.dart';
 import 'fails_on_exception.dart';
 
 Future<CommandResult> unfocusTaskHandler(

@@ -1,10 +1,10 @@
 import 'package:diligence/models/tasks.dart';
-import 'package:diligence/services/diligent.dart';
+import 'package:diligence/services/diligent/diligent.dart';
 import 'package:diligence/utils/stub_clock.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 
-import 'diligent_test.dart';
+import 'diligent/diligent_test.dart';
 
 void main() {
   // The following tests are implementation details specific to using SQLite

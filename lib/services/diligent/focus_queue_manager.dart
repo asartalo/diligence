@@ -24,7 +24,7 @@ import '../../models/task.dart';
 import '../../models/task_list.dart';
 import '../../utils/clock.dart';
 import '../../utils/debounce.dart';
-import '../diligent.dart';
+import 'diligent.dart';
 import 'diligent_event_register.dart';
 import 'task_db.dart';
 import 'task_events/added_tasks_event.dart';

@@ -24,7 +24,7 @@ import '../../../models/reminders/reminder_list.dart';
 import '../../../models/task.dart';
 import '../../../models/task_node.dart';
 import '../../../models/task_pack.dart';
-import '../../../services/diligent.dart';
+import '../../../services/diligent/diligent.dart';
 import '../../../services/diligent/diligent_commander.dart';
 import '../../../utils/clock.dart';
 import '../../components/common_screen.dart';

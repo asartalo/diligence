@@ -17,7 +17,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../models/commands/commands.dart';
-import '../../../services/diligent.dart';
+import '../../../services/diligent/diligent.dart';
 import '../../../utils/clock.dart';
 import '../../../utils/types.dart';
 import 'keys.dart' as keys;

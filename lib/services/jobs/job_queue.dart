@@ -8,7 +8,7 @@ import '../../utils/clock.dart';
 import '../../utils/date_time_from_row_epoch.dart';
 import '../logger/logger.dart';
 import '../../utils/stringers.dart';
-import '../diligent.dart';
+import '../diligent/diligent.dart';
 import '../diligent/diligent_event_register.dart';
 import '../diligent/task_events/added_reminders_event.dart';
 import '../diligent/task_events/removed_reminders_event.dart';

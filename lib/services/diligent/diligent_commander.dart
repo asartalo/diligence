@@ -15,7 +15,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 import '../../models/commands/commands.dart';
-import '../diligent.dart';
+import 'diligent.dart';
 import 'command_handlers.dart';
 import 'handlers/delete_task_handler.dart';
 import 'handlers/focus_task_handler.dart';

@@ -15,7 +15,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 import '../../models/commands/commands.dart';
-import '../diligent.dart';
+import 'diligent.dart';
 
 typedef BaseCommandHandler =
     Future<CommandResult> Function(Diligent diligent, Command command);

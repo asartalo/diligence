@@ -1,6 +1,6 @@
 // Diligence - A Task Management App
 //
-// Copyright (C) 2024 Wayne Duran <asartalo@gmail.com>
+// Copyright (C) 2025 Wayne Duran <asartalo@gmail.com>
 //
 // This program is free software: you can redistribute it and/or modify it under
 // the terms of the GNU General Public License as published by the Free Software
@@ -14,20 +14,22 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-import '../../../models/commands/commands.dart';
+import '../../models/new_task.dart';
 
-import '../diligent.dart';
-import 'fails_on_exception.dart';
-
-Future<CommandResult> focusTaskHandler(
-  Diligent diligent,
-  FocusTaskCommand command,
-) async {
-  return failsOnException(() async {
-    await diligent.focus(command.payload);
-
-    return Success(
-      message: 'Task "${command.payload.name}" was focused successfully.',
-    );
-  }, 'Failed to focus task "${command.payload.name}".');
+List<NewTask> initialAreas(DateTime now) {
+  return [
+    NewTask(name: 'Life', details: 'Life goals', now: now),
+    NewTask(name: 'Work', details: 'Work-related tasks', now: now),
+    NewTask(name: 'Projects', details: 'Personal projects', now: now),
+    NewTask(
+      name: 'Miscellaneous',
+      details: "Stuff that don't belong to the main areas",
+      now: now,
+    ),
+    NewTask(
+      name: 'Inbox',
+      details: "Tasks that haven't been categorized yet",
+      now: now,
+    ),
+  ];
 }

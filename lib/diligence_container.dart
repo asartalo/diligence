@@ -29,7 +29,8 @@ import 'di/root_scope.dart';
 import 'diligence_config.dart';
 import 'models/notices/error_notice.dart';
 import 'services/config_manager.dart';
-import 'services/diligent.dart';
+import 'services/diligent/diligent.dart';
+import 'services/diligent/initial_areas.dart';
 import 'services/review_data/review_data_bloc.dart';
 import 'services/review_data_service.dart';
 import 'services/side_effects.dart';
@@ -130,7 +131,7 @@ class DiligenceContainer {
 
   Future<void> start() async {
     await diligent.setUp();
-    await diligent.initialAreas(initialAreas);
+    await diligent.initialAreas(initialAreas(di.clock.now()));
     di.jobQueue.registerEventHandlers(diligent);
     await di.jobTrack.start();
   }

@@ -21,7 +21,7 @@ import 'package:provider/provider.dart';
 import 'app_observer.dart';
 import 'diligence_config.dart';
 import 'diligence_container.dart';
-import 'services/diligent.dart';
+import 'services/diligent/diligent.dart';
 import 'ui/diligence_theme.dart';
 import 'ui/screens/focus/focus_screen.dart';
 import 'ui/screens/home/home_screen.dart';

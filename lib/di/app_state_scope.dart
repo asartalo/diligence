@@ -10,7 +10,7 @@ import '../models/reminder_job.dart';
 import '../models/scheduled_job.dart';
 import '../platform_wrapped.dart';
 import '../services/config_manager.dart';
-import '../services/diligent.dart';
+import '../services/diligent/diligent.dart';
 import '../services/jobs/job_queue.dart';
 import '../services/jobs/job_track.dart';
 import '../services/jobs/reminder_job_runner.dart';

@@ -15,7 +15,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 import 'package:diligence/diligence_container.dart';
-import 'package:diligence/services/diligent.dart';
+import 'package:diligence/services/diligent/diligent.dart';
 import 'package:diligence/utils/stub_clock.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';

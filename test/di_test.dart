@@ -1,7 +1,7 @@
 import 'package:diligence/di/app_state_scope.dart';
 import 'package:diligence/di/root_scope.dart';
 import 'package:diligence/diligence_config.dart';
-import 'package:diligence/services/diligent.dart';
+import 'package:diligence/services/diligent/diligent.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

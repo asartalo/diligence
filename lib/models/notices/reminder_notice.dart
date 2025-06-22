@@ -1,4 +1,4 @@
-import '../../services/diligent.dart';
+import '../../services/diligent/diligent.dart';
 import '../task.dart';
 import 'notice.dart';
 

@@ -21,49 +21,31 @@ import 'package:collection/collection.dart';
 import 'package:sqlite_async/sqlite3.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 
-import '../models/modified_task.dart';
-import '../models/new_task.dart';
-import '../models/persisted_task.dart';
-import '../models/reminders/reminder.dart';
-import '../models/reminders/reminder_list.dart';
-import '../models/task.dart';
-import '../models/task_list.dart';
-import '../models/task_node.dart';
-import '../models/task_pack.dart';
-import '../utils/clock.dart';
-import '../utils/date_time_from_row_epoch.dart';
-import 'diligent/focus_queue_manager.dart';
-import 'diligent/task_db.dart';
-import 'diligent/task_events/added_reminders_event.dart';
-import 'diligent/task_events/added_tasks_event.dart';
-import 'diligent/task_events/deleted_task_event.dart';
-import 'diligent/task_events/removed_reminders_event.dart';
-import 'diligent/task_events/task_event.dart';
-import 'diligent/task_events/task_event_registry.dart';
-import 'diligent/task_events/toggled_tasks_done_event.dart';
-import 'diligent/task_events/updated_task_event.dart';
-import 'diligent/task_fields.dart';
-import 'migrate.dart';
+import '../../models/modified_task.dart';
+import '../../models/new_task.dart';
+import '../../models/persisted_task.dart';
+import '../../models/reminders/reminder.dart';
+import '../../models/reminders/reminder_list.dart';
+import '../../models/task.dart';
+import '../../models/task_list.dart';
+import '../../models/task_node.dart';
+import '../../models/task_pack.dart';
+import '../../utils/clock.dart';
+import '../../utils/date_time_from_row_epoch.dart';
+import 'focus_queue_manager.dart';
+import 'task_db.dart';
+import 'task_events/added_reminders_event.dart';
+import 'task_events/added_tasks_event.dart';
+import 'task_events/deleted_task_event.dart';
+import 'task_events/removed_reminders_event.dart';
+import 'task_events/task_event.dart';
+import 'task_events/task_event_registry.dart';
+import 'task_events/toggled_tasks_done_event.dart';
+import 'task_events/updated_task_event.dart';
+import 'task_fields.dart';
+import '../migrate.dart';
 
 typedef TaskNodeList = List<TaskNode>;
-
-final now = Clock().now();
-
-final initialAreas = [
-  NewTask(name: 'Life', details: 'Life goals', now: now),
-  NewTask(name: 'Work', details: 'Work-related tasks', now: now),
-  NewTask(name: 'Projects', details: 'Personal projects', now: now),
-  NewTask(
-    name: 'Miscellaneous',
-    details: "Stuff that don't belong to the main areas",
-    now: now,
-  ),
-  NewTask(
-    name: 'Inbox',
-    details: "Tasks that haven't been categorized yet",
-    now: now,
-  ),
-];
 
 class Diligent extends TaskDb {
   @override
