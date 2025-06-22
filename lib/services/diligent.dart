@@ -124,20 +124,6 @@ class Diligent extends TaskDb {
     }
   }
 
-  final _queryCache = <String, String>{};
-
-  // TODO: This does not actually work as you think it does
-  // Query strings still need to be evaluated
-  String _cachedQuery(String key, String query) {
-    String? value = _queryCache[key];
-    if (value == null) {
-      _queryCache[key] = query;
-      value = query;
-    }
-
-    return value;
-  }
-
   void register<T extends TaskEvent>(TaskEventHandler<T> handler) {
     _eventRegistry.register(handler);
   }
@@ -217,16 +203,13 @@ class Diligent extends TaskDb {
           positionToUse + index,
         ];
       }).toList();
-      await tx.executeBatch(
-        _cachedQuery('tasksInsertWithPosition', '''
-          INSERT INTO tasks (${newTaskFields.join(', ')}, position)
-          SELECT ${questionMarks(newTaskFields.length + 1)}
-          '''),
-        batchProps,
-      );
+      await tx.executeBatch('''
+        INSERT INTO tasks (${newTaskFields.join(', ')}, position)
+        SELECT ${questionMarks(newTaskFields.length + 1)}
+        ''', batchProps);
 
       newTasks = await _getPersistedTasks(tasks, tx);
-      await _toggleSubtree(newTasks.first, tx);
+      await _toggleLineage(newTasks.first, tx);
 
       await announceEvent(
         AddedTasksEvent(
@@ -260,7 +243,6 @@ class Diligent extends TaskDb {
     TaskList tasks,
     SqliteReadContext tx,
   ) async {
-    // TODO: Also make sure that NewTask generates uids using tests
     final uids = _uidsFromTasks(tasks);
     final newTasks = await _findTasksByUids(uids, tx);
 
@@ -342,10 +324,7 @@ class Diligent extends TaskDb {
     return updatedTask!;
   }
 
-  // TODO: The interface does not evoke the intent of its usage
-  /// _toggleTree toggles the doneAt field of its ancestors and descendants if
-  /// applicable
-  Future<void> _toggleSubtree(
+  Future<void> _toggleLineage(
     Task task,
     SqliteWriteContext tx, {
     bool forceDescendants = false,
@@ -362,7 +341,7 @@ class Diligent extends TaskDb {
     SqliteWriteContext tx,
   ) async {
     if (task.hasToggledDone()) {
-      await _toggleSubtree(task, tx, forceDescendants: true);
+      await _toggleLineage(task, tx, forceDescendants: true);
     }
   }
 
@@ -489,16 +468,16 @@ class Diligent extends TaskDb {
 
   Future<TaskList> _descendants(Task task, SqliteWriteContext tx) async {
     final rows = await tx.getAll(
-      _cachedQuery('descendants', '''
-        WITH RECURSIVE
-          descendants AS (
-            SELECT * FROM tasks WHERE parentId = ?
-            UNION ALL
-            SELECT tasks.* FROM tasks
-            JOIN descendants ON tasks.parentId = descendants.id
-          )
-        SELECT * FROM descendants
-        '''),
+      '''
+      WITH RECURSIVE
+        descendants AS (
+          SELECT * FROM tasks WHERE parentId = ?
+          UNION ALL
+          SELECT tasks.* FROM tasks
+          JOIN descendants ON tasks.parentId = descendants.id
+        )
+      SELECT * FROM descendants
+      ''',
       [task.id],
     );
 
@@ -507,11 +486,11 @@ class Diligent extends TaskDb {
 
   Future<void> _updateTask(ModifiedTask task, SqliteWriteContext tx) async {
     await tx.execute(
-      _cachedQuery('updateTask', '''
-          UPDATE tasks
-          SET ${fieldValuePlaceholders(modifiableNonPositionFields)}
-          WHERE id = ?
-        '''),
+      '''
+      UPDATE tasks
+      SET ${fieldValuePlaceholders(modifiableNonPositionFields)}
+      WHERE id = ?
+      ''',
       [...propsFromTaskFields(modifiableNonPositionFields, task), task.id],
     );
   }
@@ -538,7 +517,7 @@ class Diligent extends TaskDb {
       await _reorderChildren(tx, task.parentId);
       final parent = await _findTask(task.parentId, tx);
       if (parent is Task) {
-        await _toggleSubtree(task, tx);
+        await _toggleLineage(task, tx);
       }
     });
 
@@ -595,11 +574,11 @@ class Diligent extends TaskDb {
         [parent.id, position, task.id],
       );
 
-      await _toggleSubtree(parent, tx, startAtTask: true);
+      await _toggleLineage(parent, tx, startAtTask: true);
       await _reorderChildren(tx, task.parentId);
       final oldParent = await _findTask(task.parentId, tx);
       if (oldParent is Task) {
-        await _toggleSubtree(oldParent, tx, startAtTask: true);
+        await _toggleLineage(oldParent, tx, startAtTask: true);
       }
     });
   }
@@ -701,34 +680,34 @@ class Diligent extends TaskDb {
   /// Returns a task and its descendants as an ordered list
   Future<TaskNodeList> subtreeFlat(int id) async {
     final rows = await db.getAll(
-      _cachedQuery('subtreeFlat', '''
-          WITH RECURSIVE
-            subtree(lvl, $commaAllTaskFields) AS (
-              SELECT
-                0 AS lvl,
-                $commaAllTaskFields
-              FROM tasks
-              WHERE id = ?
-            UNION ALL
-              SELECT
-                subtree.lvl + 1,
-                ${commaFields(allTaskFields, prefix: 'tasks')}
-              FROM
-                subtree
-                JOIN tasks ON tasks.parentId = subtree.id
-              ORDER BY
-                subtree.lvl+1 DESC,
-                tasks.position
-            )
+      '''
+      WITH RECURSIVE
+        subtree(lvl, $commaAllTaskFields) AS (
           SELECT
-            subtree.*,
-            (
-              SELECT count(id)
-              FROM tasks
-              WHERE parentId = subtree.id
-            ) AS childrenCount
-          FROM subtree
-        '''),
+            0 AS lvl,
+            $commaAllTaskFields
+          FROM tasks
+          WHERE id = ?
+        UNION ALL
+          SELECT
+            subtree.lvl + 1,
+            ${commaFields(allTaskFields, prefix: 'tasks')}
+          FROM
+            subtree
+            JOIN tasks ON tasks.parentId = subtree.id
+          ORDER BY
+            subtree.lvl+1 DESC,
+            tasks.position
+        )
+      SELECT
+        subtree.*,
+        (
+          SELECT count(id)
+          FROM tasks
+          WHERE parentId = subtree.id
+        ) AS childrenCount
+      FROM subtree
+      ''',
       [id],
     );
 
@@ -747,35 +726,35 @@ class Diligent extends TaskDb {
   Future<TaskNodeList> expandedDescendantsTree(Task task) async {
     final id = task.id;
     final rows = await db.getAll(
-      _cachedQuery('expandedDescendantsTree', '''
-          WITH RECURSIVE
-            subtree(lvl, $commaAllTaskFields) AS (
-              SELECT
-                0 AS lvl,
-                $commaAllTaskFieldsPrefixed
-              FROM tasks
-              WHERE tasks.parentId = ?
-            UNION ALL
-              SELECT
-                subtree.lvl + 1,
-                $commaAllTaskFieldsPrefixed
-              FROM
-                subtree
-                JOIN tasks ON tasks.parentId = subtree.id
-              WHERE subtree.expanded = 1
-              ORDER BY
-                subtree.lvl+1 DESC,
-                tasks.position
-            )
+      '''
+      WITH RECURSIVE
+        subtree(lvl, $commaAllTaskFields) AS (
           SELECT
-            subtree.*,
-            (
-              SELECT count(id)
-              FROM tasks
-              WHERE parentId = subtree.id
-            ) AS childrenCount
-          FROM subtree
-        '''),
+            0 AS lvl,
+            $commaAllTaskFieldsPrefixed
+          FROM tasks
+          WHERE tasks.parentId = ?
+        UNION ALL
+          SELECT
+            subtree.lvl + 1,
+            $commaAllTaskFieldsPrefixed
+          FROM
+            subtree
+            JOIN tasks ON tasks.parentId = subtree.id
+          WHERE subtree.expanded = 1
+          ORDER BY
+            subtree.lvl+1 DESC,
+            tasks.position
+        )
+      SELECT
+        subtree.*,
+        (
+          SELECT count(id)
+          FROM tasks
+          WHERE parentId = subtree.id
+        ) AS childrenCount
+      FROM subtree
+      ''',
       [id],
     );
 

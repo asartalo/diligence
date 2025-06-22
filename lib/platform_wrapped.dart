@@ -4,7 +4,6 @@ import 'dart:io';
 
 import 'package:meta/meta.dart';
 
-// TODO: Extend this to create helper props like isSnap or isFlatpak
 abstract class PlatformWrapped {
   String get operatingSystem;
   bool get isLinux;

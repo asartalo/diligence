@@ -53,7 +53,6 @@ class LogObservable implements Logger {
 
   @override
   void trace(message, {Object? error}) {
-    // TODO: implement trace
     for (var logger in _loggers) {
       logger.trace(message, error: error);
     }
