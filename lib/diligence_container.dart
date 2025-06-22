@@ -59,10 +59,8 @@ class DiligenceContainer {
       Provider(create: (_) => di.noticeQueue),
       Provider(create: (_) => di.loggerFactoryFunc),
       BlocProvider(
-        create: (_) => ReviewDataBloc(
-          ReviewDataService(),
-          sideEffects: _sideEffects(),
-        ),
+        create: (_) =>
+            ReviewDataBloc(ReviewDataService(), sideEffects: _sideEffects()),
       ),
     ];
   }

@@ -36,7 +36,7 @@ class FocusScreen extends StatefulWidget {
   final DiligentCommander commander;
   final Clock clock;
   FocusScreen({super.key, required this.diligent, required this.clock})
-      : commander = DiligentCommander(diligent);
+    : commander = DiligentCommander(diligent);
 
   @override
   State<FocusScreen> createState() => _FocusScreenState();
@@ -219,9 +219,7 @@ class _FocusScreenState extends State<FocusScreen> {
           onPressed: () {
             _toggleLimit();
           },
-          child: Text(
-            _limit == 0 ? 'Show Less' : 'Show More',
-          ),
+          child: Text(_limit == 0 ? 'Show Less' : 'Show More'),
         ),
       ),
     );

@@ -132,10 +132,7 @@ class TestTasksScreen extends TestScreen with TestScreenTaskItemActions {
 
   // Expectations //
 
-  void expectTaskExistsOnTaskList(
-    String name, {
-    String? details,
-  }) {
+  void expectTaskExistsOnTaskList(String name, {String? details}) {
     final task = findTaskItem(name);
     expect(
       task,
@@ -166,10 +163,9 @@ class TestTasksScreen extends TestScreen with TestScreenTaskItemActions {
   }
 
   Iterable<TaskItem> _taskItemsOnTaskList() {
-    return dtest.tester.widgetList<TaskItem>(find.descendant(
-      of: taskList,
-      matching: find.byType(TaskItem),
-    ));
+    return dtest.tester.widgetList<TaskItem>(
+      find.descendant(of: taskList, matching: find.byType(TaskItem)),
+    );
   }
 
   void expectTaskIsChildOfParent(String name, {required String parent}) {
@@ -283,10 +279,7 @@ class TestTasksScreen extends TestScreen with TestScreenTaskItemActions {
       of: noticeArea,
       matching: find.text('Reminder: $name'),
     );
-    return find.ancestor(
-      of: noticeText,
-      matching: find.byType(NoticeItem),
-    );
+    return find.ancestor(of: noticeText, matching: find.byType(NoticeItem));
   }
 
   void expectNotToSeeReminderNotice(String name) {

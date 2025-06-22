@@ -146,10 +146,7 @@ class Diligent extends TaskDb {
     await _eventRegistry.broadcast<T>(event);
   }
 
-  Future<void> _validateAddedTasks(
-    TaskList tasks,
-    SqliteReadContext tx,
-  ) async {
+  Future<void> _validateAddedTasks(TaskList tasks, SqliteReadContext tx) async {
     final Set<int?> parentIds = {};
     for (final task in tasks) {
       task.validate();
@@ -221,25 +218,24 @@ class Diligent extends TaskDb {
         ];
       }).toList();
       await tx.executeBatch(
-        _cachedQuery(
-          'tasksInsertWithPosition',
-          '''
+        _cachedQuery('tasksInsertWithPosition', '''
           INSERT INTO tasks (${newTaskFields.join(', ')}, position)
           SELECT ${questionMarks(newTaskFields.length + 1)}
-          ''',
-        ),
+          '''),
         batchProps,
       );
 
       newTasks = await _getPersistedTasks(tasks, tx);
       await _toggleSubtree(newTasks.first, tx);
 
-      await announceEvent(AddedTasksEvent(
-        clock.now(),
-        tx: tx,
-        parentId: parentId,
-        tasks: newTasks,
-      ));
+      await announceEvent(
+        AddedTasksEvent(
+          clock.now(),
+          tx: tx,
+          parentId: parentId,
+          tasks: newTasks,
+        ),
+      );
     });
 
     return newTasks;
@@ -284,12 +280,9 @@ class Diligent extends TaskDb {
     SqliteReadContext tx,
   ) async {
     final qMarks = questionMarks(uids.length);
-    final rows = await tx.getAll(
-      '''
+    final rows = await tx.getAll('''
       SELECT * FROM tasks WHERE uid IN ($qMarks) ORDER BY position
-      ''',
-      uids,
-    );
+      ''', uids);
 
     return rows.map(taskFromRow).toList();
   }
@@ -336,12 +329,14 @@ class Diligent extends TaskDb {
         throw Exception('Task was not updated.');
       }
 
-      await announceEvent(UpdatedTaskEvent(
-        clock.now(),
-        modified: task,
-        persisted: updatedTask as PersistedTask,
-        tx: tx,
-      ));
+      await announceEvent(
+        UpdatedTaskEvent(
+          clock.now(),
+          modified: task,
+          persisted: updatedTask as PersistedTask,
+          tx: tx,
+        ),
+      );
     });
 
     return updatedTask!;
@@ -356,11 +351,7 @@ class Diligent extends TaskDb {
     bool forceDescendants = false,
     bool startAtTask = false,
   }) async {
-    await _toggleAncestorsDone(
-      task,
-      tx,
-      startAtTask: startAtTask,
-    );
+    await _toggleAncestorsDone(task, tx, startAtTask: startAtTask);
     if (forceDescendants) {
       await _toggleDescendantsDone(task, tx);
     }
@@ -389,17 +380,13 @@ class Diligent extends TaskDb {
     for (final ancestor in ancestors) {
       final doneAt = await _allChildrenDone(ancestor, tx);
       if (
-          // ancestor is done and task is not done
-          (doneAt == null && ancestor.done) ||
-              // ancestor is not done and all children are done
-              (doneAt is DateTime &&
-                  (doneAt.millisecondsSinceEpoch !=
-                      ancestor.doneAt?.millisecondsSinceEpoch))) {
-        await _toggleDoneById(
-          doneAt?.millisecondsSinceEpoch,
-          ancestor.id,
-          tx,
-        );
+      // ancestor is done and task is not done
+      (doneAt == null && ancestor.done) ||
+          // ancestor is not done and all children are done
+          (doneAt is DateTime &&
+              (doneAt.millisecondsSinceEpoch !=
+                  ancestor.doneAt?.millisecondsSinceEpoch))) {
+        await _toggleDoneById(doneAt?.millisecondsSinceEpoch, ancestor.id, tx);
       } else {
         break;
       }
@@ -411,10 +398,7 @@ class Diligent extends TaskDb {
     int id,
     SqliteWriteContext tx,
   ) =>
-      tx.execute(
-        'UPDATE tasks SET doneAt = ? WHERE id = ?',
-        [doneAtEpoch, id],
-      );
+      tx.execute('UPDATE tasks SET doneAt = ? WHERE id = ?', [doneAtEpoch, id]);
 
   Future<void> _toggleDescendantsDone(Task task, SqliteWriteContext tx) async {
     final descendants = await _descendants(task, tx);
@@ -430,12 +414,14 @@ class Diligent extends TaskDb {
         [doneAt?.millisecondsSinceEpoch, descendant.id],
       );
     }
-    announceEvent(ToggledTasksDoneEvent(
-      clock.now(),
-      tasks: descendants,
-      tx: tx,
-      doneAt: doneAt,
-    ));
+    announceEvent(
+      ToggledTasksDoneEvent(
+        clock.now(),
+        tasks: descendants,
+        tx: tx,
+        doneAt: doneAt,
+      ),
+    );
   }
 
   Future<DateTime?> _allChildrenDone(Task task, SqliteReadContext tx) async {
@@ -451,8 +437,9 @@ class Diligent extends TaskDb {
     );
     final count = result['count'] as int;
     final doneCount = result['doneCount'] as int;
-    final doneAtEpoch =
-        result['latestDoneAt'] == null ? 0 : result['latestDoneAt'] as int;
+    final doneAtEpoch = result['latestDoneAt'] == null
+        ? 0
+        : result['latestDoneAt'] as int;
     final doneAt = doneAtEpoch > 0 ? dateTimeFromRowEpoch(doneAtEpoch) : null;
 
     return count == doneCount ? doneAt : null;
@@ -502,9 +489,7 @@ class Diligent extends TaskDb {
 
   Future<TaskList> _descendants(Task task, SqliteWriteContext tx) async {
     final rows = await tx.getAll(
-      _cachedQuery(
-        'descendants',
-        '''
+      _cachedQuery('descendants', '''
         WITH RECURSIVE
           descendants AS (
             SELECT * FROM tasks WHERE parentId = ?
@@ -513,8 +498,7 @@ class Diligent extends TaskDb {
             JOIN descendants ON tasks.parentId = descendants.id
           )
         SELECT * FROM descendants
-        ''',
-      ),
+        '''),
       [task.id],
     );
 
@@ -523,21 +507,12 @@ class Diligent extends TaskDb {
 
   Future<void> _updateTask(ModifiedTask task, SqliteWriteContext tx) async {
     await tx.execute(
-      _cachedQuery(
-        'updateTask',
-        '''
+      _cachedQuery('updateTask', '''
           UPDATE tasks
           SET ${fieldValuePlaceholders(modifiableNonPositionFields)}
           WHERE id = ?
-        ''',
-      ),
-      [
-        ...propsFromTaskFields(
-          modifiableNonPositionFields,
-          task,
-        ),
-        task.id,
-      ],
+        '''),
+      [...propsFromTaskFields(modifiableNonPositionFields, task), task.id],
     );
   }
 
@@ -699,12 +674,9 @@ class Diligent extends TaskDb {
     await addTask(newTask(name: 'Root', id: 1, uid: 'root', expanded: true));
     final now = clock.now();
     for (final area in areas) {
-      await addTask(area.copyWith(
-        parentId: 1,
-        updatedAt: now,
-        createdAt: now,
-        now: now,
-      ));
+      await addTask(
+        area.copyWith(parentId: 1, updatedAt: now, createdAt: now, now: now),
+      );
     }
   }
 
@@ -719,10 +691,9 @@ class Diligent extends TaskDb {
 
   FutureOr<Task?> getParent(Task task) async {
     if (task.parentId == null) return null;
-    final rows = await db.getAll(
-      'SELECT * FROM tasks WHERE id = ?',
-      [task.parentId],
-    );
+    final rows = await db.getAll('SELECT * FROM tasks WHERE id = ?', [
+      task.parentId,
+    ]);
 
     return rows.isEmpty ? null : taskFromRow(rows.first);
   }
@@ -730,9 +701,7 @@ class Diligent extends TaskDb {
   /// Returns a task and its descendants as an ordered list
   Future<TaskNodeList> subtreeFlat(int id) async {
     final rows = await db.getAll(
-      _cachedQuery(
-        'subtreeFlat',
-        '''
+      _cachedQuery('subtreeFlat', '''
           WITH RECURSIVE
             subtree(lvl, $commaAllTaskFields) AS (
               SELECT
@@ -759,27 +728,26 @@ class Diligent extends TaskDb {
               WHERE parentId = subtree.id
             ) AS childrenCount
           FROM subtree
-        ''',
-      ),
+        '''),
       [id],
     );
 
     return rows
-        .map((row) => _taskNodeFromRow(
-              row,
-              level: row['lvl'] as int,
-              childrenCount: row['childrenCount'] as int,
-              position: row['position'] as int,
-            ))
+        .map(
+          (row) => _taskNodeFromRow(
+            row,
+            level: row['lvl'] as int,
+            childrenCount: row['childrenCount'] as int,
+            position: row['position'] as int,
+          ),
+        )
         .toList();
   }
 
   Future<TaskNodeList> expandedDescendantsTree(Task task) async {
     final id = task.id;
     final rows = await db.getAll(
-      _cachedQuery(
-        'expandedDescendantsTree',
-        '''
+      _cachedQuery('expandedDescendantsTree', '''
           WITH RECURSIVE
             subtree(lvl, $commaAllTaskFields) AS (
               SELECT
@@ -807,18 +775,19 @@ class Diligent extends TaskDb {
               WHERE parentId = subtree.id
             ) AS childrenCount
           FROM subtree
-        ''',
-      ),
+        '''),
       [id],
     );
 
     return rows
-        .map((row) => _taskNodeFromRow(
-              row,
-              level: row['lvl'] as int,
-              childrenCount: row['childrenCount'] as int,
-              position: row['position'] as int,
-            ))
+        .map(
+          (row) => _taskNodeFromRow(
+            row,
+            level: row['lvl'] as int,
+            childrenCount: row['childrenCount'] as int,
+            position: row['position'] as int,
+          ),
+        )
         .toList();
   }
 
@@ -831,24 +800,16 @@ class Diligent extends TaskDb {
 
   Future<int> getFocusedCount() => focusQueueManager.getFocusedCount();
 
-  Future<void> focus(Task task, {int position = 0}) => focusQueueManager.focus(
-        task,
-        position: position,
-      );
+  Future<void> focus(Task task, {int position = 0}) =>
+      focusQueueManager.focus(task, position: position);
 
   Future<void> focusTasks(TaskList tasks, {int position = 0}) =>
-      focusQueueManager.focusTasks(
-        tasks,
-        position: position,
-      );
+      focusQueueManager.focusTasks(tasks, position: position);
 
   Future<void> unfocus(Task task) => focusQueueManager.unfocus(task);
 
   Future<void> reprioritizeInFocusQueue(Task task, int position) =>
-      focusQueueManager.reprioritizeInFocusQueue(
-        task,
-        position,
-      );
+      focusQueueManager.reprioritizeInFocusQueue(task, position);
 
   Future<void> addReminders(List<Reminder> reminders) async {
     await db.writeTransaction((tx) async {
@@ -861,10 +822,7 @@ class Diligent extends TaskDb {
         batchProps,
       );
     });
-    await announceEvent(AddedRemindersEvent(
-      clock.now(),
-      reminders: reminders,
-    ));
+    await announceEvent(AddedRemindersEvent(clock.now(), reminders: reminders));
   }
 
   Future<ReminderList> getNextReminders(DateTime now) async {
@@ -886,15 +844,12 @@ class Diligent extends TaskDb {
   }
 
   Future<ReminderList> getRemindersForTaskIds(List<int> taskIds) async {
-    final rows = await db.getAll(
-      '''
+    final rows = await db.getAll('''
       SELECT reminders.*
       FROM reminders
       WHERE reminders.taskId IN (${questionMarks(taskIds.length)})
       ORDER BY reminders.remindAt ASC
-      ''',
-      taskIds,
-    );
+      ''', taskIds);
 
     return ReminderList(rows.map(reminderFromRow).toList());
   }
@@ -927,10 +882,9 @@ class Diligent extends TaskDb {
         return [reminder.taskId, reminder.remindAt.millisecondsSinceEpoch];
       }).toList(),
     );
-    await announceEvent(RemovedRemindersEvent(
-      clock.now(),
-      reminders: reminders,
-    ));
+    await announceEvent(
+      RemovedRemindersEvent(clock.now(), reminders: reminders),
+    );
   }
 
   Reminder reminderFromRow(Row row) {
@@ -948,10 +902,7 @@ class Diligent extends TaskDb {
       return null;
     }
 
-    return TaskPack(
-      task,
-      reminders: await getRemindersForTask(task),
-    );
+    return TaskPack(task, reminders: await getRemindersForTask(task));
   }
 }
 

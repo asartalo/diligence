@@ -21,8 +21,5 @@ class BreakdownItem {
   final List<int> path;
   final num value;
 
-  const BreakdownItem({
-    required this.path,
-    required this.value,
-  });
+  const BreakdownItem({required this.path, required this.value});
 }

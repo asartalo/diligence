@@ -6,11 +6,8 @@ import 'logger.dart';
 class ObserverLogger extends BaseLogger {
   final LogObservable subject;
 
-  ObserverLogger(
-    this.subject,
-    ologger.Logger oLogger,
-    Clock clock,
-  ) : super(subject.name, oLogger, clock) {
+  ObserverLogger(this.subject, ologger.Logger oLogger, Clock clock)
+    : super(subject.name, oLogger, clock) {
     subject.subscribe(this);
   }
 

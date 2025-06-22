@@ -30,7 +30,7 @@ class ReviewDataBloc extends Bloc<ReviewDataEvent, ReviewDataState> {
   final ReviewDataService dataService;
   final SideEffects sideEffects;
   ReviewDataBloc(this.dataService, {required this.sideEffects})
-      : super(ReviewDataInitial()) {
+    : super(ReviewDataInitial()) {
     on<ReviewDataRequested>((_, emit) async {
       emit(await _dataRequested());
     });

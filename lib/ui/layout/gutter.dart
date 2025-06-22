@@ -22,10 +22,7 @@ List<Widget> withGutter(List<Widget> widgets, double size) {
   for (var i = 0; i < widgets.length; i++) {
     output.add(widgets[i]);
     if (i + 1 < widgets.length) {
-      output.add(SizedBox(
-        width: size,
-        height: size,
-      ));
+      output.add(SizedBox(width: size, height: size));
     }
   }
 

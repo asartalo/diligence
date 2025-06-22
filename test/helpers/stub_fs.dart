@@ -39,21 +39,28 @@ class StubFs implements Fs {
   }
 
   @override
-  Future<RandomAccessFile> fileOpen(String path,
-      {FileMode mode = FileMode.read}) {
+  Future<RandomAccessFile> fileOpen(
+    String path, {
+    FileMode mode = FileMode.read,
+  }) {
     // TODO: implement fileOpen
     throw UnimplementedError();
   }
 
   @override
-  Future<Directory> createDirectory(String path,
-      {bool recursive = false}) async {
+  Future<Directory> createDirectory(
+    String path, {
+    bool recursive = false,
+  }) async {
     throw UnimplementedError();
   }
 
   @override
-  Future<File> createFile(String path,
-      {bool recursive = false, bool exclusive = false}) {
+  Future<File> createFile(
+    String path, {
+    bool recursive = false,
+    bool exclusive = false,
+  }) {
     // TODO: implement createFile
     throw UnimplementedError();
   }

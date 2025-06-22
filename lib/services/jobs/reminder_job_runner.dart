@@ -20,18 +20,14 @@ class ReminderJobRunner extends JobRunner<ReminderJob> {
   Future<JobRunResult> runJob(ReminderJob job) async {
     final task = await diligent.findTask(job.taskId);
     if (task == null) {
-      return JobRunFailure(
-        'Task with task id ${job.taskId} was not found',
-      );
+      return JobRunFailure('Task with task id ${job.taskId} was not found');
     }
     if (task.done) {
       return JobRunSuccess('Task #${job.taskId} is already done.');
     }
-    await noticeQueue.addNotice(ReminderNotice(
-      task: task,
-      diligent: diligent,
-      createdAt: clock.now(),
-    ));
+    await noticeQueue.addNotice(
+      ReminderNotice(task: task, diligent: diligent, createdAt: clock.now()),
+    );
 
     return const JobRunSuccess('ReminderNotice added');
   }

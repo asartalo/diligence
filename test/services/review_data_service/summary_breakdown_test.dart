@@ -19,14 +19,17 @@ void main() {
   // - The Social Network 7
 
   setUp(() {
-    summaryBreakdown = const SummaryBreakdown(name: 'Newly Created', items: [
-      BreakdownItem(value: 1, path: [1, 4, 8, 9]),
-      BreakdownItem(value: 1, path: [1, 4, 8, 10]),
-      BreakdownItem(value: 0.5, path: [1, 5, 11]),
-      BreakdownItem(value: 1, path: [1, 5, 12]),
-      BreakdownItem(value: 1, path: [2, 6]),
-      BreakdownItem(value: 1, path: [3, 7]),
-    ]);
+    summaryBreakdown = const SummaryBreakdown(
+      name: 'Newly Created',
+      items: [
+        BreakdownItem(value: 1, path: [1, 4, 8, 9]),
+        BreakdownItem(value: 1, path: [1, 4, 8, 10]),
+        BreakdownItem(value: 0.5, path: [1, 5, 11]),
+        BreakdownItem(value: 1, path: [1, 5, 12]),
+        BreakdownItem(value: 1, path: [2, 6]),
+        BreakdownItem(value: 1, path: [3, 7]),
+      ],
+    );
   });
 
   test('it returns total', () {

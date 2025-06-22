@@ -15,17 +15,14 @@ void main() {
     });
 
     group('#validate()', () {
-      test(
-        'succeeds when config path directory exists',
-        () async {
-          fs.addFile('/existing/path.db', '');
-          final config = DiligenceConfig(dbPath: '/existing/path.db');
-          expect(
-            await validator.validate(config),
-            ConfigValidatorResult(true, 'Valid config file'),
-          );
-        },
-      );
+      test('succeeds when config path directory exists', () async {
+        fs.addFile('/existing/path.db', '');
+        final config = DiligenceConfig(dbPath: '/existing/path.db');
+        expect(
+          await validator.validate(config),
+          ConfigValidatorResult(true, 'Valid config file'),
+        );
+      });
 
       test('fails when config path directory does not exist', () async {
         final config = DiligenceConfig(dbPath: '/non/existent/path.db');

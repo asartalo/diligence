@@ -32,10 +32,9 @@ class TestFocusScreen extends TestScreen with TestScreenTaskItemActions {
   const TestFocusScreen(super.dtest);
 
   Iterable<TaskItem> _taskItemsOnQueue() {
-    return dtest.tester.widgetList<TaskItem>(find.descendant(
-      of: taskQueue,
-      matching: find.byType(TaskItem),
-    ));
+    return dtest.tester.widgetList<TaskItem>(
+      find.descendant(of: taskQueue, matching: find.byType(TaskItem)),
+    );
   }
 
   Future<void> deleteTask(String name) async {
@@ -55,11 +54,7 @@ class TestFocusScreen extends TestScreen with TestScreenTaskItemActions {
     final taskItems = _taskItemsOnQueue();
     final actual = taskItems.map((taskItem) => taskItem.task.name).toList();
 
-    expect(
-      actual,
-      taskNames,
-      reason: 'Items on Focus Queue did not match',
-    );
+    expect(actual, taskNames, reason: 'Items on Focus Queue did not match');
   }
 
   Future<void> unfocusTask(String name) async {

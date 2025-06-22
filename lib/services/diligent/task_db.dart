@@ -33,8 +33,9 @@ abstract class TaskDb {
       id: row['id'] as int,
       name: row['name'] as String,
       parentId: row['parentId'] as int?,
-      doneAt:
-          row['doneAt'] != null ? dateTimeFromRowEpoch(row['doneAt']) : null,
+      doneAt: row['doneAt'] != null
+          ? dateTimeFromRowEpoch(row['doneAt'])
+          : null,
       uid: row['uid'] as String,
       expanded: row['expanded'] as int == 1,
       details: row['details'] as String?,
@@ -66,8 +67,7 @@ abstract class TaskDb {
     if (done is bool) {
       doneClause = 'AND doneAt IS ${done ? 'NOT' : ''} NULL';
     }
-    final rows = await tx.getAll(
-      '''
+    final rows = await tx.getAll('''
       WITH RECURSIVE
         subtree(lvl, $commaAllTaskFields) AS (
           SELECT
@@ -96,9 +96,7 @@ abstract class TaskDb {
       FROM subtree
       WHERE childrenCount = 0
       $doneClause
-      ''',
-      ids,
-    );
+      ''', ids);
 
     return rows.map(taskFromRow).toList();
   }

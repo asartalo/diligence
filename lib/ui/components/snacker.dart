@@ -27,13 +27,10 @@ class ErrorSnackbarMessage implements SnackbarMessage {
 
 mixin Snacker on Widget {
   void showSnack(BuildContext context, SnackbarMessage message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Row(
-        children: [
-          Icon(message.icon),
-          Text(message.content),
-        ],
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(children: [Icon(message.icon), Text(message.content)]),
       ),
-    ));
+    );
   }
 }

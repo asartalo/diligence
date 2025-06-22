@@ -44,14 +44,9 @@ class _NoticeAreaState extends State<NoticeArea> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
-        boxShadow: const [
-          BoxShadow(color: Colors.black45, blurRadius: 4.0),
-        ],
+        boxShadow: const [BoxShadow(color: Colors.black45, blurRadius: 4.0)],
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: renderNotices(),
-      ),
+      child: Column(mainAxisSize: MainAxisSize.min, children: renderNotices()),
     );
   }
 

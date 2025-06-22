@@ -7,11 +7,8 @@ abstract class ScheduledJob extends Equatable {
   final DateTime runAt;
   final String type;
 
-  ScheduledJob({
-    String? uuid,
-    required this.runAt,
-    required this.type,
-  }) : uuid = uuid ?? uuidv4();
+  ScheduledJob({String? uuid, required this.runAt, required this.type})
+    : uuid = uuid ?? uuidv4();
 
   @override
   List<Object?> get props => [uuid, runAt, type];

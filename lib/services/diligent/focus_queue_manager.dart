@@ -50,8 +50,9 @@ class FocusQueueManager extends TaskDb implements DiligentEventRegister {
 
   FocusQueueManager({required this.db, required this.clock}) {
     // We use debounce to prevent broadcasting too quickly
-    _broadcastUpdate =
-        debounce(() => _controller.sink.add(FocusQueueEvent(clock.now())));
+    _broadcastUpdate = debounce(
+      () => _controller.sink.add(FocusQueueEvent(clock.now())),
+    );
   }
 
   Stream<FocusQueueEvent> get updateEventStream {
@@ -65,26 +66,22 @@ class FocusQueueManager extends TaskDb implements DiligentEventRegister {
   }
 
   Future<TaskList> focusQueue({int? limit}) async {
-    final rows = await db.getAll(
-      '''
+    final rows = await db.getAll('''
       SELECT tasks.*, focusQueue.position
       FROM tasks
       JOIN focusQueue ON focusQueue.taskId = tasks.id
       ORDER BY focusQueue.position DESC
       ${limit != null && limit > 0 ? 'LIMIT $limit' : ''}
-      ''',
-    );
+      ''');
 
     return rows.map(taskFromRow).toList();
   }
 
   Future<int> getFocusedCount() async {
-    final result = await db.get(
-      '''
+    final result = await db.get('''
       SELECT COUNT(focusQueue.taskId) as count
       FROM focusQueue
-      ''',
-    );
+      ''');
 
     return result['count'] as int;
   }
@@ -116,11 +113,7 @@ class FocusQueueManager extends TaskDb implements DiligentEventRegister {
     SqliteWriteContext tx, {
     int position = 0,
   }) async {
-    final taskLeaves = await leavesByIdsInContext(
-      taskIds,
-      tx,
-      done: false,
-    );
+    final taskLeaves = await leavesByIdsInContext(taskIds, tx, done: false);
     final toAdd =
         (taskLeaves.isEmpty ? taskIds : taskLeaves.map(getTaskId).toList())
             .reversed
@@ -199,8 +192,7 @@ class FocusQueueManager extends TaskDb implements DiligentEventRegister {
   }
 
   Future<void> _normalizeFocusQueuePositions(SqliteWriteContext tx) async {
-    await tx.execute(
-      '''
+    await tx.execute('''
       UPDATE focusQueue
       SET position = p.newPosition
       FROM (
@@ -210,8 +202,7 @@ class FocusQueueManager extends TaskDb implements DiligentEventRegister {
         ORDER BY position
       ) AS p
       WHERE p.taskId = focusQueue.taskId
-      ''',
-    );
+      ''');
   }
 
   // TODO: Is there a better way to do this?

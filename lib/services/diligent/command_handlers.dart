@@ -26,9 +26,7 @@ class CommandHandlers {
 
   BaseCommandHandler? operator [](Type type) => _handlers[type];
 
-  void add<T extends Command>(
-    CommandHandler<T> handler,
-  ) {
+  void add<T extends Command>(CommandHandler<T> handler) {
     _handlers[T] = wrapHandler(handler);
   }
 }

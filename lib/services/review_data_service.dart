@@ -25,10 +25,7 @@ part 'review_data_service/review_summary_data.dart';
 DateTimeRange getDayRange(DateTime now) {
   final start = DateTime(now.year, now.month, now.day);
 
-  return DateTimeRange(
-    start: start,
-    end: start.add(const Duration(days: 1)),
-  );
+  return DateTimeRange(start: start, end: start.add(const Duration(days: 1)));
 }
 
 class ReviewDataService {

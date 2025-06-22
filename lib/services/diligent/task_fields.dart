@@ -55,15 +55,17 @@ final _unmodifiableFields = {TaskField.id, TaskField.uid};
 
 final _fieldsAfterNew = {TaskField.id, TaskField.position};
 
-final newTaskFields =
-    allTaskFields.where((field) => !_fieldsAfterNew.contains(field)).toList();
+final newTaskFields = allTaskFields
+    .where((field) => !_fieldsAfterNew.contains(field))
+    .toList();
 
 final _modifiableFields = allTaskFields
     .where((field) => !_unmodifiableFields.contains(field))
     .toList();
 
-final modifiableNonPositionFields =
-    _modifiableFields.where((field) => field != TaskField.position).toList();
+final modifiableNonPositionFields = _modifiableFields
+    .where((field) => field != TaskField.position)
+    .toList();
 
 String _prefixedField(TaskField field, {String? prefix}) {
   return prefix is String ? '$prefix.$field' : field.toString();
@@ -99,8 +101,9 @@ List<Object?> propsFromTaskFields(List<TaskField> fields, Task task) {
 }
 
 String fieldValuePlaceholders(List<TaskField> fields, {String? prefix}) {
-  return fields
-      .mapComma((field) => '${_prefixedField(field, prefix: prefix)} = ?');
+  return fields.mapComma(
+    (field) => '${_prefixedField(field, prefix: prefix)} = ?',
+  );
 }
 
 String questionMarks(int count) {

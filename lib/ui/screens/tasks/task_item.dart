@@ -87,8 +87,9 @@ class _TaskItemState extends State<TaskItem> {
     super.initState();
     _ancestors = [];
     _getAncestors();
-    focusNode =
-        FocusNode(debugLabel: 'TaskItem Focus Node ${task.id} ${task.name}');
+    focusNode = FocusNode(
+      debugLabel: 'TaskItem Focus Node ${task.id} ${task.name}',
+    );
   }
 
   @override
@@ -130,11 +131,7 @@ class _TaskItemState extends State<TaskItem> {
             Row(
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _leader(),
-                _mainContent(),
-                _trailer(context),
-              ],
+              children: [_leader(), _mainContent(), _trailer(context)],
             ),
           ],
         ),
@@ -166,19 +163,15 @@ class _TaskItemState extends State<TaskItem> {
 
   Widget _breadcrumbs() {
     if (showAncestry) {
-      final leftSpace = _expandSpacerWidth +
+      final leftSpace =
+          _expandSpacerWidth +
           style.checkboxXOffset +
           // The following value is based on containerSize calculation
           // on DCheckbox
           (_checkBoxSize * dCbDefaultContainerSize / dCbDefaultSize) -
           12.0;
       return Container(
-        margin: EdgeInsets.fromLTRB(
-          leftSpace,
-          8.0,
-          0.0,
-          0.0,
-        ),
+        margin: EdgeInsets.fromLTRB(leftSpace, 8.0, 0.0, 0.0),
         child: Breadcrumbs(crumbs: _breadcrumbElements()),
       );
     }
@@ -286,8 +279,9 @@ class _TaskItemState extends State<TaskItem> {
             label: 'Unfocus',
             key: keys.taskMenuUnfocus,
             icon: Icons.visibility_off,
-            onPressed: () => widget
-                .onCommand(UnfocusTaskCommand(task: task, at: clock.now())),
+            onPressed: () => widget.onCommand(
+              UnfocusTaskCommand(task: task, at: clock.now()),
+            ),
           )
         : TaskMenuItem(
             label: 'Focus',
@@ -305,10 +299,7 @@ class _TaskItemState extends State<TaskItem> {
       return Text(
         details,
         key: keys.taskItemDetails,
-        style: TextStyle(
-          fontSize: 14,
-          color: colors.grayText,
-        ),
+        style: TextStyle(fontSize: 14, color: colors.grayText),
       );
     }
 

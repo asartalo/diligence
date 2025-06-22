@@ -36,12 +36,7 @@ class SetupTaskParam {
   final String? parent;
   final bool? done;
 
-  const SetupTaskParam(
-    this.name, {
-    this.details,
-    this.parent,
-    this.done,
-  });
+  const SetupTaskParam(this.name, {this.details, this.parent, this.done});
 }
 
 void integrationTest(String description, void Function() fn) {
@@ -118,10 +113,9 @@ class Dtest extends DtestBase {
     for (final taskName in taskNames) {
       final task = await diligent.findTaskByName(taskName);
       if (task != null) {
-        await diligent.updateTask(task.copyWith(
-          expanded: true,
-          now: clock.now(),
-        ));
+        await diligent.updateTask(
+          task.copyWith(expanded: true, now: clock.now()),
+        );
       }
     }
   }
@@ -149,8 +143,9 @@ class Dtest extends DtestBase {
     // intervening events that have to fire first somehow.
     if (duration is Duration) {
       const fps = 60.0;
-      final int frames =
-          (duration.inMicroseconds.toDouble() * fps / 1E6).round().toInt();
+      final int frames = (duration.inMicroseconds.toDouble() * fps / 1E6)
+          .round()
+          .toInt();
 
       await tester.pump(kLongPressTimeout + kPressTimeout);
       for (int nthFrame = 1; nthFrame <= frames; nthFrame++) {

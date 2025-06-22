@@ -13,11 +13,7 @@ class Reminder extends Equatable {
     this.dismissed = false,
   });
 
-  Reminder copyWith({
-    int? taskId,
-    DateTime? remindAt,
-    bool? dismissed,
-  }) {
+  Reminder copyWith({int? taskId, DateTime? remindAt, bool? dismissed}) {
     return Reminder(
       taskId: taskId ?? this.taskId,
       remindAt: remindAt ?? this.remindAt,
@@ -29,10 +25,10 @@ class Reminder extends Equatable {
 
   @override
   List<Object?> get props => [
-        taskId,
-        remindAt.millisecondsSinceEpoch,
-        dismissed,
-      ];
+    taskId,
+    remindAt.millisecondsSinceEpoch,
+    dismissed,
+  ];
 
   @override
   String toString() {

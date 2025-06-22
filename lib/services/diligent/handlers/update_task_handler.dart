@@ -24,29 +24,26 @@ Future<CommandResult> updateTaskHandler(
   Diligent diligent,
   UpdateTaskCommand command,
 ) async {
-  return failsOnException(
-    () async {
-      final UpdateTaskCommand(:task, :reminders) = command;
-      Task persisted = task;
+  return failsOnException(() async {
+    final UpdateTaskCommand(:task, :reminders) = command;
+    Task persisted = task;
 
-      if (task is ModifiedTask) {
-        persisted = await diligent.updateTask(task);
+    if (task is ModifiedTask) {
+      persisted = await diligent.updateTask(task);
+    }
+
+    if (reminders.isModified) {
+      if (reminders.added.isNotEmpty) {
+        await diligent.addReminders(reminders.added.toList());
       }
-
-      if (reminders.isModified) {
-        if (reminders.added.isNotEmpty) {
-          await diligent.addReminders(reminders.added.toList());
-        }
-        if (reminders.removed.isNotEmpty) {
-          await diligent.deleteReminders(reminders.removed.toList());
-        }
+      if (reminders.removed.isNotEmpty) {
+        await diligent.deleteReminders(reminders.removed.toList());
       }
+    }
 
-      return SuccessPack(
-        message: 'Task "${task.name}" was updated successfully.',
-        payload: persisted,
-      );
-    },
-    'Failed to update task "${command.task.name}".',
-  );
+    return SuccessPack(
+      message: 'Task "${task.name}" was updated successfully.',
+      payload: persisted,
+    );
+  }, 'Failed to update task "${command.task.name}".');
 }

@@ -22,11 +22,7 @@ class EvenRow extends StatelessWidget {
   final List<Widget> children;
   final double gutter;
 
-  const EvenRow({
-    super.key,
-    required this.children,
-    this.gutter = 0.0,
-  });
+  const EvenRow({super.key, required this.children, this.gutter = 0.0});
 
   @override
   Widget build(BuildContext context) {

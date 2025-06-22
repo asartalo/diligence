@@ -39,12 +39,5 @@ abstract class Notice extends Equatable {
   List<NoticeAction> actions() => [];
 
   @override
-  List<Object?> get props => [
-        uuid,
-        createdAt,
-        type,
-        title,
-        details,
-        taskId,
-      ];
+  List<Object?> get props => [uuid, createdAt, type, title, details, taskId];
 }

@@ -28,10 +28,7 @@ class DiligenceTheme {
   final DiligenceTextTheme text;
   static Map<ThemeData, DiligenceTheme> themeCache = {};
 
-  DiligenceTheme({
-    required this.themeData,
-    required this.text,
-  });
+  DiligenceTheme({required this.themeData, required this.text});
 
   factory DiligenceTheme.fromTheme(ThemeData themeData) {
     DiligenceTheme? theTheme = themeCache[themeData];
@@ -67,29 +64,17 @@ class DiligenceTheme {
       visualDensity: visualDensity,
       fontFamily: 'Roboto',
       textTheme: const TextTheme(
-        bodyLarge: TextStyle(
-          fontWeight: FontWeight.w300,
-          fontSize: 16.0,
-        ),
-        displayMedium: TextStyle(
-          fontWeight: FontWeight.w300,
-        ),
+        bodyLarge: TextStyle(fontWeight: FontWeight.w300, fontSize: 16.0),
+        displayMedium: TextStyle(fontWeight: FontWeight.w300),
         displaySmall: TextStyle(
           fontWeight: FontWeight.w300,
           color: Colors.black,
         ),
-      ).apply(
-        displayColor: colors.black,
-      ),
-      cardTheme: const CardThemeData(
-        elevation: 0,
-      ),
+      ).apply(displayColor: colors.black),
+      cardTheme: const CardThemeData(elevation: 0),
       colorScheme: ColorScheme.fromSwatch(
         primarySwatch: colors.twilightBlue,
-      ).copyWith(
-        secondary: colors.secondaryColor,
-        surface: backgroundColor,
-      ),
+      ).copyWith(secondary: colors.secondaryColor, surface: backgroundColor),
       dialogTheme: DialogThemeData(backgroundColor: Colors.white),
     );
   }

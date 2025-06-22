@@ -22,8 +22,9 @@ class ConfigFilePaths {
   _FWVCs? _locations;
 
   String get _configFileName {
-    final suffix =
-        kReleaseMode ? '' : (platform.isFlutterTest ? '.test' : '.dev');
+    final suffix = kReleaseMode
+        ? ''
+        : (platform.isFlutterTest ? '.test' : '.dev');
     return 'diligence$suffix.yaml';
   }
 
@@ -84,11 +85,7 @@ class ConfigFilePaths {
       FileWriteViabilityChecker(
         fs: fs,
         unOwnedParentPath: platform.environment['SNAP_REAL_HOME']!,
-        subPath: path.join(
-          '.config',
-          'diligence',
-          _configFileName,
-        ),
+        subPath: path.join('.config', 'diligence', _configFileName),
       ),
     );
 
@@ -117,11 +114,7 @@ class ConfigFilePaths {
       FileWriteViabilityChecker(
         fs: fs,
         unOwnedParentPath: platform.environment['HOME']!,
-        subPath: path.join(
-          '.config',
-          'diligence',
-          _configFileName,
-        ),
+        subPath: path.join('.config', 'diligence', _configFileName),
       ),
     );
   }
@@ -131,9 +124,7 @@ class ConfigFilePaths {
       FileWriteViabilityChecker(
         fs: fs,
         unOwnedParentPath: platform.environment['HOME']!,
-        subPath: path.join(
-          _configFileName,
-        ),
+        subPath: path.join(_configFileName),
       ),
     );
   }

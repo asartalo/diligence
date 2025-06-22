@@ -237,9 +237,9 @@ void main() {
 
         group('When there is no configuration file present', () {
           setUp(() async {
-            await manager.saveConfig(defaultConfig.copyWith(
-              dbPath: 'mydiligence.db',
-            ));
+            await manager.saveConfig(
+              defaultConfig.copyWith(dbPath: 'mydiligence.db'),
+            );
           });
 
           test('it writes the config to the file', () async {
@@ -247,44 +247,33 @@ void main() {
           });
 
           test('it writes config to the file', () async {
-            expect(
-              loadYaml(await fs.contents(configPath)),
-              {
-                'database': {'path': 'mydiligence.db'}
-              },
-            );
+            expect(loadYaml(await fs.contents(configPath)), {
+              'database': {'path': 'mydiligence.db'},
+            });
           });
         });
 
         group(
           'When there is a configuration file present with missing field group',
           () {
-            setUp(
-              () async {
-                config = defaultConfig.copyWith(dbPath: '/path/to/database.db');
-                await setConfigContent(
-                  '# some comments at the top\nfoo:\n  bar: baz',
-                );
-                await manager.saveConfig(config);
-              },
-            );
+            setUp(() async {
+              config = defaultConfig.copyWith(dbPath: '/path/to/database.db');
+              await setConfigContent(
+                '# some comments at the top\nfoo:\n  bar: baz',
+              );
+              await manager.saveConfig(config);
+            });
 
             test('it writes config to the file', () async {
-              expect(
-                loadYaml(await fs.contents(configPath)),
-                {
-                  'database': {'path': '/path/to/database.db'},
-                  'foo': {'bar': 'baz'},
-                },
-              );
+              expect(loadYaml(await fs.contents(configPath)), {
+                'database': {'path': '/path/to/database.db'},
+                'foo': {'bar': 'baz'},
+              });
             });
 
             test('it preserves comments', () async {
               final contents = await fs.contents(configPath);
-              expect(
-                contents,
-                contains('# some comments at the top'),
-              );
+              expect(contents, contains('# some comments at the top'));
             });
           },
         );
@@ -292,28 +281,19 @@ void main() {
         group(
           'When there is a configuration file present with missing leaf field',
           () {
-            setUp(
-              () async {
-                config =
-                    defaultConfig.copyWith(dbPath: '/a/path/to/database.db');
-                await setConfigContent(
-                  'database:\n  show: true\n\nfoo:\n  bar: baz',
-                );
-                await manager.saveConfig(config);
-              },
-            );
+            setUp(() async {
+              config = defaultConfig.copyWith(dbPath: '/a/path/to/database.db');
+              await setConfigContent(
+                'database:\n  show: true\n\nfoo:\n  bar: baz',
+              );
+              await manager.saveConfig(config);
+            });
 
             test('it writes config to the file', () async {
-              expect(
-                loadYaml(await fs.contents(configPath)),
-                {
-                  'database': {
-                    'path': '/a/path/to/database.db',
-                    'show': true,
-                  },
-                  'foo': {'bar': 'baz'},
-                },
-              );
+              expect(loadYaml(await fs.contents(configPath)), {
+                'database': {'path': '/a/path/to/database.db', 'show': true},
+                'foo': {'bar': 'baz'},
+              });
             });
           },
         );

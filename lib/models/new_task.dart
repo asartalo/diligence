@@ -70,10 +70,10 @@ class NewTask with TaskCommons implements Task {
     Task? parent,
     this.deadlineAt,
     required DateTime now,
-  })  : parentId = parentId ?? parent?.id,
-        uid = uid ?? uuidGenerator.v4(),
-        createdAt = createdAt ?? now,
-        updatedAt = updatedAt ?? now;
+  }) : parentId = parentId ?? parent?.id,
+       uid = uid ?? uuidGenerator.v4(),
+       createdAt = createdAt ?? now,
+       updatedAt = updatedAt ?? now;
 
   @override
   Task copyWith({

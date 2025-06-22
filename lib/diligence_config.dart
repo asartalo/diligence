@@ -40,12 +40,12 @@ class DiligenceConfig with EquatableMixin {
     this.logToFile = false,
     this.logFilePath = '',
   }) : _fields = {
-          'dbPath': dbPath,
-          'showReviewPage': showReviewPage,
-          'logLevel': logLevel,
-          'logToFile': logToFile,
-          'logFilePath': logFilePath,
-        };
+         'dbPath': dbPath,
+         'showReviewPage': showReviewPage,
+         'logLevel': logLevel,
+         'logToFile': logToFile,
+         'logFilePath': logFilePath,
+       };
 
   dynamic get(String key) {
     if (_fields.containsKey(key)) {
@@ -59,13 +59,13 @@ class DiligenceConfig with EquatableMixin {
 
   @override
   List<Object?> get props => [
-        dbPath,
-        today,
-        showReviewPage,
-        logLevel,
-        logToFile,
-        logFilePath,
-      ];
+    dbPath,
+    today,
+    showReviewPage,
+    logLevel,
+    logToFile,
+    logFilePath,
+  ];
 
   DiligenceConfig copyWith({
     String? dbPath,

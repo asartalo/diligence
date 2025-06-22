@@ -20,36 +20,34 @@ import '../helpers/dtest/dtest.dart';
 
 Future<void> main() async {
   integrationTest('Focus Tasks', () {
-    testApp(
-      'Focusing a task adds it to focus queue with last focused first',
-      (dtest) async {
-        final ts = await dtest.navigateToTasksScreen();
-        await ts.focusTask('Work');
-        await ts.focusTask('Life');
-        await ts.focusTask('Inbox');
-        final fs = await dtest.navigateToFocusScreen();
-        fs.expectFocusQueue(['Inbox', 'Life', 'Work']);
-      },
-    );
+    testApp('Focusing a task adds it to focus queue with last focused first', (
+      dtest,
+    ) async {
+      final ts = await dtest.navigateToTasksScreen();
+      await ts.focusTask('Work');
+      await ts.focusTask('Life');
+      await ts.focusTask('Inbox');
+      final fs = await dtest.navigateToFocusScreen();
+      fs.expectFocusQueue(['Inbox', 'Life', 'Work']);
+    });
 
-    testApp(
-      'Focusing a task with children adds the leaf nodes to the queue',
-      (dtest) async {
-        await dtest.setUpInitialTasks([
-          const SetupTaskParam('1 Inbox', parent: 'Inbox'),
-          const SetupTaskParam('2 Inbox', parent: 'Inbox', done: true),
-          const SetupTaskParam('3 Inbox', parent: 'Inbox'),
-        ]);
-        await dtest.setUpInitialTasks([
-          const SetupTaskParam('3a Inbox', parent: '3 Inbox', done: true),
-          const SetupTaskParam('3b Inbox', parent: '3 Inbox'),
-        ]);
-        final ts = await dtest.navigateToTasksScreen();
-        await ts.focusTask('Inbox');
-        final fs = await dtest.navigateToFocusScreen();
-        fs.expectFocusQueue(['1 Inbox', '3b Inbox']);
-      },
-    );
+    testApp('Focusing a task with children adds the leaf nodes to the queue', (
+      dtest,
+    ) async {
+      await dtest.setUpInitialTasks([
+        const SetupTaskParam('1 Inbox', parent: 'Inbox'),
+        const SetupTaskParam('2 Inbox', parent: 'Inbox', done: true),
+        const SetupTaskParam('3 Inbox', parent: 'Inbox'),
+      ]);
+      await dtest.setUpInitialTasks([
+        const SetupTaskParam('3a Inbox', parent: '3 Inbox', done: true),
+        const SetupTaskParam('3b Inbox', parent: '3 Inbox'),
+      ]);
+      final ts = await dtest.navigateToTasksScreen();
+      await ts.focusTask('Inbox');
+      final fs = await dtest.navigateToFocusScreen();
+      fs.expectFocusQueue(['1 Inbox', '3b Inbox']);
+    });
 
     testApp('Unfocusing a task', (dtest) async {
       await dtest.setUpFocusedTasks(['Work', 'Life', 'Inbox']);
@@ -78,12 +76,7 @@ Future<void> main() async {
       await fs.deleteTask('Inbox');
       fs.expectFocusQueue(['Work', 'Life']);
       final ts = await dtest.navigateToTasksScreen();
-      ts.expectTaskLayout([
-        'Life',
-        'Work',
-        'Projects',
-        'Miscellaneous',
-      ]);
+      ts.expectTaskLayout(['Life', 'Work', 'Projects', 'Miscellaneous']);
     });
 
     group('Reordering focused tasks', () {

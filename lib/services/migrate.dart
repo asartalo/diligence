@@ -8,9 +8,11 @@ SqliteMigrations migrate() {
 
   for (final migrationQuery in migrationQueries) {
     i += 1;
-    migrations.add(SqliteMigration(i, (tx) async {
-      await tx.execute(migrationQuery);
-    }));
+    migrations.add(
+      SqliteMigration(i, (tx) async {
+        await tx.execute(migrationQuery);
+      }),
+    );
   }
 
   return migrations;

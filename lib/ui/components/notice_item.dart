@@ -7,11 +7,7 @@ class NoticeItem extends StatelessWidget {
   final Notice notice;
   final VoidCallback onDismiss;
 
-  const NoticeItem({
-    super.key,
-    required this.notice,
-    required this.onDismiss,
-  });
+  const NoticeItem({super.key, required this.notice, required this.onDismiss});
 
   @override
   Widget build(BuildContext context) {
@@ -57,10 +53,7 @@ class NoticeItem extends StatelessWidget {
     final List<Widget> detailWidgets = [];
     final details = notice.details;
     if (details is String) {
-      detailWidgets.add(Text(
-        details,
-        style: const TextStyle(fontSize: 14.0),
-      ));
+      detailWidgets.add(Text(details, style: const TextStyle(fontSize: 14.0)));
     }
     return detailWidgets;
   }

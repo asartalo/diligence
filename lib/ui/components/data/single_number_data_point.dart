@@ -47,15 +47,8 @@ class SingleNumberDataPoint extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              Icon(
-                icon,
-                size: 48.0,
-                color: color,
-              ),
-              Text(
-                "$number",
-                style: textTheme.displayMedium,
-              ),
+              Icon(icon, size: 48.0, color: color),
+              Text("$number", style: textTheme.displayMedium),
               const SizedBox(height: 5.0),
               DataTitle(title),
             ],

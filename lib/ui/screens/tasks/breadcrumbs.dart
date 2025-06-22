@@ -6,10 +6,7 @@ import 'breadcrumb.dart';
 class Breadcrumbs extends StatelessWidget {
   final List<Breadcrumb> crumbs;
 
-  const Breadcrumbs({
-    super.key,
-    required this.crumbs,
-  });
+  const Breadcrumbs({super.key, required this.crumbs});
 
   @override
   Widget build(BuildContext context) {

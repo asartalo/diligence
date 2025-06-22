@@ -40,10 +40,8 @@ class AppStateScope {
 
   ConfigManager get configManager => parent.configManager;
 
-  AppStateScope({
-    required this.parent,
-    required this.config,
-  }) : _cache = DiScopeCache() {
+  AppStateScope({required this.parent, required this.config})
+    : _cache = DiScopeCache() {
     actualConfigManagerLogger;
   }
 
@@ -54,96 +52,91 @@ class AppStateScope {
   String get dbPath => config.dbPath;
 
   Diligent get diligent => _cache.getSet(
-      #diligent,
-      () => Diligent.convenience(
-            isTest: isTest,
-            db: db,
-            clock: clock,
-          ));
+    #diligent,
+    () => Diligent.convenience(isTest: isTest, db: db, clock: clock),
+  );
 
   SqliteDatabase get db =>
       _cache.getSet(#db, () => SqliteDatabase(path: dbPath));
 
   LoggerFactory get loggerFactory => _cache.getSet(
-        #loggerFactory,
-        () => LoggerFactory.create(
-          clock,
-          logFile: config.logToFile ? config.logFilePath : '',
-        ),
-      );
+    #loggerFactory,
+    () => LoggerFactory.create(
+      clock,
+      logFile: config.logToFile ? config.logFilePath : '',
+    ),
+  );
 
   LogerFactoryFunc get loggerFactoryFunc => (name) {
-        return loggerFactory.createBasicLogger(name);
-      };
+    return loggerFactory.createBasicLogger(name);
+  };
 
-  ObserverLogger get actualConfigManagerLogger => _cache.getSet(#acml,
-      () => loggerFactory.createObserverLogger(parent.configManagerLogger));
+  ObserverLogger get actualConfigManagerLogger => _cache.getSet(
+    #acml,
+    () => loggerFactory.createObserverLogger(parent.configManagerLogger),
+  );
 
   RunnerFactoryFunc get runnerFactoryFunc => (ScheduledJob inputJob) {
-        switch (inputJob) {
-          case ReminderJob _:
-            return reminderJobRunner;
-          default:
-            throw ArgumentError('Unknown job type: ${inputJob.runtimeType}');
-        }
-      };
+    switch (inputJob) {
+      case ReminderJob _:
+        return reminderJobRunner;
+      default:
+        throw ArgumentError('Unknown job type: ${inputJob.runtimeType}');
+    }
+  };
 
   ReminderJobRunner get reminderJobRunner => _cache.getSet(
-        #reminderJobRunner,
-        () => ReminderJobRunner(
-          noticeQueue: noticeQueue,
-          diligent: diligent,
-          clock: clock,
-        ),
-      );
+    #reminderJobRunner,
+    () => ReminderJobRunner(
+      noticeQueue: noticeQueue,
+      diligent: diligent,
+      clock: clock,
+    ),
+  );
 
   JobQueue get jobQueue => _cache.getSet(
-        #jobQueue,
-        () => isTest
-            ? JobQueue.forTests(
-                db: db,
-                logger: loggerFactoryFunc('JobQueue for Tests'),
-                clock: clock,
-              )
-            : JobQueue(
-                db: db,
-                logger: loggerFactoryFunc('JobQueue'),
-                clock: clock,
-              ),
-      );
+    #jobQueue,
+    () => isTest
+        ? JobQueue.forTests(
+            db: db,
+            logger: loggerFactoryFunc('JobQueue for Tests'),
+            clock: clock,
+          )
+        : JobQueue(db: db, logger: loggerFactoryFunc('JobQueue'), clock: clock),
+  );
 
   JobTrack get jobTrack => _cache.getSet(
-        #jobTrack,
-        () => JobTrack(
-          clock: clock,
-          runnerFactoryFunc: runnerFactoryFunc,
-          jobQueue: jobQueue,
-          logger: loggerFactoryFunc('JobTrack'),
-        ),
-      );
+    #jobTrack,
+    () => JobTrack(
+      clock: clock,
+      runnerFactoryFunc: runnerFactoryFunc,
+      jobQueue: jobQueue,
+      logger: loggerFactoryFunc('JobTrack'),
+    ),
+  );
 
   NoticeQueue get noticeQueue => _cache.getSet(
-        #noticeQueue,
-        () => NoticeQueue(
-          isTest: isTest,
-          db: db,
-          clock: clock,
-          noticeFactoryFunc: noticeFactoryFunc,
-        ),
-      );
+    #noticeQueue,
+    () => NoticeQueue(
+      isTest: isTest,
+      db: db,
+      clock: clock,
+      noticeFactoryFunc: noticeFactoryFunc,
+    ),
+  );
 
   NoticeFactoryFunc<Notice> get noticeFactoryFunc => (data) {
-        switch (data.type) {
-          case 'generic':
-            return genericNoticeFactoryFunc(data);
-          case 'reminder':
-            return reminderNoticeFactoryFunc(data);
-          case 'error':
-            return errorNoticeFactoryFunc(data);
-          default:
-            throw Exception('Unknown notice type: $data.type');
-        }
-      };
+    switch (data.type) {
+      case 'generic':
+        return genericNoticeFactoryFunc(data);
+      case 'reminder':
+        return reminderNoticeFactoryFunc(data);
+      case 'error':
+        return errorNoticeFactoryFunc(data);
+      default:
+        throw Exception('Unknown notice type: $data.type');
+    }
+  };
 
   NoticeFactoryFunc<ReminderNotice> get reminderNoticeFactoryFunc =>
       (row) async {
@@ -157,11 +150,11 @@ class AppStateScope {
       };
 
   NoticeFactoryFunc<ErrorNotice> get errorNoticeFactoryFunc => (row) async {
-        return ErrorNotice(
-          uuid: row.uuid,
-          createdAt: row.createdAt,
-          title: row.title as String,
-          details: row.details,
-        );
-      };
+    return ErrorNotice(
+      uuid: row.uuid,
+      createdAt: row.createdAt,
+      title: row.title as String,
+      details: row.details,
+    );
+  };
 }

@@ -59,8 +59,5 @@ class SummaryBreakdown {
     });
   }
 
-  const SummaryBreakdown({
-    required this.name,
-    required this.items,
-  });
+  const SummaryBreakdown({required this.name, required this.items});
 }

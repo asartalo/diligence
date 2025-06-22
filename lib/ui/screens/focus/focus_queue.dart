@@ -82,39 +82,42 @@ class FocusQueue extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, constraints) {
-      final styler =
-          constraints.maxWidth < 600 ? TaskStylerNarrow() : TaskStylerWide();
-      return ReorderableListView.builder(
-        key: keys.focusQueueList,
-        buildDefaultDragHandles: false,
-        shrinkWrap: true,
-        scrollController: scrollController,
-        itemBuilder: (context, index) {
-          final task = queue[index];
-          final style = styler.style(index);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final styler = constraints.maxWidth < 600
+            ? TaskStylerNarrow()
+            : TaskStylerWide();
+        return ReorderableListView.builder(
+          key: keys.focusQueueList,
+          buildDefaultDragHandles: false,
+          shrinkWrap: true,
+          scrollController: scrollController,
+          itemBuilder: (context, index) {
+            final task = queue[index];
+            final style = styler.style(index);
 
-          return ReorderableDelayedDragStartListener(
-            key: Key('fQ-${task.id}'),
-            index: index,
-            child: TaskItem(
-              clock: clock,
-              task: task,
-              focused: true,
-              showAncestry: index == 0,
-              getAncestors: getAncestors,
-              onUpdateTask: (task) => onUpdateTask(task, index),
-              onRequestTask: (task) => onRequestTask(task, index),
-              onCommand: (command) => onCommand(command, index),
-              style: style,
-              levelScale: 8.0,
-              level: style.marginLeft,
-            ),
-          );
-        },
-        itemCount: queue.length,
-        onReorder: onReorderQueue,
-      );
-    });
+            return ReorderableDelayedDragStartListener(
+              key: Key('fQ-${task.id}'),
+              index: index,
+              child: TaskItem(
+                clock: clock,
+                task: task,
+                focused: true,
+                showAncestry: index == 0,
+                getAncestors: getAncestors,
+                onUpdateTask: (task) => onUpdateTask(task, index),
+                onRequestTask: (task) => onRequestTask(task, index),
+                onCommand: (command) => onCommand(command, index),
+                style: style,
+                levelScale: 8.0,
+                level: style.marginLeft,
+              ),
+            );
+          },
+          itemCount: queue.length,
+          onReorder: onReorderQueue,
+        );
+      },
+    );
   }
 }

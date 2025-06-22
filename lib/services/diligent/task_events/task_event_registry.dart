@@ -6,9 +6,7 @@ typedef TaskEventHandlers<T extends TaskEvent> = List<TaskEventHandler<T>>;
 class TaskEventRegistry {
   final _handlersByType = <Type, List<dynamic>>{};
 
-  void register<T extends TaskEvent>(
-    TaskEventHandler<T> handler,
-  ) {
+  void register<T extends TaskEvent>(TaskEventHandler<T> handler) {
     final handlers = (_handlersByType[T] ?? []);
     handlers.add(handler);
     _handlersByType[T] = handlers;

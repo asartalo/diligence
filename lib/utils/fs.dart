@@ -10,11 +10,16 @@ abstract class Fs {
   String parentDirectory(String path);
   Future<String> contents(String path);
   Future<void> write(String path, String contents);
-  Future<RandomAccessFile> fileOpen(String path,
-      {FileMode mode = FileMode.read});
+  Future<RandomAccessFile> fileOpen(
+    String path, {
+    FileMode mode = FileMode.read,
+  });
   Future<Directory> createDirectory(String path, {bool recursive = false});
-  Future<File> createFile(String path,
-      {bool recursive = false, bool exclusive = false});
+  Future<File> createFile(
+    String path, {
+    bool recursive = false,
+    bool exclusive = false,
+  });
 }
 
 @immutable
@@ -41,9 +46,10 @@ class _Fs implements Fs {
       fileSystem.file(path).writeAsString(contents);
 
   @override
-  Future<RandomAccessFile> fileOpen(String path,
-          {FileMode mode = FileMode.read}) =>
-      fileSystem.file(path).open(mode: mode);
+  Future<RandomAccessFile> fileOpen(
+    String path, {
+    FileMode mode = FileMode.read,
+  }) => fileSystem.file(path).open(mode: mode);
 
   @override
   Future<Directory> createDirectory(String path, {bool recursive = false}) {

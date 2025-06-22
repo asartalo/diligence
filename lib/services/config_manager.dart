@@ -40,18 +40,15 @@ Map<String, dynamic> _constructNodes(List<String> pathParts, dynamic value) {
 final nullNode = wrapAsYamlNode(null);
 
 // TODO: This function is not robust enough.
-void _writeToYamlPath(
-  YamlEditor editor,
-  String path,
-  dynamic value,
-) {
+void _writeToYamlPath(YamlEditor editor, String path, dynamic value) {
   // Leaf node exists already
   final pathParts = path.split('.');
 
   if (pathParts.length > 1) {
     final parentAtPath = editor.parseAt(
-        pathParts.sublist(0, pathParts.length - 1),
-        orElse: () => nullNode);
+      pathParts.sublist(0, pathParts.length - 1),
+      orElse: () => nullNode,
+    );
     if (parentAtPath != nullNode) {
       editor.update(pathParts, value);
       return;
@@ -89,10 +86,7 @@ void _writeToYamlPath(
   final constructed = _constructNodes(pathToStartConstruction, value);
   editor.update(
     missingParts,
-    wrapAsYamlNode(
-      constructed,
-      collectionStyle: CollectionStyle.BLOCK,
-    ),
+    wrapAsYamlNode(constructed, collectionStyle: CollectionStyle.BLOCK),
   );
 }
 
@@ -199,8 +193,11 @@ class ConfigManager {
           if (doc != null) {
             realDbPath = _pathValueOrDefault('database.path', realDbPath, doc);
             realShowDb = _pathValueOrDefault('database.show', realShowDb, doc);
-            realShowReview =
-                _pathValueOrDefault('show_review_page', realShowReview, doc);
+            realShowReview = _pathValueOrDefault(
+              'show_review_page',
+              realShowReview,
+              doc,
+            );
             realLogLevel = LogLevel.fromName(
               _pathValueOrDefault('dev.log_level', _defaultLogLevel.name, doc),
               _defaultLogLevel,
@@ -264,11 +261,7 @@ class ConfigManager {
 
     final path = await getUserConfigPath();
     if (path == '') {
-      return Failure(
-        ConfigManagerException(
-          'No viable file is available.',
-        ),
-      );
+      return Failure(ConfigManagerException('No viable file is available.'));
     }
     String contents = '';
     logger.debug('Updating configuration file $path');
@@ -355,9 +348,9 @@ class ConfigValidationException extends ConfigManagerException {
 
 class InvalidYamlConfigError extends ConfigManagerException {
   InvalidYamlConfigError(String configFilePath)
-      : super(
-          'The config file "$configFilePath" does not appear to be a valid config file',
-        );
+    : super(
+        'The config file "$configFilePath" does not appear to be a valid config file',
+      );
 }
 
 typedef ConfigManagerResult = Result<DiligenceConfig, ConfigManagerException>;

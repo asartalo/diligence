@@ -32,13 +32,7 @@ class ClockWrap extends StatefulWidget {
 }
 
 DateTime _nextExactMinute(DateTime time) {
-  return DateTime(
-    time.year,
-    time.month,
-    time.day,
-    time.hour,
-    time.minute + 1,
-  );
+  return DateTime(time.year, time.month, time.day, time.hour, time.minute + 1);
 }
 
 Duration _untilNextExactMinute(DateTime time, Clock clock) {

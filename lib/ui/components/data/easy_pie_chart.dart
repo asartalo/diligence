@@ -17,16 +17,10 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
-const defaultColors = [
-  Colors.green,
-  Colors.orange,
-  Colors.blue,
-  Colors.red,
-];
+const defaultColors = [Colors.green, Colors.orange, Colors.blue, Colors.red];
 
-typedef DataToPieChartSectionData = PieChartSectionData Function(
-  MapEntry<String, double>,
-);
+typedef DataToPieChartSectionData =
+    PieChartSectionData Function(MapEntry<String, double>);
 
 class EasyPieChart extends StatelessWidget {
   final double radius;

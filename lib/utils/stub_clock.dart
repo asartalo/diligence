@@ -94,7 +94,7 @@ class StubbedPeriodicTimer extends RunnableTimer {
   final DateTime started;
 
   StubbedPeriodicTimer(this.duration, this.callback, this.started)
-      : _lastRunRef = started;
+    : _lastRunRef = started;
 
   @override
   void run(DateTime now) {
@@ -117,9 +117,7 @@ class StubbedPeriodicTimer extends RunnableTimer {
       final d = duration.inMilliseconds;
       final mod = total % d;
       final tick = total ~/ d;
-      final lastWhen = _lastRunRef.add(
-        Duration(milliseconds: total - mod),
-      );
+      final lastWhen = _lastRunRef.add(Duration(milliseconds: total - mod));
       return [ObjWithTime(this, lastWhen, tick)];
     }
 

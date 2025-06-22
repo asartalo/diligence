@@ -15,10 +15,7 @@ class _EnvDisplayState extends State<EnvDisplay> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(children: [
-      _toggle(),
-      ..._envEntries(),
-    ]);
+    return Column(children: [_toggle(), ..._envEntries()]);
   }
 
   List<Widget> _envEntries() {
@@ -26,13 +23,10 @@ class _EnvDisplayState extends State<EnvDisplay> {
       return [];
     }
 
-    return widget.env.entries
-        .sorted((a, b) => a.key.compareTo(b.key))
-        .map((entry) {
-      return ListTile(
-        title: Text(entry.key),
-        subtitle: Text(entry.value),
-      );
+    return widget.env.entries.sorted((a, b) => a.key.compareTo(b.key)).map((
+      entry,
+    ) {
+      return ListTile(title: Text(entry.key), subtitle: Text(entry.value));
     }).toList();
   }
 

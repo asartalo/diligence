@@ -61,11 +61,7 @@ class ReviewScreen extends StatelessWidget {
   Widget renderSpinner() {
     return const Column(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Center(
-          child: CircularProgressIndicator.adaptive(),
-        ),
-      ],
+      children: [Center(child: CircularProgressIndicator.adaptive())],
     );
   }
 
@@ -80,19 +76,10 @@ class ReviewScreen extends StatelessWidget {
             const PageTitle('Today’s Summary'),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: withGutter(
-                [
-                  Expanded(
-                    flex: 6,
-                    child: _main(summaryData, theme),
-                  ),
-                  Expanded(
-                    flex: 4,
-                    child: _aside(summaryData),
-                  ),
-                ],
-                10.0,
-              ),
+              children: withGutter([
+                Expanded(flex: 6, child: _main(summaryData, theme)),
+                Expanded(flex: 4, child: _aside(summaryData)),
+              ], 10.0),
             ),
           ],
         ),
@@ -102,46 +89,38 @@ class ReviewScreen extends StatelessWidget {
 
   Widget _main(ReviewSummaryData summaryData, ThemeData _) {
     return Column(
-      children: withGutter(
-        [
-          MainSummarySection(summaryData: summaryData),
-          EasyCard(
-            children: [
-              const DataTitle('Notes'),
-              const PaddedSection(
-                child: MarkdownBody(
-                  data: '# Foo',
-                  key: Key('txtDayLogNotes'),
-                ),
+      children: withGutter([
+        MainSummarySection(summaryData: summaryData),
+        EasyCard(
+          children: [
+            const DataTitle('Notes'),
+            const PaddedSection(
+              child: MarkdownBody(data: '# Foo', key: Key('txtDayLogNotes')),
+            ),
+            const PaddedSection(
+              child: TextField(
+                key: Key('fieldDayLogNotes'),
+                minLines: 2,
+                maxLines: null,
               ),
-              const PaddedSection(
-                child: TextField(
-                  key: Key('fieldDayLogNotes'),
-                  minLines: 2,
-                  maxLines: null,
-                ),
+            ),
+            PaddedSection(
+              child: TextButton(
+                key: const Key('btnSaveLog'),
+                onPressed: () {
+                  // ignore: avoid_print
+                  print('TODO');
+                },
+                child: const Text('Save Log'),
               ),
-              PaddedSection(
-                child: TextButton(
-                  key: const Key('btnSaveLog'),
-                  onPressed: () {
-                    // ignore: avoid_print
-                    print('TODO');
-                  },
-                  child: const Text('Save Log'),
-                ),
-              ),
-            ],
-          ),
-        ],
-        10.0,
-      ),
+            ),
+          ],
+        ),
+      ], 10.0),
     );
   }
 
-  Widget _aside(
-    ReviewSummaryData _,
-  ) {
+  Widget _aside(ReviewSummaryData _) {
     final tasks = [
       'Rough design 45mins',
       'My goal is to find inspiration, how to layout statistics and journal',
@@ -158,21 +137,16 @@ class ReviewScreen extends StatelessWidget {
           height: 300,
           width: 600,
           child: Center(
-            child: EasyPieChart(
-              {
-                'Life Goals': 8,
-                'Work': 13,
-                'Projects': 17,
-                'Distractions': 31,
-              },
-              radius: 120,
-            ),
+            child: EasyPieChart({
+              'Life Goals': 8,
+              'Work': 13,
+              'Projects': 17,
+              'Distractions': 31,
+            }, radius: 120),
           ),
         ),
         const SizedBox(height: 20.0),
-        Column(
-          children: _completedTasks(tasks),
-        ),
+        Column(children: _completedTasks(tasks)),
       ],
     );
   }
@@ -180,10 +154,8 @@ class ReviewScreen extends StatelessWidget {
   List<Widget> _completedTasks(List<String> tasks) {
     return tasks
         .map(
-          (String name) => ListTile(
-            title: Text(name),
-            leading: const Icon(Icons.check),
-          ),
+          (String name) =>
+              ListTile(title: Text(name), leading: const Icon(Icons.check)),
         )
         .toList();
   }

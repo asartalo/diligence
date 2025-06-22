@@ -66,13 +66,9 @@ class _TaskDialogState extends State<TaskDialog> {
     final currentTheme = Theme.of(context);
 
     return Theme(
-      data: currentTheme.copyWith(
-        visualDensity: VisualDensity.standard,
-      ),
+      data: currentTheme.copyWith(visualDensity: VisualDensity.standard),
       child: AlertDialog(
-        title: Text(
-          task.id == 0 ? 'New Task' : 'Edit Task',
-        ),
+        title: Text(task.id == 0 ? 'New Task' : 'Edit Task'),
         // backgroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
         content: Container(
@@ -146,9 +142,7 @@ class _TaskDialogState extends State<TaskDialog> {
   List<Widget> remindersAdded() {
     return reminders.map((reminder) {
       return ListTile(
-        title: Text(
-          dateTimeFormat.format(reminder.remindAt),
-        ),
+        title: Text(dateTimeFormat.format(reminder.remindAt)),
         trailing: IconButton(
           key: keys.reminderDeleteButton,
           icon: const Icon(Icons.delete),
@@ -229,21 +223,16 @@ class _TaskDialogState extends State<TaskDialog> {
   }
 
   void _handleFocusTask() {
-    Navigator.of(context).pop<Command>(FocusTaskCommand(
-      task: task,
-      at: clock.now(),
-    ));
+    Navigator.of(
+      context,
+    ).pop<Command>(FocusTaskCommand(task: task, at: clock.now()));
   }
 
   void submit() {
     late Command command;
     final t = pack.task;
     if (t is NewTask) {
-      command = NewTaskCommand(
-        task: t,
-        reminders: reminders,
-        at: clock.now(),
-      );
+      command = NewTaskCommand(task: t, reminders: reminders, at: clock.now());
     } else if (pack.isModified) {
       command = UpdateTaskCommand(
         task: t,

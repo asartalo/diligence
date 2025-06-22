@@ -28,8 +28,10 @@ void main() {
       });
 
       test('it marks dbPath field as modified', () {
-        expect((config as ModifiedDiligenceConfig).modifiedFields,
-            equals(['dbPath']));
+        expect(
+          (config as ModifiedDiligenceConfig).modifiedFields,
+          equals(['dbPath']),
+        );
       });
     });
 
@@ -65,9 +67,7 @@ void main() {
       test('it can retrive all keys', () {
         expect(
           Set<String>.from(config.fields),
-          equals(
-            Set<String>.from(testData.map((e) => e.key).toList()),
-          ),
+          equals(Set<String>.from(testData.map((e) => e.key).toList())),
         );
       });
     });

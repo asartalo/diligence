@@ -20,24 +20,17 @@ import '../helpers/dtest/dtest.dart';
 
 Future<void> main() async {
   integrationTest('Tasks Reordering', () {
-    testApp(
-      'Moving task down in order',
-      (dtest) async {
-        final ts = await dtest.navigateToTasksScreen();
-        await ts.moveTask(
-          'Work',
-          to: 'Projects',
-          overshoot: Offset.zero,
-        );
-        ts.expectTaskLayout([
-          'Life',
-          'Projects',
-          'Work',
-          'Miscellaneous',
-          'Inbox',
-        ]);
-      },
-    );
+    testApp('Moving task down in order', (dtest) async {
+      final ts = await dtest.navigateToTasksScreen();
+      await ts.moveTask('Work', to: 'Projects', overshoot: Offset.zero);
+      ts.expectTaskLayout([
+        'Life',
+        'Projects',
+        'Work',
+        'Miscellaneous',
+        'Inbox',
+      ]);
+    });
 
     testApp('Moving task up in order', (dtest) async {
       final ts = await dtest.navigateToTasksScreen();
@@ -128,60 +121,54 @@ Future<void> main() async {
         ]);
       });
 
-      testApp(
-        "Moving a child task to down to parent's sibling",
-        (dtest) async {
-          await setupTasks(dtest);
-          final ts = await dtest.navigateToTasksScreen();
+      testApp("Moving a child task to down to parent's sibling", (dtest) async {
+        await setupTasks(dtest);
+        final ts = await dtest.navigateToTasksScreen();
 
-          await ts.moveTask(
-            'Inbox',
-            to: '2 Work',
-            duration: const Duration(milliseconds: 200),
-          );
-          ts.expectTaskLayout([
-            'Life',
-            '  1 Life',
-            '  2 Life',
-            '  3 Life',
-            'Work',
-            '  1 Work',
-            '  Inbox',
-            '  2 Work',
-            '  3 Work',
-            'Projects',
-            'Miscellaneous',
-          ]);
-        },
-      );
+        await ts.moveTask(
+          'Inbox',
+          to: '2 Work',
+          duration: const Duration(milliseconds: 200),
+        );
+        ts.expectTaskLayout([
+          'Life',
+          '  1 Life',
+          '  2 Life',
+          '  3 Life',
+          'Work',
+          '  1 Work',
+          '  Inbox',
+          '  2 Work',
+          '  3 Work',
+          'Projects',
+          'Miscellaneous',
+        ]);
+      });
 
-      testApp(
-        "Moving a child as a parent's sibling",
-        (dtest) async {
-          await setupTasks(dtest);
-          final ts = await dtest.navigateToTasksScreen();
+      testApp("Moving a child as a parent's sibling", (dtest) async {
+        await setupTasks(dtest);
+        final ts = await dtest.navigateToTasksScreen();
 
-          await ts.moveTask(
-            '2 Life',
-            to: 'Miscellaneous',
-            overshoot: const Offset(0, 20),
-            endPause: const Duration(milliseconds: 300),
-          );
-          ts.expectTaskLayout([
-            'Life',
-            '  1 Life',
-            '  3 Life',
-            'Work',
-            '  1 Work',
-            '  2 Work',
-            '  3 Work',
-            'Projects',
-            'Miscellaneous',
-            '2 Life',
-            'Inbox',
-          ]);
-        },
-      );
+        await ts.moveTask(
+          '2 Life',
+          to: 'Miscellaneous',
+          overshoot: const Offset(0, 20),
+          endPause: const Duration(milliseconds: 300),
+        );
+        ts.expectTaskLayout([
+          'Life',
+          '  1 Life',
+          '  3 Life',
+          'Work',
+          '  1 Work',
+          '  2 Work',
+          '  3 Work',
+          'Projects',
+          'Miscellaneous',
+          '2 Life',
+          'Inbox',
+        ]);
+      });
     });
   });
 }

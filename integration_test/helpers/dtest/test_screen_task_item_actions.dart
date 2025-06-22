@@ -33,7 +33,9 @@ mixin TestScreenTaskItemActions on TestScreen {
     );
 
     return find.ancestor(
-        of: taskNameText, matching: find.byKey(tkeys.taskItem));
+      of: taskNameText,
+      matching: find.byKey(tkeys.taskItem),
+    );
   }
 
   Finder findTaskCheckbox(String name) {
@@ -56,10 +58,7 @@ mixin TestScreenTaskItemActions on TestScreen {
       matching: find.byKey(tkeys.taskMenu),
     );
     await dtest.tapElement(menuButton);
-    final button = find.descendant(
-      of: task,
-      matching: find.byKey(key),
-    );
+    final button = find.descendant(of: task, matching: find.byKey(key));
     await dtest.tapElement(button);
   }
 
@@ -105,10 +104,7 @@ mixin TestScreenTaskItemActions on TestScreen {
     );
   }
 
-  Future<void> inputTaskDetails({
-    String? name,
-    String? details,
-  }) async {
+  Future<void> inputTaskDetails({String? name, String? details}) async {
     if (name is String) {
       await dtest.enterTextByKey(tkeys.taskNameField, name);
     }

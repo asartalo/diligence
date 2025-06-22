@@ -26,10 +26,7 @@ class SectionTitle extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(0, 20, 0, 20),
-      child: Text(
-        text,
-        style: theme.textTheme.headlineMedium,
-      ),
+      child: Text(text, style: theme.textTheme.headlineMedium),
     );
   }
 }

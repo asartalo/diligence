@@ -65,10 +65,7 @@ void main() {
 
     test('it updates updatedAt when task is modified again', () {
       clock.advance(const Duration(seconds: 1));
-      final modified = task.copyWith(
-        name: 'FooBaz',
-        now: clock.now(),
-      );
+      final modified = task.copyWith(name: 'FooBaz', now: clock.now());
       expect(modified.updatedAt.isAfter(task.updatedAt), isTrue);
     });
   });

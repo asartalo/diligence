@@ -24,20 +24,17 @@ Future<CommandResult> newTaskHandler(
   Diligent diligent,
   NewTaskCommand command,
 ) async {
-  return failsOnException(
-    () async {
-      final NewTaskCommand(:task, :reminders) = command;
-      final persisted = await diligent.addTask(task);
+  return failsOnException(() async {
+    final NewTaskCommand(:task, :reminders) = command;
+    final persisted = await diligent.addTask(task);
 
-      if (persisted is! PersistedTask) throw Exception('Task not persisted.');
+    if (persisted is! PersistedTask) throw Exception('Task not persisted.');
 
-      await diligent.addReminders(reminders.remapToTask(persisted));
+    await diligent.addReminders(reminders.remapToTask(persisted));
 
-      return SuccessPack(
-        message: 'Task "${task.name}" added successfully.',
-        payload: persisted,
-      );
-    },
-    'Failed to add task "${command.task.name}".',
-  );
+    return SuccessPack(
+      message: 'Task "${task.name}" added successfully.',
+      payload: persisted,
+    );
+  }, 'Failed to add task "${command.task.name}".');
 }

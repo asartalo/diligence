@@ -36,8 +36,8 @@ class JobQueue implements DiligentEventRegister {
     required this.db,
     required this.logger,
     Clock? clock,
-  })  : _isTest = isTest,
-        clock = clock ?? Clock();
+  }) : _isTest = isTest,
+       clock = clock ?? Clock();
 
   factory JobQueue({
     required SqliteDatabase db,
@@ -83,16 +83,11 @@ class JobQueue implements DiligentEventRegister {
     List<Object?> fieldValues = [];
     switch (job) {
       case ReminderJob(
-          uuid: final uid,
-          runAt: final runAt,
-          taskId: final taskId
-        ):
-        fieldValues = [
-          uid,
-          runAt.millisecondsSinceEpoch,
-          'reminder',
-          taskId,
-        ];
+        uuid: final uid,
+        runAt: final runAt,
+        taskId: final taskId,
+      ):
+        fieldValues = [uid, runAt.millisecondsSinceEpoch, 'reminder', taskId];
         break;
     }
     return fieldValues;
@@ -128,22 +123,19 @@ class JobQueue implements DiligentEventRegister {
   }
 
   Future<ScheduledJob?> _nextJob(SqliteReadContext tx) async {
-    final rows = await tx.getAll(
-      '''
+    final rows = await tx.getAll('''
       SELECT * FROM jobs
       ORDER BY runAt
       LIMIT 1
-      ''',
-    );
+      ''');
 
     return rows.isEmpty ? null : _jobFromRow(rows.first);
   }
 
   Future<bool> isPending(ScheduledJob job) async {
-    final rows = await db.getAll(
-      'SELECT * FROM jobs WHERE uuid = ? LIMIT 1',
-      [job.uuid],
-    );
+    final rows = await db.getAll('SELECT * FROM jobs WHERE uuid = ? LIMIT 1', [
+      job.uuid,
+    ]);
 
     return rows.isNotEmpty;
   }
@@ -198,12 +190,13 @@ class JobQueue implements DiligentEventRegister {
   }
 
   Future<List<ScheduledJob>> _newJobsFromReminders(
-      List<Reminder> reminders) async {
+    List<Reminder> reminders,
+  ) async {
     return reminders
-        .map((reminder) => ReminderJob(
-              runAt: reminder.remindAt,
-              taskId: reminder.taskId,
-            ))
+        .map(
+          (reminder) =>
+              ReminderJob(runAt: reminder.remindAt, taskId: reminder.taskId),
+        )
         .toList();
   }
 
@@ -211,19 +204,21 @@ class JobQueue implements DiligentEventRegister {
     List<Reminder> reminders,
   ) async {
     final params = reminders
-        .map((reminder) =>
-            [reminder.remindAt.millisecondsSinceEpoch, reminder.taskId])
+        .map(
+          (reminder) => [
+            reminder.remindAt.millisecondsSinceEpoch,
+            reminder.taskId,
+          ],
+        )
         .flattened
         .toList();
     final queryQuestions = reminders.map((reminder) => '(?, ?)').join(', ');
-    final query = '''
+    final query =
+        '''
       SELECT * FROM jobs
       WHERE (runAt, taskId) IN ($queryQuestions)
       ''';
-    final rows = await db.getAll(
-      query,
-      params,
-    );
+    final rows = await db.getAll(query, params);
     return rows.map(_jobFromRow).toList();
   }
 

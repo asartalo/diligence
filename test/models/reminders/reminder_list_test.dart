@@ -14,10 +14,7 @@ void main() {
     late ReminderList reminders;
 
     setUp(() {
-      reminders = ReminderList([
-        reminder1,
-        reminder2,
-      ]);
+      reminders = ReminderList([reminder1, reminder2]);
     });
 
     test('should be able to add Reminders', () {
@@ -38,10 +35,7 @@ void main() {
 
     test('should prevent duplicates when assigning through array access', () {
       final nowNewInstance = DateTime(2024, 4, 16);
-      final basicallyReminder1 = Reminder(
-        taskId: 1,
-        remindAt: nowNewInstance,
-      );
+      final basicallyReminder1 = Reminder(taskId: 1, remindAt: nowNewInstance);
       reminders[1] = (basicallyReminder1);
       expect(reminderTaskIds(reminders), [1, 2]);
     });

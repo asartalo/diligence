@@ -33,9 +33,9 @@ class TaskNode {
   });
 
   TaskNode updateTask(Task task) => TaskNode(
-        task: task,
-        level: level,
-        childrenCount: childrenCount,
-        position: position,
-      );
+    task: task,
+    level: level,
+    childrenCount: childrenCount,
+    position: position,
+  );
 }

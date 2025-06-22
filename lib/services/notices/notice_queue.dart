@@ -11,8 +11,8 @@ import 'notice_row_data.dart';
 typedef NoticeList = List<Notice>;
 typedef NoticesStream = Stream<NoticeList>;
 
-typedef NoticeFactoryFunc<T extends Notice> = Future<T> Function(
-    NoticeRowData row);
+typedef NoticeFactoryFunc<T extends Notice> =
+    Future<T> Function(NoticeRowData row);
 
 Future<GenericNotice> genericNoticeFactoryFunc(NoticeRowData data) async {
   return GenericNotice(
@@ -58,7 +58,8 @@ class NoticeQueue {
     final rowData = notice.toRowData();
     final fields = NoticeRowData.fields();
     await db.execute(
-      _addNoticeQuery ??= '''
+      _addNoticeQuery ??=
+          '''
       INSERT INTO notices (${fields.join(', ')})
       VALUES (${fields.map((_) => '?').join(', ')})
       ''',
@@ -75,12 +76,10 @@ class NoticeQueue {
   }
 
   Future<List<Notice>> getNotices() async {
-    final rows = await db.getAll(
-      '''
+    final rows = await db.getAll('''
       SELECT * FROM notices
       ORDER BY createdAt
-      ''',
-    );
+      ''');
     final notices = <Notice>[];
     for (final row in rows) {
       final rowData = NoticeRowData.fromRowData(row);
@@ -90,10 +89,7 @@ class NoticeQueue {
   }
 
   Future<void> dismissNotice(Notice notice) async {
-    await db.execute(
-      'DELETE FROM notices WHERE uuid = ?',
-      [notice.uuid],
-    );
+    await db.execute('DELETE FROM notices WHERE uuid = ?', [notice.uuid]);
     _updateStream();
   }
 }

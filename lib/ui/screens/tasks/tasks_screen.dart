@@ -37,7 +37,7 @@ class TasksScreen extends StatefulWidget {
   final DiligentCommander commander;
   final Clock clock;
   TasksScreen({super.key, required this.diligent, required this.clock})
-      : commander = DiligentCommander(diligent);
+    : commander = DiligentCommander(diligent);
 
   @override
   State<TasksScreen> createState() => _TasksScreenState();
@@ -139,7 +139,8 @@ class _TasksScreenState extends State<TasksScreen> {
         : await diligent.getTaskPackById(task.id);
     if (pack == null) {
       throw AssertionError(
-          '_handleRequest() unexpected missing task pack for ${task.uid}');
+        '_handleRequest() unexpected missing task pack for ${task.uid}',
+      );
     }
     if (!context.mounted) return;
     // ignore: use_build_context_synchronously
@@ -168,8 +169,9 @@ class _TasksScreenState extends State<TasksScreen> {
   }
 
   Future<void> _expandTask(Task task, {bool expanded = true}) async {
-    await diligent
-        .updateTask(task.copyWith(expanded: expanded, now: clock.now()));
+    await diligent.updateTask(
+      task.copyWith(expanded: expanded, now: clock.now()),
+    );
   }
 
   Future<void> _expandParent(Task task) async {
@@ -207,11 +209,7 @@ class _TasksScreenState extends State<TasksScreen> {
 
     if (parentId != null) {
       final parent = await diligent.findTask(parentId);
-      await diligent.moveTask(
-        taskNode.task,
-        position,
-        parent: parent,
-      );
+      await diligent.moveTask(taskNode.task, position, parent: parent);
       updateTaskTree();
     }
   }

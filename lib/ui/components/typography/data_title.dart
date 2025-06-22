@@ -26,9 +26,6 @@ class DataTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     final diligenceTheme = DiligenceTheme.fromTheme(Theme.of(context));
 
-    return Text(
-      text.toUpperCase(),
-      style: diligenceTheme.text.dataTitle,
-    );
+    return Text(text.toUpperCase(), style: diligenceTheme.text.dataTitle);
   }
 }

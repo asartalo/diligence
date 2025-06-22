@@ -8,12 +8,7 @@ void main() {
     final now = DateTime.now();
 
     setUp(() {
-      task = NewTask(
-        name: 'Foo',
-        details: 'Bar',
-        parentId: 1,
-        now: now,
-      );
+      task = NewTask(name: 'Foo', details: 'Bar', parentId: 1, now: now);
     });
 
     test('should be a Task', () {

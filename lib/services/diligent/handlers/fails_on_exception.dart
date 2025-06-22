@@ -25,9 +25,6 @@ Future<CommandResult> failsOnException(
   try {
     return await callback();
   } catch (e) {
-    return FailPack(
-      payload: e,
-      message: failMessage,
-    );
+    return FailPack(payload: e, message: failMessage);
   }
 }

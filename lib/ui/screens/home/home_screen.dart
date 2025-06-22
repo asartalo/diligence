@@ -31,16 +31,10 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final hourStyle = theme.textTheme.headlineLarge!.merge(
-      const TextStyle(
-        fontSize: 112.0,
-        fontWeight: FontWeight.w200,
-      ),
+      const TextStyle(fontSize: 112.0, fontWeight: FontWeight.w200),
     );
     final welcomeStyle = theme.textTheme.headlineLarge!.merge(
-      const TextStyle(
-        fontSize: 64.0,
-        fontWeight: FontWeight.w300,
-      ),
+      const TextStyle(fontSize: 64.0, fontWeight: FontWeight.w300),
     );
     final buttonStyle = FilledButton.styleFrom(
       minimumSize: const Size(64.0, 64.0),
@@ -59,10 +53,7 @@ class HomeScreen extends StatelessWidget {
                 children: [
                   Text('Hello!', style: welcomeStyle),
                   const SizedBox(height: 32.0),
-                  Text(
-                    timeFormat.format(time),
-                    style: hourStyle,
-                  ),
+                  Text(timeFormat.format(time), style: hourStyle),
                   Text(
                     dateFormatWithDay.format(time),
                     style: theme.textTheme.headlineMedium,

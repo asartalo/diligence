@@ -26,19 +26,14 @@ AppBar appBar(BuildContext context, String title) {
   final clock = Provider.of<Clock>(context);
   final theme = Theme.of(context);
   final titleStyle = theme.textTheme.titleLarge!.merge(
-    TextStyle(
-      color: theme.textTheme.bodyLarge!.color,
-    ),
+    TextStyle(color: theme.textTheme.bodyLarge!.color),
   );
   // final dateFormatWithDay = DateFormat('EEEE, MMMM d, y').add_jm();
 
   return AppBar(
     leading: IconButton(
       key: keys.appBarMenuButton,
-      icon: Icon(
-        Icons.menu,
-        color: theme.textTheme.bodyLarge!.color,
-      ),
+      icon: Icon(Icons.menu, color: theme.textTheme.bodyLarge!.color),
       onPressed: () {
         Scaffold.of(context).openDrawer();
       },
@@ -58,10 +53,7 @@ AppBar appBar(BuildContext context, String title) {
         ),
       ),
     ],
-    title: Text(
-      title,
-      style: titleStyle,
-    ),
+    title: Text(title, style: titleStyle),
     backgroundColor: theme.colorScheme.surface,
     shadowColor: Colors.transparent,
   );

@@ -46,20 +46,15 @@ void main() {
       late CommandResult result;
 
       group('NewTaskCommand', () {
-        final newTask = NewTask(
-          name: 'Foo',
-          now: DateTime.now(),
-        );
+        final newTask = NewTask(name: 'Foo', now: DateTime.now());
         final command = NewTaskCommand(task: newTask, at: clock.now());
 
         group('when successful', () {
           setUp(() async {
             final now = DateTime.now();
-            when(() => diligent.addTask(newTask)).thenAnswer(
-              (_) async {
-                return createPersistedTask(now: now);
-              },
-            );
+            when(() => diligent.addTask(newTask)).thenAnswer((_) async {
+              return createPersistedTask(now: now);
+            });
             result = await commander.handle(command);
           });
 
@@ -171,10 +166,7 @@ void main() {
           });
 
           test('it returns a success message', () {
-            expect(
-              result.message,
-              'Task "Bar" was updated successfully.',
-            );
+            expect(result.message, 'Task "Bar" was updated successfully.');
           });
         });
 

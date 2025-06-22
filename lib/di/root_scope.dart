@@ -28,33 +28,34 @@ class RootScope {
     FileSystem? fileSystem,
     PlatformWrapped? platform,
     this.isTest = false,
-  })  : clock = clock ?? Clock(),
-        fileSystem = fileSystem ?? LocalFileSystem(),
-        platform = platform ?? PlatformWrapped.instance(),
-        _cache = DiScopeCache();
+  }) : clock = clock ?? Clock(),
+       fileSystem = fileSystem ?? LocalFileSystem(),
+       platform = platform ?? PlatformWrapped.instance(),
+       _cache = DiScopeCache();
 
   ConfigManager get configManager => _cache.getSet(
-      #configManager,
-      () => ConfigManager(
-            fs,
-            validator,
-            configFilePaths: configFilePaths,
-            logger: configManagerLogger,
-            test: isTest,
-          ));
+    #configManager,
+    () => ConfigManager(
+      fs,
+      validator,
+      configFilePaths: configFilePaths,
+      logger: configManagerLogger,
+      test: isTest,
+    ),
+  );
 
   Fs get fs => _cache.getSet(#fs, () => Fs(fileSystem));
 
-  ConfigValidator get validator => _cache.getSet(
-        #validator,
-        () => ConfigValidator(fs),
-      );
+  ConfigValidator get validator =>
+      _cache.getSet(#validator, () => ConfigValidator(fs));
 
   LogObservable get configManagerLogger =>
       _cache.getSet(#logger, () => LogObservable('ConfigManager'));
 
   List<FileWriteViabilityChecker> get configFilePaths => _cache
       .getSet(
-          #configFilePaths, () => ConfigFilePaths(fs: fs, platform: platform))
+        #configFilePaths,
+        () => ConfigFilePaths(fs: fs, platform: platform),
+      )
       .getProbableConfigFilePaths();
 }

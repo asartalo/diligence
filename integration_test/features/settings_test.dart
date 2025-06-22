@@ -20,11 +20,8 @@ import '../helpers/dtest/dtest.dart';
 
 Future<void> main() async {
   integrationTest('Settings', () {
-    testApp(
-      'Going to the settings page',
-      (dtest) async {
-        await dtest.navigateToSettingsScreen();
-      },
-    );
+    testApp('Going to the settings page', (dtest) async {
+      await dtest.navigateToSettingsScreen();
+    });
   });
 }

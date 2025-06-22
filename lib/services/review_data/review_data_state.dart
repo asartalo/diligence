@@ -32,7 +32,7 @@ class ReviewDataInitial extends ReviewDataState {
 
 class ReviewDataAvailable extends ReviewDataState {
   ReviewDataAvailable(ReviewSummaryData summaryData)
-      : super(Maybe<ReviewSummaryData>(summaryData));
+    : super(Maybe<ReviewSummaryData>(summaryData));
 
   @override
   bool hasData() => true;

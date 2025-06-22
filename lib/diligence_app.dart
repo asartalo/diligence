@@ -79,13 +79,13 @@ class _DiligenceAppState extends State<DiligenceApp> {
           routes: {
             '/': (context) => HomeScreen(clock: Provider.of<Clock>(context)),
             '/tasks': (context) => TasksScreen(
-                  diligent: Provider.of<Diligent>(context),
-                  clock: Provider.of<Clock>(context),
-                ),
+              diligent: Provider.of<Diligent>(context),
+              clock: Provider.of<Clock>(context),
+            ),
             '/focus': (context) => FocusScreen(
-                  diligent: Provider.of<Diligent>(context),
-                  clock: Provider.of<Clock>(context),
-                ),
+              diligent: Provider.of<Diligent>(context),
+              clock: Provider.of<Clock>(context),
+            ),
             '/review': (context) => const ReviewScreen(title: 'Diligence'),
             '/settings': (context) {
               return SettingsScreen(

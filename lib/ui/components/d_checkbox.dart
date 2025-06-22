@@ -38,9 +38,7 @@ class _DCheckboxState extends State<DCheckbox> {
     return IconButton(
       iconSize: size,
       onPressed: () => widget.onChanged(!isChecked),
-      icon: Icon(
-        isChecked ? Icons.check : Icons.circle_outlined,
-      ),
+      icon: Icon(isChecked ? Icons.check : Icons.circle_outlined),
     );
   }
 }

@@ -28,9 +28,6 @@ class PaddedSection extends StatelessWidget {
     final diligenceTheme = DiligenceTheme.fromTheme(Theme.of(context));
     final space = diligenceTheme.lengths.space;
 
-    return Padding(
-      padding: EdgeInsets.all(space),
-      child: child,
-    );
+    return Padding(padding: EdgeInsets.all(space), child: child);
   }
 }

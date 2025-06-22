@@ -97,55 +97,31 @@ class BaseLogger extends Logger {
 
   @override
   void trace(dynamic message, {Object? error}) {
-    _oLogger.t(
-      wrapMessage(message),
-      time: _clock.now(),
-      error: error,
-    );
+    _oLogger.t(wrapMessage(message), time: _clock.now(), error: error);
   }
 
   @override
   void debug(dynamic message, {Object? error}) {
-    _oLogger.d(
-      wrapMessage(message),
-      time: _clock.now(),
-      error: error,
-    );
+    _oLogger.d(wrapMessage(message), time: _clock.now(), error: error);
   }
 
   @override
   void info(dynamic message, {Object? error}) {
-    _oLogger.i(
-      wrapMessage(message),
-      time: _clock.now(),
-      error: error,
-    );
+    _oLogger.i(wrapMessage(message), time: _clock.now(), error: error);
   }
 
   @override
   void warning(dynamic message, {Object? error}) {
-    _oLogger.w(
-      wrapMessage(message),
-      time: _clock.now(),
-      error: error,
-    );
+    _oLogger.w(wrapMessage(message), time: _clock.now(), error: error);
   }
 
   @override
   void error(dynamic message, {Object? error}) {
-    _oLogger.e(
-      wrapMessage(message),
-      time: _clock.now(),
-      error: error,
-    );
+    _oLogger.e(wrapMessage(message), time: _clock.now(), error: error);
   }
 
   @override
   void fatal(dynamic message, {Object? error}) {
-    _oLogger.e(
-      wrapMessage(message),
-      time: _clock.now(),
-      error: error,
-    );
+    _oLogger.e(wrapMessage(message), time: _clock.now(), error: error);
   }
 }

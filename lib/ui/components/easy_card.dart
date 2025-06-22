@@ -37,10 +37,7 @@ class EasyCard extends StatelessWidget {
     return Card(
       child: Padding(
         padding: EdgeInsets.all(padding),
-        child: Column(
-          crossAxisAlignment: align,
-          children: children,
-        ),
+        child: Column(crossAxisAlignment: align, children: children),
       ),
     );
   }
