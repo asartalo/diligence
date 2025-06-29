@@ -1,13 +1,29 @@
+// Diligence - A Task Management App
+//
+// Copyright (C) 2024 Wayne Duran <asartalo@gmail.com>
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License as published by the Free Software
+// Foundation, either version 3 of the License, or (at your option) any later
+// version.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along with
+// this program. If not, see <https://www.gnu.org/licenses/>.
+
 import 'package:diligence/models/reminders/reminder.dart';
 import 'package:diligence/models/reminders/reminder_list.dart';
 import 'package:diligence/models/task.dart';
 import 'package:diligence/services/diligent/diligent.dart';
+import 'package:diligence/services/diligent/diligent_factory.dart';
 import 'package:diligence/services/diligent/initial_areas.dart';
 import 'package:diligence/utils/stub_clock.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../helpers/error_matcher.dart';
-import '../../helpers/test_db.dart';
 
 List<String> taskNames(List<Task?> tasks) {
   final List<String> names = [];
@@ -27,7 +43,7 @@ void main() {
 
     setUpAll(() async {
       clock = StubClock();
-      diligent = Diligent.forTests(db: testDb, clock: clock);
+      diligent = DiligentFactory.forUnitTests(clock: clock);
       await diligent.setUp();
     });
 
@@ -298,7 +314,7 @@ void main() {
       late Map<String, Task> setupResult;
 
       setUp(() async {
-        setupResult = await testTreeSetup(Diligent.forTests(db: testDb));
+        setupResult = await testTreeSetup(DiligentFactory.forUnitTests());
       });
 
       test('it returns all ancestors of a task except root', () async {

@@ -22,7 +22,7 @@ changes to the domain through Diligent itself.
 Currently, the codebase manages dependencies through a simple strategy inspired
 by [DIY-ID](https://blacksheep.parry.org/archives/diy-di). See `di.dart`.
 
-### Explicit Dependencies
+### Be Explicit
 
 There are subtle dependencies that can sometimes creep into our code. We try to
 be explicit with these dependencies.
@@ -35,7 +35,6 @@ functions into one coherent `Clock` class and let objects that need them use the
 clock instance sometimes in their dependencies and sometimes in factories that
 need to be instantiated with `DateTime` objects. This makes unit tests and
 integration tests really easy. See `StubClock` and its usage in the codebase.
-- The same for using `Fs` as a wrapper for filesystem access.
 
 ## Conventions
 

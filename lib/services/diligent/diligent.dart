@@ -17,7 +17,6 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:collection/collection.dart';
 import 'package:sqlite_async/sqlite3.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 
@@ -35,7 +34,6 @@ import '../../utils/date_time_from_row_epoch.dart';
 import 'focus_queue_manager.dart';
 import 'task_db.dart';
 import 'task_events/added_reminders_event.dart';
-import 'task_events/added_tasks_event.dart';
 import 'task_events/deleted_task_event.dart';
 import 'task_events/removed_reminders_event.dart';
 import 'task_events/task_event.dart';
@@ -44,6 +42,8 @@ import 'task_events/toggled_tasks_done_event.dart';
 import 'task_events/updated_task_event.dart';
 import 'task_fields.dart';
 import '../migrate.dart';
+import 'tasks_repository.dart';
+import 'transactions/transaction_factory.dart';
 
 typedef TaskNodeList = List<TaskNode>;
 
@@ -57,20 +57,28 @@ class Diligent extends TaskDb {
 
   final bool _isTest;
 
-  final TaskEventRegistry _eventRegistry = TaskEventRegistry();
+  final TransactionFactory _transactionFactory;
+
+  final TaskEventRegistry _eventRegistry;
 
   Diligent._internal({
     required this.db,
     required bool isTest,
     required this.focusQueueManager,
     required this.clock,
-  }) : _isTest = isTest {
+    required TaskEventRegistry eventRegistry,
+    required TransactionFactory transactionFactory,
+  }) : _isTest = isTest,
+       _eventRegistry = eventRegistry,
+       _transactionFactory = transactionFactory {
     focusQueueManager.registerEventHandlers(this);
   }
 
   factory Diligent.convenience({
     required bool isTest,
     required SqliteDatabase db,
+    required TaskEventRegistry eventRegistry,
+    required TransactionFactory transactionFactory,
     Clock? clock,
   }) {
     final actualClock = clock ?? Clock();
@@ -79,16 +87,25 @@ class Diligent extends TaskDb {
       db: db,
       isTest: isTest,
       clock: actualClock,
+      eventRegistry: eventRegistry,
+      transactionFactory: transactionFactory,
       focusQueueManager: FocusQueueManager(db: db, clock: actualClock),
     );
   }
 
-  factory Diligent({required SqliteDatabase db, Clock? clock}) {
-    return Diligent.convenience(isTest: false, db: db, clock: clock);
-  }
-
-  factory Diligent.forTests({required SqliteDatabase db, Clock? clock}) {
-    return Diligent.convenience(isTest: true, db: db, clock: clock);
+  factory Diligent({
+    required SqliteDatabase db,
+    Clock? clock,
+    required TaskEventRegistry eventRegistry,
+    required TransactionFactory transactionFactory,
+  }) {
+    return Diligent.convenience(
+      isTest: false,
+      db: db,
+      clock: clock,
+      eventRegistry: eventRegistry,
+      transactionFactory: transactionFactory,
+    );
   }
 
   Future<void> setUp() async {
@@ -114,24 +131,6 @@ class Diligent extends TaskDb {
     await _eventRegistry.broadcast<T>(event);
   }
 
-  Future<void> _validateAddedTasks(TaskList tasks, SqliteReadContext tx) async {
-    final Set<int?> parentIds = {};
-    for (final task in tasks) {
-      task.validate();
-      parentIds.add(task.parentId ?? 0);
-    }
-    if (parentIds.length > 1) {
-      throw ArgumentError('All tasks must have the same parent.');
-    }
-    final parentId = parentIds.first;
-    if (parentId != 0) {
-      final parent = await _findTask(parentId, tx);
-      if (parent == null) {
-        throw ArgumentError('Parent with id $parentId does not exist.');
-      }
-    }
-  }
-
   NewTask newTask({
     int id = 0,
     int? parentId,
@@ -145,110 +144,32 @@ class Diligent extends TaskDb {
     DateTime? createdAt,
     DateTime? updatedAt,
     DateTime? deadlineAt,
-  }) {
-    return NewTask(
-      id: id,
-      parentId: parentId,
-      parent: parent,
-      doneAt: doneAt,
-      uid: uid,
-      name: name ?? '',
-      details: details,
-      expanded: expanded ?? false,
-      createdAt: createdAt,
-      updatedAt: updatedAt,
-      deadlineAt: deadlineAt,
-      now: clock.now(),
-    );
-  }
+    DateTime? now,
+  }) => TasksRepository.newTask(
+    id: id,
+    parentId: parentId,
+    parent: parent,
+    doneAt: doneAt,
+    uid: uid,
+    name: name,
+    details: details,
+    expanded: expanded,
+    createdAt: createdAt,
+    updatedAt: updatedAt,
+    deadlineAt: deadlineAt,
+    now: now ?? clock.now(),
+  );
 
   Future<TaskList> addTasks(TaskList tasks, {int? position}) async {
     TaskList newTasks = [];
 
     await db.writeTransaction((tx) async {
-      await _validateAddedTasks(tasks, tx);
-      final parentId = tasks.first.parentId;
-
-      final positionToUse =
-          position ?? await _getChildLastPosition(parentId, tx);
-
-      await tx.execute(
-        '''
-        UPDATE tasks SET position = position + ?
-        WHERE parentId = ? AND position >= ?
-        ''',
-        [tasks.length, parentId, positionToUse],
-      );
-      final batchProps = tasks.mapIndexed((int index, task) {
-        return [
-          ...propsFromTaskFields(newTaskFields, task),
-          positionToUse + index,
-        ];
-      }).toList();
-      await tx.executeBatch('''
-        INSERT INTO tasks (${newTaskFields.join(', ')}, position)
-        SELECT ${questionMarks(newTaskFields.length + 1)}
-        ''', batchProps);
-
-      newTasks = await _getPersistedTasks(tasks, tx);
-      await _toggleLineage(newTasks.first, tx);
-
-      await announceEvent(
-        AddedTasksEvent(
-          clock.now(),
-          tx: tx,
-          parentId: parentId,
-          tasks: newTasks,
-        ),
-      );
+      newTasks = await _transactionFactory
+          .addTasks(tx)
+          .work(tasks, position: position);
     });
 
     return newTasks;
-  }
-
-  Future<int> _getChildLastPosition(int? parentId, SqliteReadContext tx) async {
-    final lastPositionResult = await tx.get(
-      '''
-      SELECT COALESCE(MAX(position) + 1, 0) as lastPosition
-      FROM tasks
-      WHERE parentId = ?
-      ''',
-      [parentId],
-    );
-
-    return lastPositionResult.isNotEmpty
-        ? lastPositionResult['lastPosition'] as int
-        : 0;
-  }
-
-  Future<TaskList> _getPersistedTasks(
-    TaskList tasks,
-    SqliteReadContext tx,
-  ) async {
-    final uids = _uidsFromTasks(tasks);
-    final newTasks = await _findTasksByUids(uids, tx);
-
-    if (newTasks.length != uids.length) {
-      throw Exception('Not all tasks were created.');
-    }
-
-    return newTasks;
-  }
-
-  List<String> _uidsFromTasks(TaskList tasks) {
-    return tasks.map((task) => task.uid).toList();
-  }
-
-  Future<TaskList> _findTasksByUids(
-    List<String> uids,
-    SqliteReadContext tx,
-  ) async {
-    final qMarks = questionMarks(uids.length);
-    final rows = await tx.getAll('''
-      SELECT * FROM tasks WHERE uid IN ($qMarks) ORDER BY position
-      ''', uids);
-
-    return rows.map(taskFromRow).toList();
   }
 
   Future<Task> addTask(Task task, {int? position}) async {

@@ -1,3 +1,19 @@
+// Diligence - A Task Management App
+//
+// Copyright (C) 2025 Wayne Duran <asartalo@gmail.com>
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License as published by the Free Software
+// Foundation, either version 3 of the License, or (at your option) any later
+// version.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along with
+// this program. If not, see <https://www.gnu.org/licenses/>.
+
 import 'package:file/file.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 
@@ -11,6 +27,8 @@ import '../models/scheduled_job.dart';
 import '../platform_wrapped.dart';
 import '../services/config_manager.dart';
 import '../services/diligent/diligent.dart';
+import '../services/diligent/task_events/task_event_registry.dart';
+import '../services/diligent/transactions/transaction_factory.dart';
 import '../services/jobs/job_queue.dart';
 import '../services/jobs/job_track.dart';
 import '../services/jobs/reminder_job_runner.dart';
@@ -20,6 +38,7 @@ import '../services/notices/notice_queue.dart';
 import '../utils/clock.dart';
 import '../services/logger/logger.dart';
 import 'root_scope.dart';
+import 'transaction_scope.dart';
 
 typedef LogerFactoryFunc = Logger Function(String name);
 
@@ -53,8 +72,16 @@ class AppStateScope {
 
   Diligent get diligent => _cache.getSet(
     #diligent,
-    () => Diligent.convenience(isTest: isTest, db: db, clock: clock),
+    () => Diligent.convenience(
+      isTest: isTest,
+      db: db,
+      clock: clock,
+      eventRegistry: taskEventRegistry,
+      transactionFactory: transactionFactory,
+    ),
   );
+
+  // Diligent
 
   SqliteDatabase get db =>
       _cache.getSet(#db, () => SqliteDatabase(path: dbPath));
@@ -125,6 +152,12 @@ class AppStateScope {
     ),
   );
 
+  TaskEventRegistry get taskEventRegistry =>
+      _cache.getSet(#taskEventRegistry, () => TaskEventRegistry());
+
+  TransactionFactory get transactionFactory =>
+      _cache.getSet(#transactionFactory, () => TransactionFactory(this));
+
   NoticeFactoryFunc<Notice> get noticeFactoryFunc => (data) {
     switch (data.type) {
       case 'generic':
@@ -158,3 +191,5 @@ class AppStateScope {
     );
   };
 }
+
+typedef TransactFunc<T> = Future<T> Function(TransactionScope scope);
