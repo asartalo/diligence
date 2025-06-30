@@ -14,14 +14,18 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
+import 'dart:async';
+
 import 'package:sqlite_async/sqlite3.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 
 import '../../models/persisted_task.dart';
 import '../../models/task.dart';
 import '../../models/task_list.dart';
+import '../../models/task_node.dart';
 import '../../utils/clock.dart';
 import '../../utils/date_time_from_row_epoch.dart';
+import 'diligent.dart';
 import 'task_fields.dart';
 
 class TasksRepositoryView {
@@ -142,6 +146,178 @@ class TasksRepositoryView {
 
   Future<TaskList> _descendants(Task task) async {
     final rows = await _tx.getAll(_descendantsQuery, [task.id]);
+
+    return rows.map(taskFromRow).toList();
+  }
+
+  static const _getChildrenQuery =
+      'SELECT * FROM tasks WHERE parentId = ? ORDER BY position ASC';
+
+  FutureOr<TaskList> getChildren(Task task) async {
+    final rows = await _tx.getAll(_getChildrenQuery, [task.id]);
+
+    return rows.map(taskFromRow).toList();
+  }
+
+  static const _getParentQuery = 'SELECT * FROM tasks WHERE id = ?';
+  FutureOr<Task?> getParent(Task task) async {
+    if (task.parentId == null) return null;
+    final rows = await _tx.getAll(_getParentQuery, [task.parentId]);
+
+    return rows.isEmpty ? null : taskFromRow(rows.first);
+  }
+
+  /// Returns a task and its descendants as an ordered list
+  Future<TaskNodeList> subtreeFlat(int id) async {
+    final rows = await _tx.getAll(
+      '''
+      WITH RECURSIVE
+        subtree(lvl, $commaAllTaskFields) AS (
+          SELECT
+            0 AS lvl,
+            $commaAllTaskFields
+          FROM tasks
+          WHERE id = ?
+        UNION ALL
+          SELECT
+            subtree.lvl + 1,
+            ${commaFields(allTaskFields, prefix: 'tasks')}
+          FROM
+            subtree
+            JOIN tasks ON tasks.parentId = subtree.id
+          ORDER BY
+            subtree.lvl+1 DESC,
+            tasks.position
+        )
+      SELECT
+        subtree.*,
+        (
+          SELECT count(id)
+          FROM tasks
+          WHERE parentId = subtree.id
+        ) AS childrenCount
+      FROM subtree
+      ''',
+      [id],
+    );
+
+    return rows
+        .map(
+          (row) => _taskNodeFromRow(
+            row,
+            level: row['lvl'] as int,
+            childrenCount: row['childrenCount'] as int,
+            position: row['position'] as int,
+          ),
+        )
+        .toList();
+  }
+
+  Future<TaskNodeList> expandedDescendantsTree(Task task) async {
+    final id = task.id;
+    final rows = await _tx.getAll(
+      '''
+      WITH RECURSIVE
+        subtree(lvl, $commaAllTaskFields) AS (
+          SELECT
+            0 AS lvl,
+            $commaAllTaskFieldsPrefixed
+          FROM tasks
+          WHERE tasks.parentId = ?
+        UNION ALL
+          SELECT
+            subtree.lvl + 1,
+            $commaAllTaskFieldsPrefixed
+          FROM
+            subtree
+            JOIN tasks ON tasks.parentId = subtree.id
+          WHERE subtree.expanded = 1
+          ORDER BY
+            subtree.lvl+1 DESC,
+            tasks.position
+        )
+      SELECT
+        subtree.*,
+        (
+          SELECT count(id)
+          FROM tasks
+          WHERE parentId = subtree.id
+        ) AS childrenCount
+      FROM subtree
+      ''',
+      [id],
+    );
+
+    return rows
+        .map(
+          (row) => _taskNodeFromRow(
+            row,
+            level: row['lvl'] as int,
+            childrenCount: row['childrenCount'] as int,
+            position: row['position'] as int,
+          ),
+        )
+        .toList();
+  }
+
+  TaskNode _taskNodeFromRow(
+    Row row, {
+    required int level,
+    int childrenCount = 0,
+    int position = 0,
+  }) {
+    final task = taskFromRow(row);
+
+    return TaskNode(
+      task: task,
+      level: level,
+      childrenCount: childrenCount,
+      position: position,
+    );
+  }
+
+  int getTaskId(Task task) => task.id;
+
+  Future<TaskList> leaves(TaskList tasks, {bool? done}) async {
+    final ids = tasks.map(getTaskId).toList();
+    return leavesByIdsInContext(ids, done: done);
+  }
+
+  Future<TaskList> leavesByIdsInContext(List<int> ids, {bool? done}) async {
+    String doneClause = '';
+    if (done is bool) {
+      doneClause = 'AND doneAt IS ${done ? 'NOT' : ''} NULL';
+    }
+    final rows = await _tx.getAll('''
+      WITH RECURSIVE
+        subtree(lvl, $commaAllTaskFields) AS (
+          SELECT
+            0 AS lvl,
+            $commaAllTaskFieldsPrefixed
+          FROM tasks
+          WHERE tasks.parentId IN (${questionMarks(ids.length)})
+        UNION ALL
+          SELECT
+            subtree.lvl + 1,
+            $commaAllTaskFieldsPrefixed
+          FROM
+            subtree
+            JOIN tasks ON tasks.parentId = subtree.id
+          ORDER BY
+            subtree.lvl+1 DESC,
+            tasks.position
+        )
+      SELECT
+        subtree.*,
+        (
+          SELECT count(id)
+          FROM tasks
+          WHERE parentId = subtree.id
+        ) AS childrenCount
+      FROM subtree
+      WHERE childrenCount = 0
+      $doneClause
+      ''', ids);
 
     return rows.map(taskFromRow).toList();
   }

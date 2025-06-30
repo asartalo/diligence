@@ -17,11 +17,9 @@
 import 'dart:math';
 
 import 'package:collection/collection.dart';
-import 'package:sqlite_async/sqlite3.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 
 import '../../models/new_task.dart';
-import '../../models/persisted_task.dart';
 import '../../models/modified_task.dart';
 import '../../models/task.dart';
 import '../../models/task_list.dart';
@@ -226,30 +224,9 @@ class TasksRepository {
         : 0;
   }
 
-  Task _taskFromRow(Row row) {
-    final task = PersistedTask(
-      id: row['id'] as int,
-      name: row['name'] as String,
-      parentId: row['parentId'] as int?,
-      doneAt: row['doneAt'] != null
-          ? dateTimeFromRowEpoch(row['doneAt'])
-          : null,
-      uid: row['uid'] as String,
-      expanded: row['expanded'] as int == 1,
-      details: row['details'] as String?,
-      createdAt: dateTimeFromRowEpoch(row['createdAt']),
-      updatedAt: dateTimeFromRowEpoch(row['updatedAt']),
-      deadlineAt: row['deadlineAt'] != null
-          ? dateTimeFromRowEpoch(row['deadlineAt'])
-          : null,
-    );
-
-    return task;
-  }
-
   Future<TaskList> _getPersistedTasks(TaskList tasks) async {
     final uids = _uidsFromTasks(tasks);
-    final newTasks = await _findTasksByUids(uids);
+    final newTasks = await _view.findTasksByUids(uids);
 
     if (newTasks.length != uids.length) {
       throw Exception('Not all tasks were created.');
@@ -260,15 +237,6 @@ class TasksRepository {
 
   List<String> _uidsFromTasks(TaskList tasks) {
     return tasks.map((task) => task.uid).toList();
-  }
-
-  Future<TaskList> _findTasksByUids(List<String> uids) async {
-    final qMarks = questionMarks(uids.length);
-    final rows = await _tx.getAll('''
-      SELECT * FROM tasks WHERE uid IN ($qMarks) ORDER BY position
-      ''', uids);
-
-    return rows.map(_taskFromRow).toList();
   }
 
   Future<void> _toggleLineage(
