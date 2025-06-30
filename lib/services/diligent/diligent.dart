@@ -15,7 +15,6 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 import 'dart:async';
-import 'dart:math';
 
 import 'package:sqlite_async/sqlite3.dart';
 import 'package:sqlite_async/sqlite_async.dart';
@@ -35,7 +34,6 @@ import 'task_events/added_reminders_event.dart';
 import 'task_events/removed_reminders_event.dart';
 import 'task_events/task_event.dart';
 import 'task_events/task_event_registry.dart';
-import 'task_events/toggled_tasks_done_event.dart';
 import 'task_fields.dart';
 import '../migrate.dart';
 import 'tasks_repository_view.dart';
@@ -202,99 +200,6 @@ class Diligent extends TaskDb {
     return updatedTask!;
   }
 
-  Future<void> _toggleLineage(
-    Task task,
-    SqliteWriteContext tx, {
-    bool forceDescendants = false,
-    bool startAtTask = false,
-  }) async {
-    await _toggleAncestorsDone(task, tx, startAtTask: startAtTask);
-    if (forceDescendants) {
-      await _toggleDescendantsDone(task, tx);
-    }
-  }
-
-  // TODO: There must be a better way to do this using only a few queries
-  Future<void> _toggleAncestorsDone(
-    Task task,
-    SqliteWriteContext tx, {
-    bool startAtTask = false,
-  }) async {
-    final ancestors = await TasksRepositoryView(
-      clock: clock,
-      tx: tx,
-    ).ancestors(task, includeTaskAsAncestor: startAtTask, reverse: false);
-    for (final ancestor in ancestors) {
-      final doneAt = await _allChildrenDone(ancestor, tx);
-      if (
-      // ancestor is done and task is not done
-      (doneAt == null && ancestor.done) ||
-          // ancestor is not done and all children are done
-          (doneAt is DateTime &&
-              (doneAt.millisecondsSinceEpoch !=
-                  ancestor.doneAt?.millisecondsSinceEpoch))) {
-        await _toggleDoneById(doneAt?.millisecondsSinceEpoch, ancestor.id, tx);
-      } else {
-        break;
-      }
-    }
-  }
-
-  Future<void> _toggleDoneById(
-    int? doneAtEpoch,
-    int id,
-    SqliteWriteContext tx,
-  ) =>
-      tx.execute('UPDATE tasks SET doneAt = ? WHERE id = ?', [doneAtEpoch, id]);
-
-  Future<void> _toggleDescendantsDone(Task task, SqliteWriteContext tx) async {
-    final descendants = await TasksRepositoryView(
-      clock: clock,
-      tx: tx,
-    ).descendants(task);
-    final doneAt = task.doneAt;
-
-    for (final descendant in descendants) {
-      await tx.execute(
-        '''
-        UPDATE tasks
-        SET doneAt = ?
-        WHERE id = ?
-        ''',
-        [doneAt?.millisecondsSinceEpoch, descendant.id],
-      );
-    }
-    announceEvent(
-      ToggledTasksDoneEvent(
-        clock.now(),
-        tasks: descendants,
-        tx: tx,
-        doneAt: doneAt,
-      ),
-    );
-  }
-
-  Future<DateTime?> _allChildrenDone(Task task, SqliteReadContext tx) async {
-    final result = await tx.get(
-      '''
-      SELECT COUNT(id) as count,
-        COUNT(doneAt) as doneCount,
-        MAX(COALESCE(doneAt, 0)) as latestDoneAt
-      FROM tasks
-      WHERE parentId = ?
-      ''',
-      [task.id],
-    );
-    final count = result['count'] as int;
-    final doneCount = result['doneCount'] as int;
-    final doneAtEpoch = result['latestDoneAt'] == null
-        ? 0
-        : result['latestDoneAt'] as int;
-    final doneAt = doneAtEpoch > 0 ? dateTimeFromRowEpoch(doneAtEpoch) : null;
-
-    return count == doneCount ? doneAt : null;
-  }
-
   Future<TaskList> ancestors(Task task) => _tasksRepositoryView.ancestors(task);
 
   Future<TaskList> descendants(Task task) =>
@@ -322,126 +227,12 @@ class Diligent extends TaskDb {
     });
   }
 
-  Future<void> _reorderChildren(SqliteWriteContext tx, int? parentId) async {
-    await tx.execute(
-      '''
-        UPDATE tasks
-        SET position = p.newPosition
-        FROM (
-          SELECT id, position,
-            (row_number() OVER (ORDER BY position) - 1) AS newPosition
-          FROM tasks
-          WHERE parentId = ?
-          ORDER BY position
-        ) AS p
-        WHERE p.id = tasks.id
-        AND parentId = ?
-      ''',
-      [parentId, parentId],
-    );
-  }
-
   Future<void> moveTask(Task task, int position, {Task? parent}) async {
-    if (parent is Task && parent.id != task.parentId) {
-      await _moveTaskToAnotherParent(task, parent, position);
-    } else {
-      await _moveTaskWithinSiblings(task, position);
-    }
-  }
-
-  Future<void> _moveTaskToAnotherParent(
-    Task task,
-    Task parent,
-    int position,
-  ) async {
     await db.writeTransaction((tx) async {
-      await tx.execute(
-        '''
-        UPDATE tasks
-        SET position = position + 1
-        WHERE parentId = ? AND position >= ?
-        ''',
-        [parent.id, position],
-      );
-      await tx.execute(
-        '''
-        UPDATE tasks
-        SET parentId = ?, position = ?
-        WHERE id = ?
-        ''',
-        [parent.id, position, task.id],
-      );
-
-      await _toggleLineage(parent, tx, startAtTask: true);
-      await _reorderChildren(tx, task.parentId);
-      final oldParent = await TasksRepositoryView(
-        clock: clock,
-        tx: tx,
-      ).findTask(task.parentId);
-      if (oldParent is Task) {
-        await _toggleLineage(oldParent, tx, startAtTask: true);
-      }
+      await _transactionFactory
+          .moveTask(tx)
+          .work(task, position, parent: parent);
     });
-  }
-
-  Future<void> _moveTaskWithinSiblings(Task task, int position) async {
-    await db.writeTransaction((tx) async {
-      final (oldPosition, count) = await _getTaskPositionInfo(task, tx);
-      final actualPosition = max(min(count - 1, position), 0);
-      await tx.execute(
-        '''
-        UPDATE tasks
-        SET position = (
-          CASE
-          WHEN p.oldPosition < ? AND p.oldPosition >= ?
-            THEN p.oldPosition + 1
-          WHEN p.oldPosition > ? AND p.oldPosition <= ?
-            THEN p.oldPosition - 1
-          WHEN p.oldPosition = ? THEN ?
-          ELSE p.oldPosition
-          END
-        )
-        FROM (
-          SELECT id, position,
-            (row_number() OVER (ORDER BY position) - 1) AS oldPosition
-          FROM tasks
-          WHERE parentId = ?
-          ORDER BY position
-        ) AS p
-        WHERE p.id = tasks.id
-        ''',
-        [
-          oldPosition,
-          actualPosition,
-          oldPosition,
-          actualPosition,
-          oldPosition,
-          actualPosition,
-          task.parentId,
-        ],
-      );
-    });
-  }
-
-  Future<(int, int)> _getTaskPositionInfo(
-    Task task,
-    SqliteReadContext tx,
-  ) async {
-    final positions = await tx.get(
-      '''
-      WITH siblings AS (
-        SELECT id, (row_number() OVER (ORDER BY position) - 1) AS oldPosition
-        FROM tasks
-        WHERE parentId = ?
-      )
-      SELECT oldPosition, peers FROM siblings
-      CROSS JOIN (SELECT count(id) AS peers FROM siblings)
-      WHERE id = ?
-      ''',
-      [task.parentId, task.id],
-    );
-
-    return (positions['oldPosition'] as int, positions['peers'] as int);
   }
 
   Future<void> initialAreas(TaskList areas) async {

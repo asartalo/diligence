@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
+import 'dart:math';
+
 import 'package:collection/collection.dart';
 import 'package:sqlite_async/sqlite3.dart';
 import 'package:sqlite_async/sqlite_async.dart';
@@ -108,6 +110,11 @@ class TasksRepository {
     }
   }
 
+  static const _addTaskAdjustPositionQuery = '''
+    UPDATE tasks SET position = position + ?
+    WHERE parentId = ? AND position >= ?
+    ''';
+
   Future<TasksRepositoryResult> addTask(TaskList tasks, {int? position}) async {
     _checkTransactionPossible();
     final result = TasksRepositoryResult();
@@ -116,13 +123,11 @@ class TasksRepository {
 
     final positionToUse = position ?? await _getChildLastPosition(parentId);
 
-    await _tx.execute(
-      '''
-        UPDATE tasks SET position = position + ?
-        WHERE parentId = ? AND position >= ?
-        ''',
-      [tasks.length, parentId, positionToUse],
-    );
+    await _tx.execute(_addTaskAdjustPositionQuery, [
+      tasks.length,
+      parentId,
+      positionToUse,
+    ]);
     final batchProps = tasks.mapIndexed((int index, task) {
       return [
         ...propsFromTaskFields(newTaskFields, task),
@@ -173,6 +178,22 @@ class TasksRepository {
     return result;
   }
 
+  Future<TasksRepositoryResult> moveTask(
+    Task task,
+    int position, {
+    Task? parent,
+  }) async {
+    _checkTransactionPossible();
+    final result = TasksRepositoryResult();
+    if (parent is Task && parent.id != task.parentId) {
+      await _moveTaskToAnotherParent(task, parent, position, result);
+    } else {
+      await _moveTaskWithinSiblings(task, position, result);
+    }
+
+    return result;
+  }
+
   Future<void> _validateAddedTasks(TaskList tasks) async {
     final Set<int?> parentIds = {};
     for (final task in tasks) {
@@ -191,15 +212,14 @@ class TasksRepository {
     }
   }
 
+  static const _childPositionQuery = '''
+    SELECT COALESCE(MAX(position) + 1, 0) as lastPosition
+    FROM tasks
+    WHERE parentId = ?
+    ''';
+
   Future<int> _getChildLastPosition(int? parentId) async {
-    final lastPositionResult = await _tx.get(
-      '''
-      SELECT COALESCE(MAX(position) + 1, 0) as lastPosition
-      FROM tasks
-      WHERE parentId = ?
-      ''',
-      [parentId],
-    );
+    final lastPositionResult = await _tx.get(_childPositionQuery, [parentId]);
 
     return lastPositionResult.isNotEmpty
         ? lastPositionResult['lastPosition'] as int
@@ -291,17 +311,16 @@ class TasksRepository {
     }
   }
 
+  static const _allChildrenDoneQuery = '''
+    SELECT COUNT(id) as count,
+      COUNT(doneAt) as doneCount,
+      MAX(COALESCE(doneAt, 0)) as latestDoneAt
+    FROM tasks
+    WHERE parentId = ?
+    ''';
+
   Future<DateTime?> _allChildrenDone(Task task) async {
-    final result = await _tx.get(
-      '''
-      SELECT COUNT(id) as count,
-        COUNT(doneAt) as doneCount,
-        MAX(COALESCE(doneAt, 0)) as latestDoneAt
-      FROM tasks
-      WHERE parentId = ?
-      ''',
-      [task.id],
-    );
+    final result = await _tx.get(_allChildrenDoneQuery, [task.id]);
     final count = result['count'] as int;
     final doneCount = result['doneCount'] as int;
     final doneAtEpoch = result['latestDoneAt'] == null
@@ -312,10 +331,17 @@ class TasksRepository {
     return count == doneCount ? doneAt : null;
   }
 
-  Future<void> _toggleDoneById(int? doneAtEpoch, int id) => _tx.execute(
-    'UPDATE tasks SET doneAt = ? WHERE id = ?',
-    [doneAtEpoch, id],
-  );
+  static const _toggleDoneByIdQuery =
+      'UPDATE tasks SET doneAt = ? WHERE id = ?';
+
+  Future<void> _toggleDoneById(int? doneAtEpoch, int id) =>
+      _tx.execute(_toggleDoneByIdQuery, [doneAtEpoch, id]);
+
+  static const _toggleDescendantsDoneQuery = '''
+    UPDATE tasks
+    SET doneAt = ?
+    WHERE id = ?
+    ''';
 
   Future<void> _toggleDescendantsDone(
     Task task, {
@@ -325,14 +351,10 @@ class TasksRepository {
     final doneAt = task.doneAt;
 
     for (final descendant in descendants) {
-      await _tx.execute(
-        '''
-        UPDATE tasks
-        SET doneAt = ?
-        WHERE id = ?
-        ''',
-        [doneAt?.millisecondsSinceEpoch, descendant.id],
-      );
+      await _tx.execute(_toggleDescendantsDoneQuery, [
+        doneAt?.millisecondsSinceEpoch,
+        descendant.id,
+      ]);
     }
     result.toggledTasks.addAll(descendants);
   }
@@ -357,22 +379,110 @@ class TasksRepository {
     }
   }
 
+  static const _reorderChildrenQuery = '''
+    UPDATE tasks
+    SET position = p.newPosition
+    FROM (
+      SELECT id, position,
+        (row_number() OVER (ORDER BY position) - 1) AS newPosition
+      FROM tasks
+      WHERE parentId = ?
+      ORDER BY position
+    ) AS p
+    WHERE p.id = tasks.id
+    AND parentId = ?
+    ''';
+
   Future<void> _reorderChildren(int? parentId) async {
-    await _tx.execute(
-      '''
-        UPDATE tasks
-        SET position = p.newPosition
-        FROM (
-          SELECT id, position,
-            (row_number() OVER (ORDER BY position) - 1) AS newPosition
-          FROM tasks
-          WHERE parentId = ?
-          ORDER BY position
-        ) AS p
-        WHERE p.id = tasks.id
-        AND parentId = ?
-      ''',
-      [parentId, parentId],
-    );
+    await _tx.execute(_reorderChildrenQuery, [parentId, parentId]);
+  }
+
+  static const _adjustAfterSiblingsDownQuery = '''
+    UPDATE tasks
+    SET position = position + 1
+    WHERE parentId = ? AND position >= ?
+    ''';
+
+  static const _addhildToParentQuery = '''
+    UPDATE tasks
+    SET parentId = ?, position = ?
+    WHERE id = ?
+    ''';
+
+  Future<void> _moveTaskToAnotherParent(
+    Task task,
+    Task parent,
+    int position,
+    TasksRepositoryResult result,
+  ) async {
+    await _tx.execute(_adjustAfterSiblingsDownQuery, [parent.id, position]);
+    await _tx.execute(_addhildToParentQuery, [parent.id, position, task.id]);
+
+    await _toggleLineage(parent, startAtTask: true, result: result);
+    await _reorderChildren(task.parentId);
+    final oldParent = await _view.findTask(task.parentId);
+    if (oldParent is Task) {
+      await _toggleLineage(oldParent, startAtTask: true, result: result);
+    }
+  }
+
+  static const _moveTaskWithinSiblingsQuery = '''
+    UPDATE tasks
+    SET position = (
+      CASE
+      WHEN p.oldPosition < ? AND p.oldPosition >= ?
+        THEN p.oldPosition + 1
+      WHEN p.oldPosition > ? AND p.oldPosition <= ?
+        THEN p.oldPosition - 1
+      WHEN p.oldPosition = ? THEN ?
+      ELSE p.oldPosition
+      END
+    )
+    FROM (
+      SELECT id, position,
+        (row_number() OVER (ORDER BY position) - 1) AS oldPosition
+      FROM tasks
+      WHERE parentId = ?
+      ORDER BY position
+    ) AS p
+    WHERE p.id = tasks.id
+    ''';
+
+  Future<void> _moveTaskWithinSiblings(
+    Task task,
+    int position,
+    TasksRepositoryResult result,
+  ) async {
+    final (oldPosition, count) = await _getTaskPositionInfo(task);
+    final actualPosition = max(min(count - 1, position), 0);
+    await _tx.execute(_moveTaskWithinSiblingsQuery, [
+      oldPosition,
+      actualPosition,
+      oldPosition,
+      actualPosition,
+      oldPosition,
+      actualPosition,
+      task.parentId,
+    ]);
+  }
+
+  static const _getTaskPositionInfoQuery = '''
+    WITH siblings AS (
+      SELECT id, (row_number() OVER (ORDER BY position) - 1) AS oldPosition
+      FROM tasks
+      WHERE parentId = ?
+    )
+    SELECT oldPosition, peers FROM siblings
+    CROSS JOIN (SELECT count(id) AS peers FROM siblings)
+    WHERE id = ?
+    ''';
+
+  Future<(int, int)> _getTaskPositionInfo(Task task) async {
+    final positions = await _tx.get(_getTaskPositionInfoQuery, [
+      task.parentId,
+      task.id,
+    ]);
+
+    return (positions['oldPosition'] as int, positions['peers'] as int);
   }
 }

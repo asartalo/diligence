@@ -20,6 +20,7 @@ import '../../../di/app_state_scope.dart';
 import '../../../di/transaction_scope.dart';
 import 'add_tasks.dart';
 import 'delete_task.dart';
+import 'move_task.dart';
 import 'update_task.dart';
 
 class TransactionFactory {
@@ -41,5 +42,9 @@ class TransactionFactory {
 
   DeleteTask deleteTask(SqliteWriteContext tx) {
     return _newScope(tx).deleteTask;
+  }
+
+  MoveTask moveTask(SqliteWriteContext tx) {
+    return _newScope(tx).moveTask;
   }
 }
