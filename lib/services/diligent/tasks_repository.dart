@@ -20,11 +20,13 @@ import 'package:sqlite_async/sqlite_async.dart';
 
 import '../../models/new_task.dart';
 import '../../models/persisted_task.dart';
+import '../../models/modified_task.dart';
 import '../../models/task.dart';
 import '../../models/task_list.dart';
 import '../../utils/clock.dart';
 import '../../utils/date_time_from_row_epoch.dart';
 import 'task_fields.dart';
+import 'tasks_repository_view.dart';
 
 typedef TasksCallback = Future<void> Function(List<Task> tasks);
 
@@ -54,12 +56,18 @@ class TasksRepository {
 
   final SqliteWriteContext _tx;
 
+  final TasksRepositoryView _view;
+
   // TasksRepository exists per transaction. If the transaction is closed, this
   // should no longer be used.
   bool get transactionDone => _tx.closed;
 
-  TasksRepository({required this.clock, required SqliteWriteContext tx})
-    : _tx = tx;
+  TasksRepository({
+    required this.clock,
+    required SqliteWriteContext tx,
+    required TasksRepositoryView view,
+  }) : _tx = tx,
+       _view = view;
 
   static NewTask newTask({
     int id = 0,
@@ -143,7 +151,7 @@ class TasksRepository {
     }
     final parentId = parentIds.first;
     if (parentId != 0) {
-      final parent = await _findTask(parentId, _tx);
+      final parent = await _view.findTask(parentId);
       if (parent == null) {
         throw ArgumentError('Parent with id $parentId does not exist.');
       }
@@ -163,13 +171,6 @@ class TasksRepository {
     return lastPositionResult.isNotEmpty
         ? lastPositionResult['lastPosition'] as int
         : 0;
-  }
-
-  Future<Task?> _findTask(int? id, SqliteReadContext tx) async {
-    if (id == null) return null;
-    final rows = await tx.getAll('SELECT * FROM tasks WHERE id = ?', [id]);
-
-    return rows.isEmpty ? null : _taskFromRow(rows.first);
   }
 
   Task _taskFromRow(Row row) {
@@ -223,6 +224,7 @@ class TasksRepository {
     bool forceDescendants = false,
     bool startAtTask = false,
   }) async {
+    if (task.name == 'A1i - leaf') {}
     await _toggleAncestorsDone(task, result: result, startAtTask: startAtTask);
     if (forceDescendants) {
       await _toggleDescendantsDone(task, result: result);
@@ -355,5 +357,44 @@ class TasksRepository {
     );
 
     return rows.map(_taskFromRow).toList();
+  }
+
+  Future<TasksRepositoryResult> updateTask(Task task) async {
+    _checkTransactionPossible();
+    if (task is! ModifiedTask) {
+      throw ArgumentError('Task must be a ModifiedTask');
+    }
+    final result = TasksRepositoryResult();
+    late Task? updatedTask;
+    await _updateTask(task);
+    await _toggleTreeIfToggled(task, result: result);
+    updatedTask = await _view.findTask(task.id);
+    if (updatedTask == null) {
+      throw Exception('Task was not updated.');
+    }
+
+    result.updatedTasks.add(updatedTask);
+
+    return result;
+  }
+
+  Future<void> _updateTask(ModifiedTask task) async {
+    await _tx.execute(
+      '''
+      UPDATE tasks
+      SET ${fieldValuePlaceholders(modifiableNonPositionFields)}
+      WHERE id = ?
+      ''',
+      [...propsFromTaskFields(modifiableNonPositionFields, task), task.id],
+    );
+  }
+
+  Future<void> _toggleTreeIfToggled(
+    ModifiedTask task, {
+    required TasksRepositoryResult result,
+  }) async {
+    if (task.hasToggledDone()) {
+      await _toggleLineage(task, forceDescendants: true, result: result);
+    }
   }
 }

@@ -18,7 +18,9 @@ import 'package:sqlite_async/sqlite_async.dart';
 
 import '../di_scope_cache.dart';
 import '../services/diligent/tasks_repository.dart';
+import '../services/diligent/tasks_repository_view.dart';
 import '../services/diligent/transactions/add_tasks.dart';
+import '../services/diligent/transactions/update_task.dart';
 import '../utils/clock.dart';
 import 'app_state_scope.dart';
 
@@ -36,14 +38,29 @@ class TransactionScope {
 
   TasksRepository get tasksRepository => _cache.getSet(
     #tasksRepository,
-    () => TasksRepository(clock: clock, tx: tx),
+    () => TasksRepository(clock: clock, tx: tx, view: tasksRepositoryView),
+  );
+
+  TasksRepositoryView get tasksRepositoryView => _cache.getSet(
+    #tasksRepositoryView,
+    () => TasksRepositoryView(clock: clock, tx: tx),
   );
 
   AddTasks get addTasks {
     return AddTasks(
       tx,
+      clock: clock,
       eventRegistry: parent.taskEventRegistry,
-      tasksRepository: TasksRepository(clock: clock, tx: tx),
+      tasksRepository: tasksRepository,
+    );
+  }
+
+  UpdateTask get updateTask {
+    return UpdateTask(
+      tx,
+      clock: clock,
+      eventRegistry: parent.taskEventRegistry,
+      tasksRepository: tasksRepository,
     );
   }
 }

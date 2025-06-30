@@ -14,22 +14,27 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-import '../../../models/task_list.dart';
+import '../../../models/modified_task.dart';
+import '../../../models/task.dart';
 import 'transactions.dart';
 
-class AddTasks extends EventAnnouncer {
-  AddTasks(
+class UpdateTask extends EventAnnouncer {
+  UpdateTask(
     super.tx, {
-    required super.clock,
     required super.eventRegistry,
+    required super.clock,
     required super.tasksRepository,
   });
 
-  Future<TaskList> work(TaskList tasks, {int? position}) async {
-    final result = await tasksRepository.addTask(tasks, position: position);
+  Future<Task> work(Task task) async {
+    if (task is! ModifiedTask) {
+      throw ArgumentError('Task must be a ModifiedTask');
+    }
 
-    await broadcastChanges(result);
+    final result = await tasksRepository.updateTask(task);
+    final updatedTask = result.updatedTasks.first;
+    await broadcastChanges(result, updatedTaskOriginal: task);
 
-    return result.addedTasks;
+    return updatedTask;
   }
 }

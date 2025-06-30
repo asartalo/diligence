@@ -20,9 +20,7 @@ import 'dart:math';
 import 'package:sqlite_async/sqlite3.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 
-import '../../models/modified_task.dart';
 import '../../models/new_task.dart';
-import '../../models/persisted_task.dart';
 import '../../models/reminders/reminder.dart';
 import '../../models/reminders/reminder_list.dart';
 import '../../models/task.dart';
@@ -39,10 +37,9 @@ import 'task_events/removed_reminders_event.dart';
 import 'task_events/task_event.dart';
 import 'task_events/task_event_registry.dart';
 import 'task_events/toggled_tasks_done_event.dart';
-import 'task_events/updated_task_event.dart';
 import 'task_fields.dart';
 import '../migrate.dart';
-import 'tasks_repository.dart';
+import 'tasks_repository_view.dart';
 import 'transactions/transaction_factory.dart';
 
 typedef TaskNodeList = List<TaskNode>;
@@ -61,22 +58,27 @@ class Diligent extends TaskDb {
 
   final TaskEventRegistry _eventRegistry;
 
+  final TasksRepositoryView _tasksRepositoryView;
+
   Diligent._internal({
     required this.db,
     required bool isTest,
     required this.focusQueueManager,
     required this.clock,
+    required TasksRepositoryView tasksRepositoryView,
     required TaskEventRegistry eventRegistry,
     required TransactionFactory transactionFactory,
   }) : _isTest = isTest,
        _eventRegistry = eventRegistry,
-       _transactionFactory = transactionFactory {
+       _transactionFactory = transactionFactory,
+       _tasksRepositoryView = tasksRepositoryView {
     focusQueueManager.registerEventHandlers(this);
   }
 
   factory Diligent.convenience({
     required bool isTest,
     required SqliteDatabase db,
+    required TasksRepositoryView tasksRepositoryView,
     required TaskEventRegistry eventRegistry,
     required TransactionFactory transactionFactory,
     Clock? clock,
@@ -87,6 +89,7 @@ class Diligent extends TaskDb {
       db: db,
       isTest: isTest,
       clock: actualClock,
+      tasksRepositoryView: tasksRepositoryView,
       eventRegistry: eventRegistry,
       transactionFactory: transactionFactory,
       focusQueueManager: FocusQueueManager(db: db, clock: actualClock),
@@ -96,6 +99,7 @@ class Diligent extends TaskDb {
   factory Diligent({
     required SqliteDatabase db,
     Clock? clock,
+    required TasksRepositoryView tasksRepositoryView,
     required TaskEventRegistry eventRegistry,
     required TransactionFactory transactionFactory,
   }) {
@@ -103,6 +107,7 @@ class Diligent extends TaskDb {
       isTest: false,
       db: db,
       clock: clock,
+      tasksRepositoryView: tasksRepositoryView,
       eventRegistry: eventRegistry,
       transactionFactory: transactionFactory,
     );
@@ -145,20 +150,22 @@ class Diligent extends TaskDb {
     DateTime? updatedAt,
     DateTime? deadlineAt,
     DateTime? now,
-  }) => TasksRepository.newTask(
-    id: id,
-    parentId: parentId,
-    parent: parent,
-    doneAt: doneAt,
-    uid: uid,
-    name: name,
-    details: details,
-    expanded: expanded,
-    createdAt: createdAt,
-    updatedAt: updatedAt,
-    deadlineAt: deadlineAt,
-    now: now ?? clock.now(),
-  );
+  }) {
+    return NewTask(
+      id: id,
+      parentId: parentId,
+      parent: parent,
+      doneAt: doneAt,
+      uid: uid,
+      name: name ?? '',
+      details: details,
+      expanded: expanded ?? false,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      deadlineAt: deadlineAt,
+      now: now ?? clock.now(),
+    );
+  }
 
   Future<TaskList> addTasks(TaskList tasks, {int? position}) async {
     TaskList newTasks = [];
@@ -182,46 +189,15 @@ class Diligent extends TaskDb {
     return newTasks.first;
   }
 
-  Future<Task?> findTask(int id) => _findTask(id, db);
+  Future<Task?> findTask(int id) => _tasksRepositoryView.findTask(id);
 
-  Future<Task?> _findTask(int? id, SqliteReadContext tx) async {
-    if (id == null) return null;
-    final rows = await tx.getAll('SELECT * FROM tasks WHERE id = ?', [id]);
-
-    return rows.isEmpty ? null : taskFromRow(rows.first);
-  }
-
-  Future<Task?> findTaskByName(String name) async {
-    final rows = await db.getAll(
-      'SELECT * FROM tasks WHERE UPPER(name) LIKE ?',
-      ["%${name.toUpperCase()}%"],
-    );
-
-    return rows.isEmpty ? null : taskFromRow(rows.first);
-  }
+  Future<Task?> findTaskByName(String name) =>
+      _tasksRepositoryView.findTaskByName(name);
 
   Future<Task> updateTask(Task task) async {
-    if (task is! ModifiedTask) {
-      throw ArgumentError('Task must be a ModifiedTask');
-    }
-
     late Task? updatedTask;
     await db.writeTransaction((tx) async {
-      await _updateTask(task, tx);
-      await _toggleTreeIfToggled(task, tx);
-      updatedTask = await _findTask(task.id, tx);
-      if (updatedTask == null) {
-        throw Exception('Task was not updated.');
-      }
-
-      await announceEvent(
-        UpdatedTaskEvent(
-          clock.now(),
-          modified: task,
-          persisted: updatedTask as PersistedTask,
-          tx: tx,
-        ),
-      );
+      updatedTask = await _transactionFactory.updateTask(tx).work(task);
     });
 
     return updatedTask!;
@@ -236,15 +212,6 @@ class Diligent extends TaskDb {
     await _toggleAncestorsDone(task, tx, startAtTask: startAtTask);
     if (forceDescendants) {
       await _toggleDescendantsDone(task, tx);
-    }
-  }
-
-  Future<void> _toggleTreeIfToggled(
-    ModifiedTask task,
-    SqliteWriteContext tx,
-  ) async {
-    if (task.hasToggledDone()) {
-      await _toggleLineage(task, tx, forceDescendants: true);
     }
   }
 
@@ -387,17 +354,6 @@ class Diligent extends TaskDb {
     return rows.map(taskFromRow).toList();
   }
 
-  Future<void> _updateTask(ModifiedTask task, SqliteWriteContext tx) async {
-    await tx.execute(
-      '''
-      UPDATE tasks
-      SET ${fieldValuePlaceholders(modifiableNonPositionFields)}
-      WHERE id = ?
-      ''',
-      [...propsFromTaskFields(modifiableNonPositionFields, task), task.id],
-    );
-  }
-
   TaskNode _taskNodeFromRow(
     Row row, {
     required int level,
@@ -418,7 +374,10 @@ class Diligent extends TaskDb {
     await db.writeTransaction((tx) async {
       await tx.execute('DELETE FROM tasks WHERE id = ?', [task.id]);
       await _reorderChildren(tx, task.parentId);
-      final parent = await _findTask(task.parentId, tx);
+      final parent = await TasksRepositoryView(
+        clock: clock,
+        tx: tx,
+      ).findTask(task.parentId);
       if (parent is Task) {
         await _toggleLineage(task, tx);
       }
@@ -479,7 +438,10 @@ class Diligent extends TaskDb {
 
       await _toggleLineage(parent, tx, startAtTask: true);
       await _reorderChildren(tx, task.parentId);
-      final oldParent = await _findTask(task.parentId, tx);
+      final oldParent = await TasksRepositoryView(
+        clock: clock,
+        tx: tx,
+      ).findTask(task.parentId);
       if (oldParent is Task) {
         await _toggleLineage(oldParent, tx, startAtTask: true);
       }

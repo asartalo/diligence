@@ -19,6 +19,7 @@ import 'package:sqlite_async/sqlite_async.dart';
 import '../../../di/app_state_scope.dart';
 import '../../../di/transaction_scope.dart';
 import 'add_tasks.dart';
+import 'update_task.dart';
 
 class TransactionFactory {
   AppStateScope di;
@@ -31,5 +32,9 @@ class TransactionFactory {
 
   AddTasks addTasks(SqliteWriteContext tx) {
     return _newScope(tx).addTasks;
+  }
+
+  UpdateTask updateTask(SqliteWriteContext tx) {
+    return _newScope(tx).updateTask;
   }
 }

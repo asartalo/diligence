@@ -27,6 +27,7 @@ import '../models/scheduled_job.dart';
 import '../platform_wrapped.dart';
 import '../services/config_manager.dart';
 import '../services/diligent/diligent.dart';
+import '../services/diligent/tasks_repository_view.dart';
 import '../services/diligent/task_events/task_event_registry.dart';
 import '../services/diligent/transactions/transaction_factory.dart';
 import '../services/jobs/job_queue.dart';
@@ -78,10 +79,14 @@ class AppStateScope {
       clock: clock,
       eventRegistry: taskEventRegistry,
       transactionFactory: transactionFactory,
+      tasksRepositoryView: tasksRepositoryView,
     ),
   );
 
-  // Diligent
+  TasksRepositoryView get tasksRepositoryView => _cache.getSet(
+    #tasksRepositoryView,
+    () => TasksRepositoryView(clock: clock, tx: db),
+  );
 
   SqliteDatabase get db =>
       _cache.getSet(#db, () => SqliteDatabase(path: dbPath));
