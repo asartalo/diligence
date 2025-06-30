@@ -20,6 +20,7 @@ import '../di_scope_cache.dart';
 import '../services/diligent/tasks_repository.dart';
 import '../services/diligent/tasks_repository_view.dart';
 import '../services/diligent/transactions/add_tasks.dart';
+import '../services/diligent/transactions/delete_task.dart';
 import '../services/diligent/transactions/update_task.dart';
 import '../utils/clock.dart';
 import 'app_state_scope.dart';
@@ -57,6 +58,15 @@ class TransactionScope {
 
   UpdateTask get updateTask {
     return UpdateTask(
+      tx,
+      clock: clock,
+      eventRegistry: parent.taskEventRegistry,
+      tasksRepository: tasksRepository,
+    );
+  }
+
+  DeleteTask get deleteTask {
+    return DeleteTask(
       tx,
       clock: clock,
       eventRegistry: parent.taskEventRegistry,

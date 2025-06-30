@@ -20,13 +20,14 @@ import '../../../models/modified_task.dart';
 import '../../../models/persisted_task.dart';
 import '../../../utils/clock.dart';
 import '../task_events/added_tasks_event.dart';
+import '../task_events/deleted_task_event.dart';
 import '../task_events/task_event.dart';
 import '../task_events/task_event_registry.dart';
 import '../task_events/toggled_tasks_done_event.dart';
 import '../task_events/updated_task_event.dart';
 import '../tasks_repository.dart';
 
-abstract class EventAnnouncer {
+abstract class Transaction {
   final SqliteWriteContext tx;
 
   final Clock clock;
@@ -35,7 +36,7 @@ abstract class EventAnnouncer {
 
   final TasksRepository tasksRepository;
 
-  EventAnnouncer(
+  Transaction(
     this.tx, {
     required this.clock,
     required this.eventRegistry,
@@ -50,7 +51,8 @@ abstract class EventAnnouncer {
     if (updatedTaskOriginal is ModifiedTask) {
       await _announceUpdatedTasks(result, updatedTaskOriginal);
     }
-    await _announceToggledTasksEvents(result);
+    await _announceToggledTasks(result);
+    await _announceDeletedTask(result);
   }
 
   Future<void> _announceNewTasks(TasksRepositoryResult result) async {
@@ -83,7 +85,7 @@ abstract class EventAnnouncer {
     );
   }
 
-  Future<void> _announceToggledTasksEvents(TasksRepositoryResult result) async {
+  Future<void> _announceToggledTasks(TasksRepositoryResult result) async {
     for (final entry in result.toggledTasksGroupedByDoneAt().entries) {
       announceEvent(
         ToggledTasksDoneEvent(
@@ -94,6 +96,15 @@ abstract class EventAnnouncer {
         ),
       );
     }
+  }
+
+  Future<void> _announceDeletedTask(TasksRepositoryResult result) async {
+    if (result.deletedTasks.isEmpty) {
+      return;
+    }
+
+    final deletedTask = result.deletedTasks.first;
+    await announceEvent(DeletedTaskEvent(clock.now(), task: deletedTask));
   }
 
   Future<void> announceEvent<T extends TaskEvent>(T event) =>

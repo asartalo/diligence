@@ -140,6 +140,39 @@ class TasksRepository {
     return result;
   }
 
+  Future<TasksRepositoryResult> updateTask(Task task) async {
+    _checkTransactionPossible();
+    if (task is! ModifiedTask) {
+      throw ArgumentError('Task must be a ModifiedTask');
+    }
+    final result = TasksRepositoryResult();
+    late Task? updatedTask;
+    await _updateTask(task);
+    await _toggleTreeIfToggled(task, result: result);
+    updatedTask = await _view.findTask(task.id);
+    if (updatedTask == null) {
+      throw Exception('Task was not updated.');
+    }
+
+    result.updatedTasks.add(updatedTask);
+
+    return result;
+  }
+
+  Future<TasksRepositoryResult> deleteTask(Task task) async {
+    _checkTransactionPossible();
+    final result = TasksRepositoryResult();
+    await _tx.execute('DELETE FROM tasks WHERE id = ?', [task.id]);
+    await _reorderChildren(task.parentId);
+    final parent = await _view.findTask(task.parentId);
+    if (parent is Task) {
+      await _toggleLineage(task, result: result);
+    }
+    result.deletedTasks.add(task);
+
+    return result;
+  }
+
   Future<void> _validateAddedTasks(TaskList tasks) async {
     final Set<int?> parentIds = {};
     for (final task in tasks) {
@@ -224,7 +257,6 @@ class TasksRepository {
     bool forceDescendants = false,
     bool startAtTask = false,
   }) async {
-    if (task.name == 'A1i - leaf') {}
     await _toggleAncestorsDone(task, result: result, startAtTask: startAtTask);
     if (forceDescendants) {
       await _toggleDescendantsDone(task, result: result);
@@ -237,9 +269,10 @@ class TasksRepository {
     required TasksRepositoryResult result,
     bool startAtTask = false,
   }) async {
-    final ancestors = await _ancestors(
+    final ancestors = await _view.ancestors(
       task,
       includeTaskAsAncestor: startAtTask,
+      reverse: false,
     );
     for (final ancestor in ancestors) {
       final doneAt = await _allChildrenDone(ancestor);
@@ -288,7 +321,7 @@ class TasksRepository {
     Task task, {
     required TasksRepositoryResult result,
   }) async {
-    final descendants = await _descendants(task, _tx);
+    final descendants = await _view.descendants(task);
     final doneAt = task.doneAt;
 
     for (final descendant in descendants) {
@@ -302,80 +335,6 @@ class TasksRepository {
       );
     }
     result.toggledTasks.addAll(descendants);
-  }
-
-  Future<TaskList> _descendants(Task task, SqliteWriteContext tx) async {
-    final rows = await tx.getAll(
-      '''
-      WITH RECURSIVE
-        descendants AS (
-          SELECT * FROM tasks WHERE parentId = ?
-          UNION ALL
-          SELECT tasks.* FROM tasks
-          JOIN descendants ON tasks.parentId = descendants.id
-        )
-      SELECT * FROM descendants
-      ''',
-      [task.id],
-    );
-
-    return rows.map(_taskFromRow).toList();
-  }
-
-  static const String _ancestorsQuery = '''
-        WITH RECURSIVE
-          ancestors AS (
-            SELECT * FROM tasks WHERE id = ?
-            UNION ALL
-            SELECT tasks.* FROM tasks
-            JOIN ancestors ON tasks.id = ancestors.parentId
-          )
-        SELECT * FROM ancestors
-        ''';
-
-  static const String _ancestorsQueryReverse = '''
-        WITH RECURSIVE
-          ancestors AS (
-            SELECT *, 0 AS lvl FROM tasks WHERE id = ?
-            UNION ALL
-            SELECT tasks.*, ancestors.lvl + 1 FROM tasks
-            JOIN ancestors ON tasks.id = ancestors.parentId
-          )
-        SELECT * FROM ancestors
-        ORDER BY lvl DESC;
-        ''';
-
-  Future<TaskList> _ancestors(
-    Task task, {
-    bool includeTaskAsAncestor = false,
-    bool reverse = false,
-  }) async {
-    final id = includeTaskAsAncestor ? task.id : task.parentId;
-    final rows = await _tx.getAll(
-      reverse ? _ancestorsQueryReverse : _ancestorsQuery,
-      [id],
-    );
-
-    return rows.map(_taskFromRow).toList();
-  }
-
-  Future<TasksRepositoryResult> updateTask(Task task) async {
-    _checkTransactionPossible();
-    if (task is! ModifiedTask) {
-      throw ArgumentError('Task must be a ModifiedTask');
-    }
-    final result = TasksRepositoryResult();
-    late Task? updatedTask;
-    await _updateTask(task);
-    await _toggleTreeIfToggled(task, result: result);
-    updatedTask = await _view.findTask(task.id);
-    if (updatedTask == null) {
-      throw Exception('Task was not updated.');
-    }
-
-    result.updatedTasks.add(updatedTask);
-
-    return result;
   }
 
   Future<void> _updateTask(ModifiedTask task) async {
@@ -396,5 +355,24 @@ class TasksRepository {
     if (task.hasToggledDone()) {
       await _toggleLineage(task, forceDescendants: true, result: result);
     }
+  }
+
+  Future<void> _reorderChildren(int? parentId) async {
+    await _tx.execute(
+      '''
+        UPDATE tasks
+        SET position = p.newPosition
+        FROM (
+          SELECT id, position,
+            (row_number() OVER (ORDER BY position) - 1) AS newPosition
+          FROM tasks
+          WHERE parentId = ?
+          ORDER BY position
+        ) AS p
+        WHERE p.id = tasks.id
+        AND parentId = ?
+      ''',
+      [parentId, parentId],
+    );
   }
 }

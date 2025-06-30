@@ -14,27 +14,19 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-import '../../../models/modified_task.dart';
 import '../../../models/task.dart';
 import 'transaction.dart';
 
-class UpdateTask extends Transaction {
-  UpdateTask(
+class DeleteTask extends Transaction {
+  DeleteTask(
     super.tx, {
     required super.eventRegistry,
     required super.clock,
     required super.tasksRepository,
   });
 
-  Future<Task> work(Task task) async {
-    if (task is! ModifiedTask) {
-      throw ArgumentError('Task must be a ModifiedTask');
-    }
-
-    final result = await tasksRepository.updateTask(task);
-    final updatedTask = result.updatedTasks.first;
-    await broadcastChanges(result, updatedTaskOriginal: task);
-
-    return updatedTask;
+  Future<void> work(Task task) async {
+    final result = await tasksRepository.deleteTask(task);
+    await broadcastChanges(result);
   }
 }

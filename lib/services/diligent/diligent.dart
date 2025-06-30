@@ -32,7 +32,6 @@ import '../../utils/date_time_from_row_epoch.dart';
 import 'focus_queue_manager.dart';
 import 'task_db.dart';
 import 'task_events/added_reminders_event.dart';
-import 'task_events/deleted_task_event.dart';
 import 'task_events/removed_reminders_event.dart';
 import 'task_events/task_event.dart';
 import 'task_events/task_event_registry.dart';
@@ -221,11 +220,10 @@ class Diligent extends TaskDb {
     SqliteWriteContext tx, {
     bool startAtTask = false,
   }) async {
-    final ancestors = await _ancestors(
-      task,
-      tx,
-      includeTaskAsAncestor: startAtTask,
-    );
+    final ancestors = await TasksRepositoryView(
+      clock: clock,
+      tx: tx,
+    ).ancestors(task, includeTaskAsAncestor: startAtTask, reverse: false);
     for (final ancestor in ancestors) {
       final doneAt = await _allChildrenDone(ancestor, tx);
       if (
@@ -250,7 +248,10 @@ class Diligent extends TaskDb {
       tx.execute('UPDATE tasks SET doneAt = ? WHERE id = ?', [doneAtEpoch, id]);
 
   Future<void> _toggleDescendantsDone(Task task, SqliteWriteContext tx) async {
-    final descendants = await _descendants(task, tx);
+    final descendants = await TasksRepositoryView(
+      clock: clock,
+      tx: tx,
+    ).descendants(task);
     final doneAt = task.doneAt;
 
     for (final descendant in descendants) {
@@ -294,65 +295,10 @@ class Diligent extends TaskDb {
     return count == doneCount ? doneAt : null;
   }
 
-  Future<TaskList> ancestors(Task task) => _ancestors(task, db, reverse: true);
+  Future<TaskList> ancestors(Task task) => _tasksRepositoryView.ancestors(task);
 
-  static const String _ancestorsQuery = '''
-        WITH RECURSIVE
-          ancestors AS (
-            SELECT * FROM tasks WHERE id = ?
-            UNION ALL
-            SELECT tasks.* FROM tasks
-            JOIN ancestors ON tasks.id = ancestors.parentId
-          )
-        SELECT * FROM ancestors
-        ''';
-
-  static const String _ancestorsQueryReverse = '''
-        WITH RECURSIVE
-          ancestors AS (
-            SELECT *, 0 AS lvl FROM tasks WHERE id = ?
-            UNION ALL
-            SELECT tasks.*, ancestors.lvl + 1 FROM tasks
-            JOIN ancestors ON tasks.id = ancestors.parentId
-          )
-        SELECT * FROM ancestors
-        ORDER BY lvl DESC;
-        ''';
-
-  Future<TaskList> _ancestors(
-    Task task,
-    SqliteWriteContext tx, {
-    bool includeTaskAsAncestor = false,
-    bool reverse = false,
-  }) async {
-    final id = includeTaskAsAncestor ? task.id : task.parentId;
-    final rows = await tx.getAll(
-      reverse ? _ancestorsQueryReverse : _ancestorsQuery,
-      [id],
-    );
-
-    return rows.map(taskFromRow).toList();
-  }
-
-  Future<TaskList> descendants(Task task) => _descendants(task, db);
-
-  Future<TaskList> _descendants(Task task, SqliteWriteContext tx) async {
-    final rows = await tx.getAll(
-      '''
-      WITH RECURSIVE
-        descendants AS (
-          SELECT * FROM tasks WHERE parentId = ?
-          UNION ALL
-          SELECT tasks.* FROM tasks
-          JOIN descendants ON tasks.parentId = descendants.id
-        )
-      SELECT * FROM descendants
-      ''',
-      [task.id],
-    );
-
-    return rows.map(taskFromRow).toList();
-  }
+  Future<TaskList> descendants(Task task) =>
+      _tasksRepositoryView.descendants(task);
 
   TaskNode _taskNodeFromRow(
     Row row, {
@@ -372,18 +318,8 @@ class Diligent extends TaskDb {
 
   Future<void> deleteTask(Task task) async {
     await db.writeTransaction((tx) async {
-      await tx.execute('DELETE FROM tasks WHERE id = ?', [task.id]);
-      await _reorderChildren(tx, task.parentId);
-      final parent = await TasksRepositoryView(
-        clock: clock,
-        tx: tx,
-      ).findTask(task.parentId);
-      if (parent is Task) {
-        await _toggleLineage(task, tx);
-      }
+      await _transactionFactory.deleteTask(tx).work(task);
     });
-
-    await announceEvent(DeletedTaskEvent(clock.now(), task: task));
   }
 
   Future<void> _reorderChildren(SqliteWriteContext tx, int? parentId) async {

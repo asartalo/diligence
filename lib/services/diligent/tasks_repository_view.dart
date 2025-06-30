@@ -79,4 +79,70 @@ class TasksRepositoryView {
 
     return task;
   }
+
+  static const String _ancestorsQuery = '''
+    WITH RECURSIVE
+      ancestors AS (
+        SELECT * FROM tasks WHERE id = ?
+        UNION ALL
+        SELECT tasks.* FROM tasks
+        JOIN ancestors ON tasks.id = ancestors.parentId
+      )
+    SELECT * FROM ancestors
+    ''';
+
+  static const String _ancestorsQueryReverse = '''
+    WITH RECURSIVE
+      ancestors AS (
+        SELECT *, 0 AS lvl FROM tasks WHERE id = ?
+        UNION ALL
+        SELECT tasks.*, ancestors.lvl + 1 FROM tasks
+        JOIN ancestors ON tasks.id = ancestors.parentId
+      )
+    SELECT * FROM ancestors
+    ORDER BY lvl DESC;
+    ''';
+
+  Future<TaskList> ancestors(
+    Task task, {
+    bool includeTaskAsAncestor = false,
+    bool reverse = true,
+  }) => _ancestors(
+    task,
+    includeTaskAsAncestor: includeTaskAsAncestor,
+    reverse: reverse,
+  );
+
+  Future<TaskList> _ancestors(
+    Task task, {
+    bool includeTaskAsAncestor = false,
+    bool reverse = false,
+  }) async {
+    final id = includeTaskAsAncestor ? task.id : task.parentId;
+    final rows = await _tx.getAll(
+      reverse ? _ancestorsQueryReverse : _ancestorsQuery,
+      [id],
+    );
+
+    return rows.map(taskFromRow).toList();
+  }
+
+  Future<TaskList> descendants(Task task) => _descendants(task);
+
+  static const _descendantsQuery = '''
+    WITH RECURSIVE
+      descendants AS (
+        SELECT * FROM tasks WHERE parentId = ?
+        UNION ALL
+        SELECT tasks.* FROM tasks
+        JOIN descendants ON tasks.parentId = descendants.id
+      )
+    SELECT * FROM descendants
+    ''';
+
+  Future<TaskList> _descendants(Task task) async {
+    final rows = await _tx.getAll(_descendantsQuery, [task.id]);
+
+    return rows.map(taskFromRow).toList();
+  }
 }

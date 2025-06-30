@@ -15,9 +15,9 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 import '../../../models/task_list.dart';
-import 'transactions.dart';
+import 'transaction.dart';
 
-class AddTasks extends EventAnnouncer {
+class AddTasks extends Transaction {
   AddTasks(
     super.tx, {
     required super.clock,
