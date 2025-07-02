@@ -17,7 +17,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../models/commands/commands.dart';
-import '../../../models/reminders/reminder_list.dart';
+import '../../../services/diligent/reminders/reminders.dart';
 import '../../../models/task_pack.dart';
 import '../../../services/diligent/tasks/tasks.dart';
 import '../../../utils/clock.dart';

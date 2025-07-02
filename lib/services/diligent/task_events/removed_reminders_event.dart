@@ -1,4 +1,4 @@
-import '../../../models/reminders/reminder.dart';
+import '../reminders/reminder.dart';
 import 'task_event.dart';
 
 class RemovedRemindersEvent extends TaskEvent {

@@ -1,6 +1,6 @@
 import 'package:collection/collection.dart';
 
-import '../../services/diligent/tasks/tasks.dart';
+import '../tasks/tasks.dart';
 import 'reminder.dart';
 
 class ReminderList extends DelegatingList<Reminder> {

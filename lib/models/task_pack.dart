@@ -1,6 +1,6 @@
 import 'package:meta/meta.dart';
 
-import 'reminders/reminder_list.dart';
+import '../services/diligent/reminders/reminders.dart';
 import '../services/diligent/tasks/tasks.dart';
 
 @immutable

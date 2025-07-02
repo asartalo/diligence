@@ -2,7 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 
 import '../../models/reminder_job.dart';
-import '../../models/reminders/reminder.dart';
+import '../diligent/reminders/reminder.dart';
 import '../../models/scheduled_job.dart';
 import '../../utils/clock.dart';
 import '../../utils/date_time_from_row_epoch.dart';

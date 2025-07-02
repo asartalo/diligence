@@ -19,16 +19,15 @@ import 'dart:async';
 import 'package:sqlite_async/sqlite_async.dart';
 
 import 'tasks/new_task.dart';
-import '../../models/reminders/reminder.dart';
-import '../../models/reminders/reminder_list.dart';
+import 'reminders/reminder.dart';
+import 'reminders/reminder_list.dart';
 import 'tasks/task.dart';
 import 'tasks/task_list.dart';
 import 'tasks/task_node.dart';
 import '../../models/task_pack.dart';
 import '../../utils/clock.dart';
 import 'focus_queue_manager.dart';
-import 'reminders_repository.dart';
-import 'task_db.dart';
+import 'reminders/reminders_db_writer.dart';
 import 'task_events/added_reminders_event.dart';
 import 'task_events/removed_reminders_event.dart';
 import 'task_events/task_event.dart';
@@ -39,8 +38,7 @@ import 'transactions/transaction_factory.dart';
 
 typedef TaskNodeList = List<TaskNode>;
 
-class Diligent extends TaskDb {
-  @override
+class Diligent {
   final SqliteDatabase db;
 
   final FocusQueueManager focusQueueManager;
@@ -53,9 +51,9 @@ class Diligent extends TaskDb {
 
   final TaskEventRegistry _eventRegistry;
 
-  final TasksDbReader _tasksRepositoryView;
+  final TasksDbReader _tasksReader;
 
-  final RemindersRepository _remindersRepository;
+  final RemindersDbWriter _remindersRepository;
 
   Diligent({
     required this.db,
@@ -65,11 +63,11 @@ class Diligent extends TaskDb {
     required TasksDbReader tasksRepositoryView,
     required TaskEventRegistry eventRegistry,
     required TransactionFactory transactionFactory,
-    required RemindersRepository remindersRepository,
+    required RemindersDbWriter remindersRepository,
   }) : _isTest = isTest,
        _eventRegistry = eventRegistry,
        _transactionFactory = transactionFactory,
-       _tasksRepositoryView = tasksRepositoryView,
+       _tasksReader = tasksRepositoryView,
        _remindersRepository = remindersRepository {
     focusQueueManager.registerEventHandlers(this);
   }
@@ -150,10 +148,10 @@ class Diligent extends TaskDb {
     return newTasks.first;
   }
 
-  Future<Task?> findTask(int id) => _tasksRepositoryView.findTask(id);
+  Future<Task?> findTask(int id) => _tasksReader.findTask(id);
 
   Future<Task?> findTaskByName(String name) =>
-      _tasksRepositoryView.findTaskByName(name);
+      _tasksReader.findTaskByName(name);
 
   Future<Task> updateTask(Task task) async {
     late Task? updatedTask;
@@ -164,10 +162,9 @@ class Diligent extends TaskDb {
     return updatedTask!;
   }
 
-  Future<TaskList> ancestors(Task task) => _tasksRepositoryView.ancestors(task);
+  Future<TaskList> ancestors(Task task) => _tasksReader.ancestors(task);
 
-  Future<TaskList> descendants(Task task) =>
-      _tasksRepositoryView.descendants(task);
+  Future<TaskList> descendants(Task task) => _tasksReader.descendants(task);
 
   Future<void> deleteTask(Task task) async {
     await db.writeTransaction(
@@ -198,19 +195,17 @@ class Diligent extends TaskDb {
     }
   }
 
-  FutureOr<TaskList> getChildren(Task task) =>
-      _tasksRepositoryView.getChildren(task);
+  FutureOr<TaskList> getChildren(Task task) => _tasksReader.getChildren(task);
 
-  FutureOr<Task?> getParent(Task task) => _tasksRepositoryView.getParent(task);
+  FutureOr<Task?> getParent(Task task) => _tasksReader.getParent(task);
 
   /// Returns a task and its descendants as an ordered list
-  Future<TaskNodeList> subtreeFlat(int id) =>
-      _tasksRepositoryView.subtreeFlat(id);
+  Future<TaskNodeList> subtreeFlat(int id) => _tasksReader.subtreeFlat(id);
 
   Future<TaskNodeList> expandedDescendantsTree(Task task) =>
-      _tasksRepositoryView.expandedDescendantsTree(task);
+      _tasksReader.expandedDescendantsTree(task);
 
-  Future<TaskList> leaves(Task task) => _tasksRepositoryView.leaves([task]);
+  Future<TaskList> leaves(Task task) => _tasksReader.leaves([task]);
 
   Future<TaskList> focusQueue({int? limit}) =>
       focusQueueManager.focusQueue(limit: limit);

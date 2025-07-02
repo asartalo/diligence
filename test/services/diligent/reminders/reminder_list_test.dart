@@ -1,5 +1,4 @@
-import 'package:diligence/models/reminders/reminder.dart';
-import 'package:diligence/models/reminders/reminder_list.dart';
+import 'package:diligence/services/diligent/reminders/reminders.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 List<int> reminderTaskIds(Iterable<Reminder> reminders) =>

@@ -33,23 +33,19 @@ class TransactionScope {
 
   TransactionScope({required this.parent, required this.tx});
 
-  TasksDbWriter? _tasksRepository;
-  TasksDbWriter get tasksRepository => _tasksRepository ??= TasksDbWriter(
-    clock: clock,
-    tx: tx,
-    view: tasksRepositoryView,
-  );
+  TasksDbWriter? _tasksWriter;
+  TasksDbWriter get tasksWriter =>
+      _tasksWriter ??= TasksDbWriter(clock: clock, tx: tx, view: tasksReader);
 
-  TasksDbReader? _tasksRepositoryView;
-  TasksDbReader get tasksRepositoryView =>
-      _tasksRepositoryView ??= TasksDbReader(tx: tx);
+  TasksDbReader? _tasksReader;
+  TasksDbReader get tasksReader => _tasksReader ??= TasksDbReader(tx: tx);
 
   AddTasks get addTasks {
     return AddTasks(
       tx,
       clock: clock,
       eventRegistry: parent.taskEventRegistry,
-      tasksRepository: tasksRepository,
+      tasksRepository: tasksWriter,
     );
   }
 
@@ -58,7 +54,7 @@ class TransactionScope {
       tx,
       clock: clock,
       eventRegistry: parent.taskEventRegistry,
-      tasksRepository: tasksRepository,
+      tasksRepository: tasksWriter,
     );
   }
 
@@ -67,7 +63,7 @@ class TransactionScope {
       tx,
       clock: clock,
       eventRegistry: parent.taskEventRegistry,
-      tasksRepository: tasksRepository,
+      tasksRepository: tasksWriter,
     );
   }
 
@@ -76,7 +72,7 @@ class TransactionScope {
       tx,
       clock: clock,
       eventRegistry: parent.taskEventRegistry,
-      tasksRepository: tasksRepository,
+      tasksRepository: tasksWriter,
     );
   }
 }

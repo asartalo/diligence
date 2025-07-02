@@ -1,6 +1,6 @@
 // Diligence - A Task Management App
 //
-// Copyright (C) 2024 Wayne Duran <asartalo@gmail.com>
+// Copyright (C) 2025 Wayne Duran <asartalo@gmail.com>
 //
 // This program is free software: you can redistribute it and/or modify it under
 // the terms of the GNU General Public License as published by the Free Software
@@ -14,21 +14,6 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-import 'package:flutter/foundation.dart' show immutable;
-
-import '../../services/diligent/reminders/reminders.dart';
-import '../../services/diligent/tasks/tasks.dart';
-import 'command.dart';
-
-@immutable
-class UpdateTaskCommand extends Command {
-  final Task task;
-  final ReminderList reminders;
-
-  UpdateTaskCommand({
-    super.message = 'Task updated',
-    required super.at,
-    required this.task,
-    ReminderList? reminders,
-  }) : reminders = reminders ?? ReminderList();
-}
+export 'reminder.dart';
+export 'reminder_list.dart';
+export 'reminders_db_writer.dart';

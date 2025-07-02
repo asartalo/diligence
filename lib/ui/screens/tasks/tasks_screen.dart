@@ -20,7 +20,7 @@ import 'package:flutter/material.dart';
 
 import '../../../models/commands/commands.dart';
 import '../../../services/diligent/tasks/tasks.dart';
-import '../../../models/reminders/reminder_list.dart';
+import '../../../services/diligent/reminders/reminder_list.dart';
 import '../../../models/task_pack.dart';
 import '../../../services/diligent/diligent.dart';
 import '../../../services/diligent/diligent_commander.dart';

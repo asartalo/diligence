@@ -14,8 +14,7 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-import 'package:diligence/models/reminders/reminder.dart';
-import 'package:diligence/models/reminders/reminder_list.dart';
+import 'package:diligence/services/diligent/reminders/reminders.dart';
 import 'package:diligence/services/diligent/tasks/task.dart';
 import 'package:diligence/services/diligent/diligent.dart';
 import 'package:diligence/services/diligent/diligent_factory.dart';

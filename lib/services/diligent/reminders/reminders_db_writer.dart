@@ -17,19 +17,19 @@
 import 'package:sqlite_async/sqlite3.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 
-import '../../models/reminders/reminder.dart';
-import '../../models/reminders/reminder_list.dart';
-import 'tasks/task.dart';
-import '../../utils/clock.dart';
-import '../../utils/date_time_from_row_epoch.dart';
-import 'task_fields.dart';
+import 'reminder.dart';
+import 'reminder_list.dart';
+import '../tasks/task.dart';
+import '../../../utils/clock.dart';
+import '../../../utils/date_time_from_row_epoch.dart';
+import '../task_fields.dart';
 
-class RemindersRepository {
+class RemindersDbWriter {
   final Clock clock;
 
   final SqliteWriteContext _tx;
 
-  RemindersRepository({required this.clock, required SqliteWriteContext tx})
+  RemindersDbWriter({required this.clock, required SqliteWriteContext tx})
     : _tx = tx;
 
   Future<ReminderList> getRemindersForTask(Task task) async {
