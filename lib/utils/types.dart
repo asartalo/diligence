@@ -15,7 +15,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 import '../models/commands/command.dart';
-import '../models/task.dart';
+import '../services/diligent/tasks/task.dart';
 
 typedef VoidCallback = void Function();
 typedef TaskCallback = void Function(Task task);

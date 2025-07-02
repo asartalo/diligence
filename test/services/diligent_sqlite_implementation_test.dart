@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-import 'package:diligence/models/tasks.dart';
+import 'package:diligence/services/diligent/tasks/tasks.dart';
 import 'package:diligence/services/diligent/diligent.dart';
 import 'package:diligence/services/diligent/diligent_factory.dart';
 import 'package:diligence/utils/stub_clock.dart';

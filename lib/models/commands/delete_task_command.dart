@@ -16,7 +16,7 @@
 
 import 'package:flutter/foundation.dart' show immutable;
 
-import '../persisted_task.dart';
+import '../../services/diligent/tasks/persisted_task.dart';
 import 'command.dart';
 
 @immutable

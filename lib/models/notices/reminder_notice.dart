@@ -1,5 +1,5 @@
 import '../../services/diligent/diligent.dart';
-import '../task.dart';
+import '../../services/diligent/tasks/task.dart';
 import 'notice.dart';
 
 class ReminderNotice extends Notice {

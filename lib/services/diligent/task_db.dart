@@ -17,9 +17,9 @@
 import 'package:sqlite_async/sqlite3.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 
-import '../../models/persisted_task.dart';
-import '../../models/task.dart';
-import '../../models/task_list.dart';
+import 'tasks/persisted_task.dart';
+import 'tasks/task.dart';
+import 'tasks/task_list.dart';
 import '../../utils/date_time_from_row_epoch.dart';
 import 'task_fields.dart';
 

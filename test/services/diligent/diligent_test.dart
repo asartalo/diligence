@@ -16,7 +16,7 @@
 
 import 'package:diligence/models/reminders/reminder.dart';
 import 'package:diligence/models/reminders/reminder_list.dart';
-import 'package:diligence/models/task.dart';
+import 'package:diligence/services/diligent/tasks/task.dart';
 import 'package:diligence/services/diligent/diligent.dart';
 import 'package:diligence/services/diligent/diligent_factory.dart';
 import 'package:diligence/services/diligent/initial_areas.dart';

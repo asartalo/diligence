@@ -18,12 +18,12 @@ import 'dart:async';
 
 import 'package:sqlite_async/sqlite_async.dart';
 
-import '../../models/new_task.dart';
+import 'tasks/new_task.dart';
 import '../../models/reminders/reminder.dart';
 import '../../models/reminders/reminder_list.dart';
-import '../../models/task.dart';
-import '../../models/task_list.dart';
-import '../../models/task_node.dart';
+import 'tasks/task.dart';
+import 'tasks/task_list.dart';
+import 'tasks/task_node.dart';
 import '../../models/task_pack.dart';
 import '../../utils/clock.dart';
 import 'focus_queue_manager.dart';
@@ -34,7 +34,7 @@ import 'task_events/removed_reminders_event.dart';
 import 'task_events/task_event.dart';
 import 'task_events/task_event_registry.dart';
 import '../migrate.dart';
-import 'tasks_repository_view.dart';
+import 'tasks/tasks_db_reader.dart';
 import 'transactions/transaction_factory.dart';
 
 typedef TaskNodeList = List<TaskNode>;
@@ -53,7 +53,7 @@ class Diligent extends TaskDb {
 
   final TaskEventRegistry _eventRegistry;
 
-  final TasksRepositoryView _tasksRepositoryView;
+  final TasksDbReader _tasksRepositoryView;
 
   final RemindersRepository _remindersRepository;
 
@@ -62,7 +62,7 @@ class Diligent extends TaskDb {
     required bool isTest,
     required this.focusQueueManager,
     required this.clock,
-    required TasksRepositoryView tasksRepositoryView,
+    required TasksDbReader tasksRepositoryView,
     required TaskEventRegistry eventRegistry,
     required TransactionFactory transactionFactory,
     required RemindersRepository remindersRepository,

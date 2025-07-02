@@ -14,8 +14,7 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-import 'package:diligence/models/new_task.dart';
-import 'package:diligence/models/task_list.dart';
+import 'package:diligence/services/diligent/tasks/tasks.dart';
 import 'package:diligence/ui/components/keys.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';

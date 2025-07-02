@@ -19,22 +19,18 @@ import 'dart:async';
 import 'package:sqlite_async/sqlite3.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 
-import '../../models/persisted_task.dart';
-import '../../models/task.dart';
-import '../../models/task_list.dart';
-import '../../models/task_node.dart';
-import '../../utils/clock.dart';
-import '../../utils/date_time_from_row_epoch.dart';
-import 'diligent.dart';
-import 'task_fields.dart';
+import 'persisted_task.dart';
+import 'task.dart';
+import 'task_list.dart';
+import 'task_node.dart';
+import '../../../utils/date_time_from_row_epoch.dart';
+import '../diligent.dart';
+import '../task_fields.dart';
 
-class TasksRepositoryView {
-  final Clock clock;
-
+class TasksDbReader {
   final SqliteReadContext _tx;
 
-  TasksRepositoryView({required this.clock, required SqliteWriteContext tx})
-    : _tx = tx;
+  TasksDbReader({required SqliteWriteContext tx}) : _tx = tx;
 
   Future<Task?> findTask(int? id) => _findTask(id);
 

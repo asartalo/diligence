@@ -16,8 +16,8 @@
 
 import 'package:sqlite_async/sqlite_async.dart';
 
-import '../../../models/modified_task.dart';
-import '../../../models/persisted_task.dart';
+import '../tasks/modified_task.dart';
+import '../tasks/persisted_task.dart';
 import '../../../utils/clock.dart';
 import '../task_events/added_tasks_event.dart';
 import '../task_events/deleted_task_event.dart';
@@ -25,7 +25,7 @@ import '../task_events/task_event.dart';
 import '../task_events/task_event_registry.dart';
 import '../task_events/toggled_tasks_done_event.dart';
 import '../task_events/updated_task_event.dart';
-import '../tasks_repository.dart';
+import '../tasks/tasks_db_writer.dart';
 
 abstract class Transaction {
   final SqliteWriteContext tx;
@@ -34,7 +34,7 @@ abstract class Transaction {
 
   final TaskEventRegistry eventRegistry;
 
-  final TasksRepository tasksRepository;
+  final TasksDbWriter tasksRepository;
 
   Transaction(
     this.tx, {
@@ -44,7 +44,7 @@ abstract class Transaction {
   });
 
   Future<void> broadcastChanges(
-    TasksRepositoryResult result, {
+    TasksDbWriterResult result, {
     ModifiedTask? updatedTaskOriginal,
   }) async {
     await _announceNewTasks(result);
@@ -55,7 +55,7 @@ abstract class Transaction {
     await _announceDeletedTask(result);
   }
 
-  Future<void> _announceNewTasks(TasksRepositoryResult result) async {
+  Future<void> _announceNewTasks(TasksDbWriterResult result) async {
     final newTasks = result.addedTasks;
 
     if (newTasks.isEmpty) {
@@ -70,7 +70,7 @@ abstract class Transaction {
   }
 
   Future<void> _announceUpdatedTasks(
-    TasksRepositoryResult result,
+    TasksDbWriterResult result,
     ModifiedTask updatedTaskBefore,
   ) async {
     final updatedTask = result.updatedTasks.first;
@@ -85,7 +85,7 @@ abstract class Transaction {
     );
   }
 
-  Future<void> _announceToggledTasks(TasksRepositoryResult result) async {
+  Future<void> _announceToggledTasks(TasksDbWriterResult result) async {
     for (final entry in result.toggledTasksGroupedByDoneAt().entries) {
       announceEvent(
         ToggledTasksDoneEvent(
@@ -98,7 +98,7 @@ abstract class Transaction {
     }
   }
 
-  Future<void> _announceDeletedTask(TasksRepositoryResult result) async {
+  Future<void> _announceDeletedTask(TasksDbWriterResult result) async {
     if (result.deletedTasks.isEmpty) {
       return;
     }

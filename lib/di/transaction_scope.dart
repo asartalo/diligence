@@ -16,8 +16,7 @@
 
 import 'package:sqlite_async/sqlite_async.dart';
 
-import '../services/diligent/tasks_repository.dart';
-import '../services/diligent/tasks_repository_view.dart';
+import '../services/diligent/tasks/tasks.dart';
 import '../services/diligent/transactions/add_tasks.dart';
 import '../services/diligent/transactions/delete_task.dart';
 import '../services/diligent/transactions/move_task.dart';
@@ -34,16 +33,16 @@ class TransactionScope {
 
   TransactionScope({required this.parent, required this.tx});
 
-  TasksRepository? _tasksRepository;
-  TasksRepository get tasksRepository => _tasksRepository ??= TasksRepository(
+  TasksDbWriter? _tasksRepository;
+  TasksDbWriter get tasksRepository => _tasksRepository ??= TasksDbWriter(
     clock: clock,
     tx: tx,
     view: tasksRepositoryView,
   );
 
-  TasksRepositoryView? _tasksRepositoryView;
-  TasksRepositoryView get tasksRepositoryView =>
-      _tasksRepositoryView ??= TasksRepositoryView(clock: clock, tx: tx);
+  TasksDbReader? _tasksRepositoryView;
+  TasksDbReader get tasksRepositoryView =>
+      _tasksRepositoryView ??= TasksDbReader(tx: tx);
 
   AddTasks get addTasks {
     return AddTasks(

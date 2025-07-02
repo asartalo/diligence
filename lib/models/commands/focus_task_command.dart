@@ -15,7 +15,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 import 'package:flutter/foundation.dart' show immutable;
-import '../task.dart';
+import '../../services/diligent/tasks/task.dart';
 import 'command.dart';
 
 @immutable

@@ -1,4 +1,4 @@
-import '../../../models/tasks.dart';
+import '../tasks/tasks.dart';
 import 'task_event.dart';
 
 class DeletedTaskEvent extends TaskEvent {

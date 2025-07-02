@@ -20,8 +20,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../../../models/commands/commands.dart';
-import '../../../models/task.dart';
-import '../../../models/task_list.dart';
+import '../../../services/diligent/tasks/tasks.dart';
 import '../../../services/diligent/diligent.dart';
 import '../../../services/diligent/diligent_commander.dart';
 import '../../../services/diligent/focus_queue_manager.dart';

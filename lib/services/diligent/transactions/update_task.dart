@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-import '../../../models/modified_task.dart';
-import '../../../models/task.dart';
+import '../tasks/modified_task.dart';
+import '../tasks/task.dart';
 import 'transaction.dart';
 
 class UpdateTask extends Transaction {

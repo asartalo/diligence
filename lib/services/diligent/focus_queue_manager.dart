@@ -20,8 +20,8 @@ import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 
-import '../../models/task.dart';
-import '../../models/task_list.dart';
+import 'tasks/task.dart';
+import 'tasks/task_list.dart';
 import '../../utils/clock.dart';
 import '../../utils/debounce.dart';
 import 'diligent.dart';

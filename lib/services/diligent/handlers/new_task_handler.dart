@@ -16,7 +16,7 @@
 
 import '../../../models/commands/commands.dart';
 
-import '../../../models/tasks.dart';
+import '../tasks/tasks.dart';
 import '../diligent.dart';
 import 'fails_on_exception.dart';
 

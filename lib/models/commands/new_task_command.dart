@@ -16,7 +16,7 @@
 
 import 'package:flutter/foundation.dart' show immutable;
 
-import '../new_task.dart';
+import '../../services/diligent/tasks/new_task.dart';
 import '../reminders/reminder_list.dart';
 import 'command.dart';
 

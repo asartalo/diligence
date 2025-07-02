@@ -19,18 +19,18 @@ import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 
-import '../../models/new_task.dart';
-import '../../models/modified_task.dart';
-import '../../models/task.dart';
-import '../../models/task_list.dart';
-import '../../utils/clock.dart';
-import '../../utils/date_time_from_row_epoch.dart';
-import 'task_fields.dart';
-import 'tasks_repository_view.dart';
+import 'new_task.dart';
+import 'modified_task.dart';
+import 'task.dart';
+import 'task_list.dart';
+import '../../../utils/clock.dart';
+import '../../../utils/date_time_from_row_epoch.dart';
+import '../task_fields.dart';
+import 'tasks_db_reader.dart';
 
 typedef TasksCallback = Future<void> Function(List<Task> tasks);
 
-class TasksRepositoryResult {
+class TasksDbWriterResult {
   TaskList addedTasks = [];
   TaskList deletedTasks = [];
   TaskList updatedTasks = [];
@@ -47,25 +47,25 @@ class TasksRepositoryResult {
   }
 }
 
-class TasksRepositoryTransactionError extends AssertionError {
-  TasksRepositoryTransactionError(super.message);
+class TasksDbWriterTransactionError extends AssertionError {
+  TasksDbWriterTransactionError(super.message);
 }
 
-class TasksRepository {
+class TasksDbWriter {
   final Clock clock;
 
   final SqliteWriteContext _tx;
 
-  final TasksRepositoryView _view;
+  final TasksDbReader _view;
 
-  // TasksRepository exists per transaction. If the transaction is closed, this
+  // TasksDbWriter exists per transaction. If the transaction is closed, this
   // should no longer be used.
   bool get transactionDone => _tx.closed;
 
-  TasksRepository({
+  TasksDbWriter({
     required this.clock,
     required SqliteWriteContext tx,
-    required TasksRepositoryView view,
+    required TasksDbReader view,
   }) : _tx = tx,
        _view = view;
 
@@ -102,7 +102,7 @@ class TasksRepository {
 
   void _checkTransactionPossible() {
     if (transactionDone) {
-      throw TasksRepositoryTransactionError(
+      throw TasksDbWriterTransactionError(
         'Transaction has been used is and no longer available.',
       );
     }
@@ -113,9 +113,9 @@ class TasksRepository {
     WHERE parentId = ? AND position >= ?
     ''';
 
-  Future<TasksRepositoryResult> addTask(TaskList tasks, {int? position}) async {
+  Future<TasksDbWriterResult> addTask(TaskList tasks, {int? position}) async {
     _checkTransactionPossible();
-    final result = TasksRepositoryResult();
+    final result = TasksDbWriterResult();
     await _validateAddedTasks(tasks);
     final parentId = tasks.first.parentId;
 
@@ -143,12 +143,12 @@ class TasksRepository {
     return result;
   }
 
-  Future<TasksRepositoryResult> updateTask(Task task) async {
+  Future<TasksDbWriterResult> updateTask(Task task) async {
     _checkTransactionPossible();
     if (task is! ModifiedTask) {
       throw ArgumentError('Task must be a ModifiedTask');
     }
-    final result = TasksRepositoryResult();
+    final result = TasksDbWriterResult();
     late Task? updatedTask;
     await _updateTask(task);
     await _toggleTreeIfToggled(task, result: result);
@@ -162,9 +162,9 @@ class TasksRepository {
     return result;
   }
 
-  Future<TasksRepositoryResult> deleteTask(Task task) async {
+  Future<TasksDbWriterResult> deleteTask(Task task) async {
     _checkTransactionPossible();
-    final result = TasksRepositoryResult();
+    final result = TasksDbWriterResult();
     await _tx.execute('DELETE FROM tasks WHERE id = ?', [task.id]);
     await _reorderChildren(task.parentId);
     final parent = await _view.findTask(task.parentId);
@@ -176,13 +176,13 @@ class TasksRepository {
     return result;
   }
 
-  Future<TasksRepositoryResult> moveTask(
+  Future<TasksDbWriterResult> moveTask(
     Task task,
     int position, {
     Task? parent,
   }) async {
     _checkTransactionPossible();
-    final result = TasksRepositoryResult();
+    final result = TasksDbWriterResult();
     if (parent is Task && parent.id != task.parentId) {
       await _moveTaskToAnotherParent(task, parent, position, result);
     } else {
@@ -241,7 +241,7 @@ class TasksRepository {
 
   Future<void> _toggleLineage(
     Task task, {
-    required TasksRepositoryResult result,
+    required TasksDbWriterResult result,
     bool forceDescendants = false,
     bool startAtTask = false,
   }) async {
@@ -254,7 +254,7 @@ class TasksRepository {
   // TODO: There must be a better way to do this using only a few queries
   Future<void> _toggleAncestorsDone(
     Task task, {
-    required TasksRepositoryResult result,
+    required TasksDbWriterResult result,
     bool startAtTask = false,
   }) async {
     final ancestors = await _view.ancestors(
@@ -313,7 +313,7 @@ class TasksRepository {
 
   Future<void> _toggleDescendantsDone(
     Task task, {
-    required TasksRepositoryResult result,
+    required TasksDbWriterResult result,
   }) async {
     final descendants = await _view.descendants(task);
     final doneAt = task.doneAt;
@@ -340,7 +340,7 @@ class TasksRepository {
 
   Future<void> _toggleTreeIfToggled(
     ModifiedTask task, {
-    required TasksRepositoryResult result,
+    required TasksDbWriterResult result,
   }) async {
     if (task.hasToggledDone()) {
       await _toggleLineage(task, forceDescendants: true, result: result);
@@ -381,7 +381,7 @@ class TasksRepository {
     Task task,
     Task parent,
     int position,
-    TasksRepositoryResult result,
+    TasksDbWriterResult result,
   ) async {
     await _tx.execute(_adjustAfterSiblingsDownQuery, [parent.id, position]);
     await _tx.execute(_addhildToParentQuery, [parent.id, position, task.id]);
@@ -419,7 +419,7 @@ class TasksRepository {
   Future<void> _moveTaskWithinSiblings(
     Task task,
     int position,
-    TasksRepositoryResult result,
+    TasksDbWriterResult result,
   ) async {
     final (oldPosition, count) = await _getTaskPositionInfo(task);
     final actualPosition = max(min(count - 1, position), 0);

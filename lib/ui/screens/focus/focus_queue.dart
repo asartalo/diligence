@@ -17,7 +17,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../models/commands/commands.dart';
-import '../../../models/task_list.dart';
+import '../../../services/diligent/tasks/task_list.dart';
 import '../../../utils/clock.dart';
 import '../../../utils/types.dart';
 import '../tasks/task_item.dart';

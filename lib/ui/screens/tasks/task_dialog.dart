@@ -19,7 +19,7 @@ import 'package:flutter/material.dart';
 import '../../../models/commands/commands.dart';
 import '../../../models/reminders/reminder_list.dart';
 import '../../../models/task_pack.dart';
-import '../../../models/tasks.dart';
+import '../../../services/diligent/tasks/tasks.dart';
 import '../../../utils/clock.dart';
 import '../../../utils/i18n.dart';
 import '../../components/reveal_on_hover.dart';

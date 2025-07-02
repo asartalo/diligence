@@ -19,7 +19,7 @@ import 'package:sqlite_async/sqlite_async.dart';
 
 import '../../models/reminders/reminder.dart';
 import '../../models/reminders/reminder_list.dart';
-import '../../models/task.dart';
+import 'tasks/task.dart';
 import '../../utils/clock.dart';
 import '../../utils/date_time_from_row_epoch.dart';
 import 'task_fields.dart';

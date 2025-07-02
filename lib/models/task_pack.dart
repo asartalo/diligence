@@ -1,7 +1,7 @@
 import 'package:meta/meta.dart';
 
 import 'reminders/reminder_list.dart';
-import 'tasks.dart';
+import '../services/diligent/tasks/tasks.dart';
 
 @immutable
 class TaskPack {

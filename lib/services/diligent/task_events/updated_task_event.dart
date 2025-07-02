@@ -1,6 +1,6 @@
 import 'package:sqlite_async/sqlite_async.dart';
 
-import '../../../models/tasks.dart';
+import '../tasks/tasks.dart';
 import 'task_event.dart';
 
 class UpdatedTaskEvent extends TaskEvent {

@@ -2,7 +2,7 @@ import 'package:date_field/date_field.dart';
 import 'package:flutter/material.dart';
 
 import '../../../models/reminders/reminder.dart';
-import '../../../models/task.dart';
+import '../../../services/diligent/tasks/task.dart';
 import '../../../utils/clock.dart';
 import 'keys.dart' as keys;
 

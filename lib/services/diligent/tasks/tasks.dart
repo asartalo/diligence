@@ -20,3 +20,5 @@ export 'modified_task.dart';
 export 'new_task.dart';
 export 'persisted_task.dart';
 export 'task_node.dart';
+export 'tasks_db_reader.dart';
+export 'tasks_db_writer.dart';

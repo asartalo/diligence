@@ -1,6 +1,4 @@
-import 'package:diligence/models/modified_task.dart';
-import 'package:diligence/models/persisted_task.dart';
-import 'package:diligence/models/task.dart';
+import 'package:diligence/services/diligent/tasks/tasks.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

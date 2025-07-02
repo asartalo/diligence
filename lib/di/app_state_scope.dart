@@ -28,7 +28,7 @@ import '../services/config_manager.dart';
 import '../services/diligent/diligent.dart';
 import '../services/diligent/focus_queue_manager.dart';
 import '../services/diligent/reminders_repository.dart';
-import '../services/diligent/tasks_repository_view.dart';
+import '../services/diligent/tasks/tasks_db_reader.dart';
 import '../services/diligent/task_events/task_event_registry.dart';
 import '../services/diligent/transactions/transaction_factory.dart';
 import '../services/jobs/job_queue.dart';
@@ -81,9 +81,9 @@ class AppStateScope {
     focusQueueManager: focusQueueManager,
   );
 
-  TasksRepositoryView? _tasksRepositoryView;
-  TasksRepositoryView get tasksRepositoryView =>
-      _tasksRepositoryView ??= TasksRepositoryView(clock: clock, tx: db);
+  TasksDbReader? _tasksRepositoryView;
+  TasksDbReader get tasksRepositoryView =>
+      _tasksRepositoryView ??= TasksDbReader(tx: db);
 
   RemindersRepository? _remindersRepository;
   RemindersRepository get remindersRepository =>
