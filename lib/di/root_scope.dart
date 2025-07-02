@@ -16,10 +16,8 @@
 
 import 'package:file/file.dart';
 import 'package:file/local.dart';
-import 'package:flutter/foundation.dart';
 
 import '../config_validator.dart';
-import '../di_scope_cache.dart';
 import '../platform_wrapped.dart';
 import '../services/config_file_paths.dart';
 import '../services/config_manager.dart';
@@ -29,16 +27,11 @@ import '../utils/clock.dart';
 import '../utils/fs.dart';
 import '../utils/stub_clock.dart';
 
-mixin Scope {}
-
-@immutable
 class RootScope {
   final Clock clock;
   final FileSystem fileSystem;
   final PlatformWrapped platform;
   final bool isTest;
-
-  final DiScopeCache _cache;
 
   RootScope({
     Clock? clock,
@@ -47,32 +40,28 @@ class RootScope {
     this.isTest = false,
   }) : clock = clock ?? (isTest ? StubClock() : Clock()),
        fileSystem = fileSystem ?? LocalFileSystem(),
-       platform = platform ?? PlatformWrapped.instance(),
-       _cache = DiScopeCache();
+       platform = platform ?? PlatformWrapped.instance();
 
-  ConfigManager get configManager => _cache.getSet(
-    #configManager,
-    () => ConfigManager(
-      fs,
-      validator,
-      configFilePaths: configFilePaths,
-      logger: configManagerLogger,
-      test: isTest,
-    ),
+  ConfigManager? _configManager;
+  ConfigManager get configManager => _configManager ??= ConfigManager(
+    fs,
+    validator,
+    configFilePaths: configFilePaths,
+    logger: configManagerLogger,
+    test: isTest,
   );
 
-  Fs get fs => _cache.getSet(#fs, () => Fs(fileSystem));
+  Fs? _fs;
+  Fs get fs => _fs ??= Fs(fileSystem);
 
-  ConfigValidator get validator =>
-      _cache.getSet(#validator, () => ConfigValidator(fs));
+  ConfigValidator? _validator;
+  ConfigValidator get validator => _validator ??= ConfigValidator(fs);
 
+  LogObservable? _configManagerLogger;
   LogObservable get configManagerLogger =>
-      _cache.getSet(#logger, () => LogObservable('ConfigManager'));
+      _configManagerLogger ??= LogObservable('ConfigManager');
 
-  List<FileWriteViabilityChecker> get configFilePaths => _cache
-      .getSet(
-        #configFilePaths,
-        () => ConfigFilePaths(fs: fs, platform: platform),
-      )
-      .getProbableConfigFilePaths();
+  List<FileWriteViabilityChecker>? _configFilePaths;
+  List<FileWriteViabilityChecker> get configFilePaths => _configFilePaths ??=
+      ConfigFilePaths(fs: fs, platform: platform).getProbableConfigFilePaths();
 }

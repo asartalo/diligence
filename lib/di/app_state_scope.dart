@@ -17,7 +17,6 @@
 import 'package:file/file.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 
-import '../di_scope_cache.dart';
 import '../diligence_config.dart';
 import '../models/notices/error_notice.dart';
 import '../models/notices/notice.dart';
@@ -50,8 +49,6 @@ class AppStateScope {
 
   final DiligenceConfig config;
 
-  final DiScopeCache _cache;
-
   Clock get clock => parent.clock;
 
   FileSystem get fileSystem => parent.fileSystem;
@@ -62,8 +59,7 @@ class AppStateScope {
 
   ConfigManager get configManager => parent.configManager;
 
-  AppStateScope({required this.parent, required this.config})
-    : _cache = DiScopeCache() {
+  AppStateScope({required this.parent, required this.config}) {
     actualConfigManagerLogger;
   }
 
@@ -73,54 +69,46 @@ class AppStateScope {
 
   String get dbPath => config.dbPath;
 
-  Diligent get diligent => _cache.getSet(
-    #diligent,
-    () => Diligent(
-      isTest: isTest,
-      db: db,
-      clock: clock,
-      eventRegistry: taskEventRegistry,
-      transactionFactory: transactionFactory,
-      tasksRepositoryView: tasksRepositoryView,
-      remindersRepository: remindersRepository,
-      focusQueueManager: focusQueueManager,
-    ),
+  Diligent? _diligent;
+  Diligent get diligent => _diligent ??= Diligent(
+    isTest: isTest,
+    db: db,
+    clock: clock,
+    eventRegistry: taskEventRegistry,
+    transactionFactory: transactionFactory,
+    tasksRepositoryView: tasksRepositoryView,
+    remindersRepository: remindersRepository,
+    focusQueueManager: focusQueueManager,
   );
 
-  TasksRepositoryView get tasksRepositoryView => _cache.getSet(
-    #tasksRepositoryView,
-    () => TasksRepositoryView(clock: clock, tx: db),
-  );
+  TasksRepositoryView? _tasksRepositoryView;
+  TasksRepositoryView get tasksRepositoryView =>
+      _tasksRepositoryView ??= TasksRepositoryView(clock: clock, tx: db);
 
-  RemindersRepository get remindersRepository => _cache.getSet(
-    #remindersRepository,
-    () => RemindersRepository(clock: clock, tx: db),
-  );
+  RemindersRepository? _remindersRepository;
+  RemindersRepository get remindersRepository =>
+      _remindersRepository ??= RemindersRepository(clock: clock, tx: db);
 
-  FocusQueueManager get focusQueueManager => _cache.getSet(
-    #focusQueueManager,
-    () => FocusQueueManager(clock: clock, db: db),
-  );
+  FocusQueueManager? _focusQueueManager;
+  FocusQueueManager get focusQueueManager =>
+      _focusQueueManager ??= FocusQueueManager(clock: clock, db: db);
 
-  SqliteDatabase get db =>
-      _cache.getSet(#db, () => SqliteDatabase(path: dbPath));
+  SqliteDatabase? _db;
+  SqliteDatabase get db => _db ??= SqliteDatabase(path: dbPath);
 
-  LoggerFactory get loggerFactory => _cache.getSet(
-    #loggerFactory,
-    () => LoggerFactory.create(
-      clock,
-      logFile: config.logToFile ? config.logFilePath : '',
-    ),
+  LoggerFactory? _loggerFactory;
+  LoggerFactory get loggerFactory => _loggerFactory ??= LoggerFactory.create(
+    clock,
+    logFile: config.logToFile ? config.logFilePath : '',
   );
 
   LogerFactoryFunc get loggerFactoryFunc => (name) {
     return loggerFactory.createBasicLogger(name);
   };
 
-  ObserverLogger get actualConfigManagerLogger => _cache.getSet(
-    #acml,
-    () => loggerFactory.createObserverLogger(parent.configManagerLogger),
-  );
+  ObserverLogger? _actualConfigManagerLogger;
+  ObserverLogger get actualConfigManagerLogger => _actualConfigManagerLogger ??=
+      loggerFactory.createObserverLogger(parent.configManagerLogger);
 
   RunnerFactoryFunc get runnerFactoryFunc => (ScheduledJob inputJob) {
     switch (inputJob) {
@@ -131,51 +119,46 @@ class AppStateScope {
     }
   };
 
-  ReminderJobRunner get reminderJobRunner => _cache.getSet(
-    #reminderJobRunner,
-    () => ReminderJobRunner(
-      noticeQueue: noticeQueue,
-      diligent: diligent,
-      clock: clock,
-    ),
+  ReminderJobRunner? _reminderJobRunner;
+  ReminderJobRunner get reminderJobRunner =>
+      _reminderJobRunner ??= ReminderJobRunner(
+        noticeQueue: noticeQueue,
+        diligent: diligent,
+        clock: clock,
+      );
+
+  JobQueue? _jobQueue;
+  JobQueue get jobQueue => _jobQueue ??= isTest
+      ? JobQueue.forTests(
+          db: db,
+          logger: loggerFactoryFunc('JobQueue for Tests'),
+          clock: clock,
+        )
+      : JobQueue(db: db, logger: loggerFactoryFunc('JobQueue'), clock: clock);
+
+  JobTrack? _jobTrack;
+  JobTrack get jobTrack => _jobTrack ??= JobTrack(
+    clock: clock,
+    runnerFactoryFunc: runnerFactoryFunc,
+    jobQueue: jobQueue,
+    logger: loggerFactoryFunc('JobTrack'),
   );
 
-  JobQueue get jobQueue => _cache.getSet(
-    #jobQueue,
-    () => isTest
-        ? JobQueue.forTests(
-            db: db,
-            logger: loggerFactoryFunc('JobQueue for Tests'),
-            clock: clock,
-          )
-        : JobQueue(db: db, logger: loggerFactoryFunc('JobQueue'), clock: clock),
+  NoticeQueue? _noticeQueue;
+  NoticeQueue get noticeQueue => _noticeQueue ??= NoticeQueue(
+    isTest: isTest,
+    db: db,
+    clock: clock,
+    noticeFactoryFunc: noticeFactoryFunc,
   );
 
-  JobTrack get jobTrack => _cache.getSet(
-    #jobTrack,
-    () => JobTrack(
-      clock: clock,
-      runnerFactoryFunc: runnerFactoryFunc,
-      jobQueue: jobQueue,
-      logger: loggerFactoryFunc('JobTrack'),
-    ),
-  );
-
-  NoticeQueue get noticeQueue => _cache.getSet(
-    #noticeQueue,
-    () => NoticeQueue(
-      isTest: isTest,
-      db: db,
-      clock: clock,
-      noticeFactoryFunc: noticeFactoryFunc,
-    ),
-  );
-
+  TaskEventRegistry? _taskEventRegistry;
   TaskEventRegistry get taskEventRegistry =>
-      _cache.getSet(#taskEventRegistry, () => TaskEventRegistry());
+      _taskEventRegistry ??= TaskEventRegistry();
 
+  TransactionFactory? _transactionFactory;
   TransactionFactory get transactionFactory =>
-      _cache.getSet(#transactionFactory, () => TransactionFactory(this));
+      _transactionFactory ??= TransactionFactory(this);
 
   NoticeFactoryFunc<Notice> get noticeFactoryFunc => (data) {
     switch (data.type) {

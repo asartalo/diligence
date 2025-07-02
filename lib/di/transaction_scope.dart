@@ -16,7 +16,6 @@
 
 import 'package:sqlite_async/sqlite_async.dart';
 
-import '../di_scope_cache.dart';
 import '../services/diligent/tasks_repository.dart';
 import '../services/diligent/tasks_repository_view.dart';
 import '../services/diligent/transactions/add_tasks.dart';
@@ -31,22 +30,20 @@ class TransactionScope {
 
   final SqliteWriteContext tx;
 
-  final DiScopeCache _cache;
-
   Clock get clock => parent.clock;
 
-  TransactionScope({required this.parent, required this.tx})
-    : _cache = DiScopeCache();
+  TransactionScope({required this.parent, required this.tx});
 
-  TasksRepository get tasksRepository => _cache.getSet(
-    #tasksRepository,
-    () => TasksRepository(clock: clock, tx: tx, view: tasksRepositoryView),
+  TasksRepository? _tasksRepository;
+  TasksRepository get tasksRepository => _tasksRepository ??= TasksRepository(
+    clock: clock,
+    tx: tx,
+    view: tasksRepositoryView,
   );
 
-  TasksRepositoryView get tasksRepositoryView => _cache.getSet(
-    #tasksRepositoryView,
-    () => TasksRepositoryView(clock: clock, tx: tx),
-  );
+  TasksRepositoryView? _tasksRepositoryView;
+  TasksRepositoryView get tasksRepositoryView =>
+      _tasksRepositoryView ??= TasksRepositoryView(clock: clock, tx: tx);
 
   AddTasks get addTasks {
     return AddTasks(
