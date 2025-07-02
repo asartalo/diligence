@@ -16,7 +16,6 @@
 
 import 'dart:async';
 
-import 'package:sqlite_async/sqlite3.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 
 import '../../models/new_task.dart';
@@ -27,14 +26,13 @@ import '../../models/task_list.dart';
 import '../../models/task_node.dart';
 import '../../models/task_pack.dart';
 import '../../utils/clock.dart';
-import '../../utils/date_time_from_row_epoch.dart';
 import 'focus_queue_manager.dart';
+import 'reminders_repository.dart';
 import 'task_db.dart';
 import 'task_events/added_reminders_event.dart';
 import 'task_events/removed_reminders_event.dart';
 import 'task_events/task_event.dart';
 import 'task_events/task_event_registry.dart';
-import 'task_fields.dart';
 import '../migrate.dart';
 import 'tasks_repository_view.dart';
 import 'transactions/transaction_factory.dart';
@@ -57,7 +55,9 @@ class Diligent extends TaskDb {
 
   final TasksRepositoryView _tasksRepositoryView;
 
-  Diligent._internal({
+  final RemindersRepository _remindersRepository;
+
+  Diligent({
     required this.db,
     required bool isTest,
     required this.focusQueueManager,
@@ -65,49 +65,13 @@ class Diligent extends TaskDb {
     required TasksRepositoryView tasksRepositoryView,
     required TaskEventRegistry eventRegistry,
     required TransactionFactory transactionFactory,
+    required RemindersRepository remindersRepository,
   }) : _isTest = isTest,
        _eventRegistry = eventRegistry,
        _transactionFactory = transactionFactory,
-       _tasksRepositoryView = tasksRepositoryView {
+       _tasksRepositoryView = tasksRepositoryView,
+       _remindersRepository = remindersRepository {
     focusQueueManager.registerEventHandlers(this);
-  }
-
-  factory Diligent.convenience({
-    required bool isTest,
-    required SqliteDatabase db,
-    required TasksRepositoryView tasksRepositoryView,
-    required TaskEventRegistry eventRegistry,
-    required TransactionFactory transactionFactory,
-    Clock? clock,
-  }) {
-    final actualClock = clock ?? Clock();
-
-    return Diligent._internal(
-      db: db,
-      isTest: isTest,
-      clock: actualClock,
-      tasksRepositoryView: tasksRepositoryView,
-      eventRegistry: eventRegistry,
-      transactionFactory: transactionFactory,
-      focusQueueManager: FocusQueueManager(db: db, clock: actualClock),
-    );
-  }
-
-  factory Diligent({
-    required SqliteDatabase db,
-    Clock? clock,
-    required TasksRepositoryView tasksRepositoryView,
-    required TaskEventRegistry eventRegistry,
-    required TransactionFactory transactionFactory,
-  }) {
-    return Diligent.convenience(
-      isTest: false,
-      db: db,
-      clock: clock,
-      tasksRepositoryView: tasksRepositoryView,
-      eventRegistry: eventRegistry,
-      transactionFactory: transactionFactory,
-    );
   }
 
   Future<void> setUp() async {
@@ -278,34 +242,14 @@ class Diligent extends TaskDb {
     await announceEvent(AddedRemindersEvent(clock.now(), reminders: reminders));
   }
 
-  Future<ReminderList> getNextReminders(DateTime now) async {
-    final rows = await db.getAll(
-      '''
-      SELECT reminders.*
-      FROM reminders
-      WHERE reminders.remindAt <= ?
-      ORDER BY reminders.remindAt ASC
-      ''',
-      [now.millisecondsSinceEpoch],
-    );
+  Future<ReminderList> getNextReminders(DateTime now) =>
+      _remindersRepository.getNextReminders(now);
 
-    return ReminderList(rows.map(reminderFromRow).toList());
-  }
+  Future<ReminderList> getRemindersForTask(Task task) =>
+      _remindersRepository.getRemindersForTask(task);
 
-  Future<ReminderList> getRemindersForTask(Task task) async {
-    return getRemindersForTaskIds([task.id]);
-  }
-
-  Future<ReminderList> getRemindersForTaskIds(List<int> taskIds) async {
-    final rows = await db.getAll('''
-      SELECT reminders.*
-      FROM reminders
-      WHERE reminders.taskId IN (${questionMarks(taskIds.length)})
-      ORDER BY reminders.remindAt ASC
-      ''', taskIds);
-
-    return ReminderList(rows.map(reminderFromRow).toList());
-  }
+  Future<ReminderList> getRemindersForTaskIds(List<int> taskIds) =>
+      _remindersRepository.getRemindersForTaskIds(taskIds);
 
   Future<Reminder> dismissReminder(Reminder reminder) async {
     if (clock.now().isBefore(reminder.remindAt)) {
@@ -337,14 +281,6 @@ class Diligent extends TaskDb {
     );
     await announceEvent(
       RemovedRemindersEvent(clock.now(), reminders: reminders),
-    );
-  }
-
-  Reminder reminderFromRow(Row row) {
-    return Reminder(
-      taskId: row['taskId'] as int,
-      remindAt: dateTimeFromRowEpoch(row['remindAt']),
-      dismissed: row['dismissed'] as int == 1,
     );
   }
 

@@ -27,6 +27,8 @@ import '../models/scheduled_job.dart';
 import '../platform_wrapped.dart';
 import '../services/config_manager.dart';
 import '../services/diligent/diligent.dart';
+import '../services/diligent/focus_queue_manager.dart';
+import '../services/diligent/reminders_repository.dart';
 import '../services/diligent/tasks_repository_view.dart';
 import '../services/diligent/task_events/task_event_registry.dart';
 import '../services/diligent/transactions/transaction_factory.dart';
@@ -73,19 +75,31 @@ class AppStateScope {
 
   Diligent get diligent => _cache.getSet(
     #diligent,
-    () => Diligent.convenience(
+    () => Diligent(
       isTest: isTest,
       db: db,
       clock: clock,
       eventRegistry: taskEventRegistry,
       transactionFactory: transactionFactory,
       tasksRepositoryView: tasksRepositoryView,
+      remindersRepository: remindersRepository,
+      focusQueueManager: focusQueueManager,
     ),
   );
 
   TasksRepositoryView get tasksRepositoryView => _cache.getSet(
     #tasksRepositoryView,
     () => TasksRepositoryView(clock: clock, tx: db),
+  );
+
+  RemindersRepository get remindersRepository => _cache.getSet(
+    #remindersRepository,
+    () => RemindersRepository(clock: clock, tx: db),
+  );
+
+  FocusQueueManager get focusQueueManager => _cache.getSet(
+    #focusQueueManager,
+    () => FocusQueueManager(clock: clock, db: db),
   );
 
   SqliteDatabase get db =>
