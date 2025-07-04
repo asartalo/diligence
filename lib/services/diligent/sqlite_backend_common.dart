@@ -14,19 +14,12 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-import '../tasks/task.dart';
-import 'tasks_transaction.dart';
+import 'package:sqlite_async/sqlite_async.dart';
 
-class MoveTask extends TasksTransaction {
-  MoveTask(
-    super.tx, {
-    required super.clock,
-    required super.tasksDbWriter,
-    required super.focusQueueManager,
-  });
+import '../../di/read_tx_scope.dart';
+import '../../di/write_tx_scope.dart';
 
-  Future<void> work(Task task, int position, {Task? parent}) async {
-    final result = await tasksDbWriter.moveTask(task, position, parent: parent);
-    await broadcastChanges(result);
-  }
-}
+typedef WriteTxScopeFn = WriteTxScope Function(SqliteWriteContext tx);
+typedef ReadTxScopeFn = ReadTxScope Function(SqliteReadContext tx);
+typedef WriteScopedFn<T> = Future<T> Function(WriteTxScope scope);
+typedef ReadScopedFn<T> = Future<T> Function(ReadTxScope scope);

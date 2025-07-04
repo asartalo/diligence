@@ -14,19 +14,28 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-import '../tasks/task.dart';
-import 'tasks_transaction.dart';
+import 'package:sqlite_async/sqlite_async.dart';
 
-class MoveTask extends TasksTransaction {
-  MoveTask(
-    super.tx, {
-    required super.clock,
-    required super.tasksDbWriter,
-    required super.focusQueueManager,
-  });
+import '../diligent/sqlite_backend_common.dart';
 
-  Future<void> work(Task task, int position, {Task? parent}) async {
-    final result = await tasksDbWriter.moveTask(task, position, parent: parent);
-    await broadcastChanges(result);
+class JobQueueSqliteBackend {
+  final SqliteDatabase _db;
+  final WriteTxScopeFn _writeTxFn;
+  final ReadTxScopeFn _readTxFn;
+
+  JobQueueSqliteBackend({
+    required SqliteDatabase db,
+    required WriteTxScopeFn writeTxFn,
+    required ReadTxScopeFn readTxFn,
+  }) : _db = db,
+       _writeTxFn = writeTxFn,
+       _readTxFn = readTxFn;
+
+  Future<T> writeScoped<T>(WriteScopedFn<T> fn) {
+    return _db.writeTransaction((tx) => fn(_writeTxFn(tx)));
+  }
+
+  Future<T> readScoped<T>(ReadScopedFn<T> fn) {
+    return _db.readTransaction((tx) => fn(_readTxFn(tx)));
   }
 }

@@ -16,14 +16,14 @@
 
 import '../tasks/modified_task.dart';
 import '../tasks/task.dart';
-import 'transaction.dart';
+import 'tasks_transaction.dart';
 
-class UpdateTask extends Transaction {
+class UpdateTask extends TasksTransaction {
   UpdateTask(
     super.tx, {
-    required super.eventRegistry,
     required super.clock,
-    required super.tasksRepository,
+    required super.tasksDbWriter,
+    required super.focusQueueManager,
   });
 
   Future<Task> work(Task task) async {
@@ -31,7 +31,7 @@ class UpdateTask extends Transaction {
       throw ArgumentError('Task must be a ModifiedTask');
     }
 
-    final result = await tasksRepository.updateTask(task);
+    final result = await tasksDbWriter.updateTask(task);
     final updatedTask = result.updatedTasks.first;
     await broadcastChanges(result, updatedTaskOriginal: task);
 

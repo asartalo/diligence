@@ -27,10 +27,10 @@ import '../platform_wrapped.dart';
 import '../services/config_manager.dart';
 import '../services/diligent/diligent.dart';
 import '../services/diligent/focus_queue_manager.dart';
-import '../services/diligent/reminders/reminders_db_writer.dart';
+import '../services/diligent/reminders/reminders.dart';
+import '../services/diligent/sqlite_backend_common.dart';
 import '../services/diligent/tasks/tasks_db_reader.dart';
-import '../services/diligent/task_events/task_event_registry.dart';
-import '../services/diligent/transactions/transaction_factory.dart';
+import '../services/diligent/sqlite_backend.dart';
 import '../services/jobs/job_queue.dart';
 import '../services/jobs/job_track.dart';
 import '../services/jobs/reminder_job_runner.dart';
@@ -39,8 +39,9 @@ import '../services/logger/observer_logger.dart';
 import '../services/notices/notice_queue.dart';
 import '../utils/clock.dart';
 import '../services/logger/logger.dart';
+import 'read_tx_scope.dart';
 import 'root_scope.dart';
-import 'transaction_scope.dart';
+import 'write_tx_scope.dart';
 
 typedef LogerFactoryFunc = Logger Function(String name);
 
@@ -70,24 +71,15 @@ class AppStateScope {
   String get dbPath => config.dbPath;
 
   Diligent? _diligent;
-  Diligent get diligent => _diligent ??= Diligent(
-    isTest: isTest,
-    db: db,
-    clock: clock,
-    eventRegistry: taskEventRegistry,
-    transactionFactory: transactionFactory,
-    tasksRepositoryView: tasksRepositoryView,
-    remindersRepository: remindersRepository,
-    focusQueueManager: focusQueueManager,
-  );
+  Diligent get diligent =>
+      _diligent ??= Diligent(isTest: isTest, clock: clock, backend: backend);
 
-  TasksDbReader? _tasksRepositoryView;
-  TasksDbReader get tasksRepositoryView =>
-      _tasksRepositoryView ??= TasksDbReader(tx: db);
+  TasksDbReader? _tasksReader;
+  TasksDbReader get tasksReader => _tasksReader ??= TasksDbReader(tx: db);
 
-  RemindersDbWriter? _remindersRepository;
-  RemindersDbWriter get remindersRepository =>
-      _remindersRepository ??= RemindersDbWriter(clock: clock, tx: db);
+  RemindersDbReader? _remindersRepository;
+  RemindersDbReader get remindersRepository =>
+      _remindersRepository ??= RemindersDbReader(clock: clock, tx: db);
 
   FocusQueueManager? _focusQueueManager;
   FocusQueueManager get focusQueueManager =>
@@ -127,14 +119,17 @@ class AppStateScope {
         clock: clock,
       );
 
+  Logger? _jobQueueLogger;
+  Logger get jobQueueLogger => _jobQueueLogger ??= (isTest
+      ? loggerFactoryFunc('JobQueue for Tests')
+      : loggerFactoryFunc('JobQueue'));
+
   JobQueue? _jobQueue;
-  JobQueue get jobQueue => _jobQueue ??= isTest
-      ? JobQueue.forTests(
-          db: db,
-          logger: loggerFactoryFunc('JobQueue for Tests'),
-          clock: clock,
-        )
-      : JobQueue(db: db, logger: loggerFactoryFunc('JobQueue'), clock: clock);
+  JobQueue get jobQueue => _jobQueue ??= JobQueue.forTests(
+    db: db,
+    logger: jobQueueLogger,
+    clock: clock,
+  );
 
   JobTrack? _jobTrack;
   JobTrack get jobTrack => _jobTrack ??= JobTrack(
@@ -152,13 +147,24 @@ class AppStateScope {
     noticeFactoryFunc: noticeFactoryFunc,
   );
 
-  TaskEventRegistry? _taskEventRegistry;
-  TaskEventRegistry get taskEventRegistry =>
-      _taskEventRegistry ??= TaskEventRegistry();
+  SqliteBackend? _backend;
+  SqliteBackend get backend => _backend ??= SqliteBackend(
+    db: db,
+    writeTxFn: writeTxScopeFn,
+    readTxFn: readTxScopeFn,
+    tasksReader: tasksReader,
+    focusQueueManager: focusQueueManager,
+    remindersReader: remindersRepository,
+    clock: clock,
+  );
 
-  TransactionFactory? _transactionFactory;
-  TransactionFactory get transactionFactory =>
-      _transactionFactory ??= TransactionFactory(this);
+  WriteTxScopeFn get writeTxScopeFn => (SqliteWriteContext tx) {
+    return WriteTxScope(parent: this, tx: tx);
+  };
+
+  ReadTxScopeFn get readTxScopeFn => (SqliteReadContext tx) {
+    return ReadTxScope(parent: this, tx: tx, clock: clock);
+  };
 
   NoticeFactoryFunc<Notice> get noticeFactoryFunc => (data) {
     switch (data.type) {
@@ -194,4 +200,4 @@ class AppStateScope {
   };
 }
 
-typedef TransactFunc<T> = Future<T> Function(TransactionScope scope);
+typedef TransactFunc<T> = Future<T> Function(WriteTxScope scope);

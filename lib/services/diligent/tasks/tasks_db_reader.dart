@@ -30,7 +30,7 @@ import '../task_fields.dart';
 class TasksDbReader {
   final SqliteReadContext _tx;
 
-  TasksDbReader({required SqliteWriteContext tx}) : _tx = tx;
+  TasksDbReader({required SqliteReadContext tx}) : _tx = tx;
 
   Future<Task?> findTask(int? id) => _findTask(id);
 

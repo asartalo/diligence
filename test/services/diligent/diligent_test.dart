@@ -17,8 +17,9 @@
 import 'package:diligence/services/diligent/reminders/reminders.dart';
 import 'package:diligence/services/diligent/tasks/task.dart';
 import 'package:diligence/services/diligent/diligent.dart';
-import 'package:diligence/services/diligent/diligent_factory.dart';
+import 'package:diligence/services/diligent/app_state_scope_factory.dart';
 import 'package:diligence/services/diligent/initial_areas.dart';
+import 'package:diligence/services/diligent/transactions/dismiss_reminder.dart';
 import 'package:diligence/utils/stub_clock.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -42,7 +43,7 @@ void main() {
 
     setUpAll(() async {
       clock = StubClock();
-      diligent = DiligentFactory.forUnitTests(clock: clock);
+      diligent = AppStateScopeFactory.forUnitTests(clock: clock).diligent;
       await diligent.setUp();
     });
 
@@ -313,7 +314,9 @@ void main() {
       late Map<String, Task> setupResult;
 
       setUp(() async {
-        setupResult = await testTreeSetup(DiligentFactory.forUnitTests());
+        setupResult = await testTreeSetup(
+          AppStateScopeFactory.forUnitTests().diligent,
+        );
       });
 
       test('it returns all ancestors of a task except root', () async {

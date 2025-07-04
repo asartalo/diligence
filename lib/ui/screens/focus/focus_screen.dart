@@ -34,8 +34,13 @@ class FocusScreen extends StatefulWidget {
   final Diligent diligent;
   final DiligentCommander commander;
   final Clock clock;
-  FocusScreen({super.key, required this.diligent, required this.clock})
-    : commander = DiligentCommander(diligent);
+  final Stream<FocusQueueEvent> queueEventStream;
+  FocusScreen({
+    super.key,
+    required this.diligent,
+    required this.clock,
+    required this.queueEventStream,
+  }) : commander = DiligentCommander(diligent);
 
   @override
   State<FocusScreen> createState() => _FocusScreenState();
@@ -52,8 +57,7 @@ class _FocusScreenState extends State<FocusScreen> {
 
   Diligent get diligent => widget.diligent;
   Clock get clock => widget.clock;
-  Stream<FocusQueueEvent> get updateStream =>
-      widget.diligent.focusQueueManager.updateEventStream;
+  Stream<FocusQueueEvent> get updateStream => widget.queueEventStream;
 
   @override
   void initState() {

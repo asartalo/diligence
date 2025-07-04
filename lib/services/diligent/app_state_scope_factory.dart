@@ -18,16 +18,15 @@ import '../../di/app_state_scope.dart';
 import '../../di/root_scope.dart';
 import '../../diligence_config.dart';
 import '../../utils/clock.dart';
-import 'diligent.dart';
 
 const testDbPath = 'diligence_test.db';
 
-class DiligentFactory {
-  static Diligent forUnitTests({String? dbPath, Clock? clock}) {
+class AppStateScopeFactory {
+  static AppStateScope forUnitTests({String? dbPath, Clock? clock}) {
     final RootScope rootScope = RootScope(clock: clock, isTest: true);
     final config = DiligenceConfig(dbPath: dbPath ?? testDbPath);
     final appScope = AppStateScope(parent: rootScope, config: config);
 
-    return appScope.diligent;
+    return appScope;
   }
 }

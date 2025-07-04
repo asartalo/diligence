@@ -15,18 +15,18 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 import '../tasks/task.dart';
-import 'transaction.dart';
+import 'tasks_transaction.dart';
 
-class DeleteTask extends Transaction {
+class DeleteTask extends TasksTransaction {
   DeleteTask(
     super.tx, {
-    required super.eventRegistry,
     required super.clock,
-    required super.tasksRepository,
+    required super.tasksDbWriter,
+    required super.focusQueueManager,
   });
 
   Future<void> work(Task task) async {
-    final result = await tasksRepository.deleteTask(task);
+    final result = await tasksDbWriter.deleteTask(task);
     await broadcastChanges(result);
   }
 }

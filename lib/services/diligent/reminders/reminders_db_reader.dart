@@ -24,12 +24,12 @@ import '../../../utils/clock.dart';
 import '../../../utils/date_time_from_row_epoch.dart';
 import '../task_fields.dart';
 
-class RemindersDbWriter {
+class RemindersDbReader {
   final Clock clock;
 
-  final SqliteWriteContext _tx;
+  final SqliteReadContext _tx;
 
-  RemindersDbWriter({required this.clock, required SqliteWriteContext tx})
+  RemindersDbReader({required this.clock, required SqliteReadContext tx})
     : _tx = tx;
 
   Future<ReminderList> getRemindersForTask(Task task) async {

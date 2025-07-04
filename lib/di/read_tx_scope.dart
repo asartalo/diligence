@@ -14,19 +14,26 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-import '../tasks/task.dart';
-import 'tasks_transaction.dart';
+import 'package:sqlite_async/sqlite_async.dart';
 
-class MoveTask extends TasksTransaction {
-  MoveTask(
-    super.tx, {
-    required super.clock,
-    required super.tasksDbWriter,
-    required super.focusQueueManager,
-  });
+import '../services/diligent/reminders/reminders.dart';
+import '../services/diligent/tasks/tasks.dart';
+import '../utils/clock.dart';
+import 'app_state_scope.dart';
 
-  Future<void> work(Task task, int position, {Task? parent}) async {
-    final result = await tasksDbWriter.moveTask(task, position, parent: parent);
-    await broadcastChanges(result);
-  }
+class ReadTxScope {
+  final Clock clock;
+
+  final AppStateScope parent;
+
+  final SqliteReadContext tx;
+
+  ReadTxScope({required this.parent, required this.tx, required this.clock});
+
+  TasksDbReader? _tasksReader;
+  TasksDbReader get tasksReader => _tasksReader ??= TasksDbReader(tx: tx);
+
+  RemindersDbReader? _remindersDbReader;
+  RemindersDbReader get remindersDbReader =>
+      _remindersDbReader ??= RemindersDbReader(clock: clock, tx: tx);
 }

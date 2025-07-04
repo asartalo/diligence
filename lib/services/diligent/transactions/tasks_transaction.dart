@@ -16,31 +16,25 @@
 
 import 'package:sqlite_async/sqlite_async.dart';
 
+import '../focus_queue_manager.dart';
 import '../tasks/modified_task.dart';
-import '../tasks/persisted_task.dart';
 import '../../../utils/clock.dart';
-import '../task_events/added_tasks_event.dart';
-import '../task_events/deleted_task_event.dart';
-import '../task_events/task_event.dart';
-import '../task_events/task_event_registry.dart';
-import '../task_events/toggled_tasks_done_event.dart';
-import '../task_events/updated_task_event.dart';
 import '../tasks/tasks_db_writer.dart';
 
-abstract class Transaction {
+abstract class TasksTransaction {
   final SqliteWriteContext tx;
 
   final Clock clock;
 
-  final TaskEventRegistry eventRegistry;
+  final TasksDbWriter tasksDbWriter;
 
-  final TasksDbWriter tasksRepository;
+  final FocusQueueManager focusQueueManager;
 
-  Transaction(
+  TasksTransaction(
     this.tx, {
     required this.clock,
-    required this.eventRegistry,
-    required this.tasksRepository,
+    required this.tasksDbWriter,
+    required this.focusQueueManager,
   });
 
   Future<void> broadcastChanges(
@@ -63,38 +57,24 @@ abstract class Transaction {
     }
 
     final parentId = newTasks.first.parentId;
-
-    await announceEvent(
-      AddedTasksEvent(clock.now(), tx: tx, parentId: parentId, tasks: newTasks),
-    );
+    if (parentId is int) {
+      await focusQueueManager.shiftFocusToChildren(parentId, newTasks, tx);
+    }
   }
 
   Future<void> _announceUpdatedTasks(
     TasksDbWriterResult result,
     ModifiedTask updatedTaskBefore,
   ) async {
-    final updatedTask = result.updatedTasks.first;
-
-    await eventRegistry.broadcast(
-      UpdatedTaskEvent(
-        clock.now(),
-        modified: updatedTaskBefore,
-        persisted: updatedTask as PersistedTask,
-        tx: tx,
-      ),
-    );
+    await focusQueueManager.manageModifiedTask(updatedTaskBefore, tx);
   }
 
   Future<void> _announceToggledTasks(TasksDbWriterResult result) async {
-    for (final entry in result.toggledTasksGroupedByDoneAt().entries) {
-      announceEvent(
-        ToggledTasksDoneEvent(
-          clock.now(),
-          tasks: entry.value,
-          tx: tx,
-          doneAt: entry.key,
-        ),
-      );
+    for (final MapEntry(key: doneAt, value: tasks)
+        in result.toggledTasksGroupedByDoneAt().entries) {
+      if (doneAt is DateTime) {
+        await focusQueueManager.unfocusInContext(tasks, tx);
+      }
     }
   }
 
@@ -103,10 +83,6 @@ abstract class Transaction {
       return;
     }
 
-    final deletedTask = result.deletedTasks.first;
-    await announceEvent(DeletedTaskEvent(clock.now(), task: deletedTask));
+    await focusQueueManager.handleDeletedTasks(result.deletedTasks);
   }
-
-  Future<void> announceEvent<T extends TaskEvent>(T event) =>
-      eventRegistry.broadcast<T>(event);
 }

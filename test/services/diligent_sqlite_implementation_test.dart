@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
+import 'package:diligence/di/app_state_scope.dart';
 import 'package:diligence/services/diligent/tasks/tasks.dart';
 import 'package:diligence/services/diligent/diligent.dart';
-import 'package:diligence/services/diligent/diligent_factory.dart';
+import 'package:diligence/services/diligent/app_state_scope_factory.dart';
 import 'package:diligence/utils/stub_clock.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -29,16 +30,18 @@ void main() {
   //
   // TODO: Is this still relevant?
   group('Diligent SQLite Implementation', () {
+    late AppStateScope scope;
     late Diligent diligent;
     late StubClock clock;
     late Map<String, Task> setupResult;
 
     setUpAll(() async {
       clock = StubClock();
-      diligent = DiligentFactory.forUnitTests(
+      scope = AppStateScopeFactory.forUnitTests(
         dbPath: 'diligent_sqlite_implementation_test.db',
         clock: clock,
       );
+      diligent = scope.diligent;
       await diligent.setUp();
     });
 
@@ -56,7 +59,7 @@ void main() {
         final task = setupResult['A1i - leaf']!;
         await diligent.focus(task);
         await diligent.deleteTask(task);
-        final rows = await diligent.db.getAll(
+        final rows = await scope.db.getAll(
           '''SELECT * FROM focusQueue WHERE taskId = ?''',
           [task.id],
         );

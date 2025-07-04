@@ -15,18 +15,18 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 import '../tasks/task_list.dart';
-import 'transaction.dart';
+import 'tasks_transaction.dart';
 
-class AddTasks extends Transaction {
+class AddTasks extends TasksTransaction {
   AddTasks(
     super.tx, {
     required super.clock,
-    required super.eventRegistry,
-    required super.tasksRepository,
+    required super.tasksDbWriter,
+    required super.focusQueueManager,
   });
 
   Future<TaskList> work(TaskList tasks, {int? position}) async {
-    final result = await tasksRepository.addTask(tasks, position: position);
+    final result = await tasksDbWriter.addTask(tasks, position: position);
 
     await broadcastChanges(result);
 

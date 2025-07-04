@@ -14,19 +14,12 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-import '../tasks/task.dart';
-import 'tasks_transaction.dart';
-
-class MoveTask extends TasksTransaction {
-  MoveTask(
-    super.tx, {
-    required super.clock,
-    required super.tasksDbWriter,
-    required super.focusQueueManager,
-  });
-
-  Future<void> work(Task task, int position, {Task? parent}) async {
-    final result = await tasksDbWriter.moveTask(task, position, parent: parent);
-    await broadcastChanges(result);
-  }
-}
+export './add_reminders.dart';
+export './add_tasks.dart';
+export './delete_reminders.dart';
+export './delete_task.dart';
+export './dismiss_reminder.dart';
+export './get_children.dart';
+export './move_task.dart';
+export './transactions.dart';
+export './update_task.dart';

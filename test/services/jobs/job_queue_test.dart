@@ -103,7 +103,7 @@ void main() {
         });
       });
 
-      group('when an later job is added', () {
+      group('when a later job is added', () {
         late ReminderJob lateJob;
 
         setUp(() async {

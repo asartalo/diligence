@@ -59,6 +59,7 @@ class DiligenceContainer {
       Provider(create: (_) => _sideEffects()),
       Provider(create: (_) => di.noticeQueue),
       Provider(create: (_) => di.loggerFactoryFunc),
+      Provider(create: (_) => di.focusQueueManager),
       BlocProvider(
         create: (_) =>
             ReviewDataBloc(ReviewDataService(), sideEffects: _sideEffects()),
@@ -132,7 +133,6 @@ class DiligenceContainer {
   Future<void> start() async {
     await diligent.setUp();
     await diligent.initialAreas(initialAreas(di.clock.now()));
-    di.jobQueue.registerEventHandlers(diligent);
     await di.jobTrack.start();
   }
 

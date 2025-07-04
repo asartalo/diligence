@@ -22,6 +22,7 @@ import 'app_observer.dart';
 import 'diligence_config.dart';
 import 'diligence_container.dart';
 import 'services/diligent/diligent.dart';
+import 'services/diligent/focus_queue_manager.dart';
 import 'ui/diligence_theme.dart';
 import 'ui/screens/focus/focus_screen.dart';
 import 'ui/screens/home/home_screen.dart';
@@ -82,10 +83,15 @@ class _DiligenceAppState extends State<DiligenceApp> {
               diligent: Provider.of<Diligent>(context),
               clock: Provider.of<Clock>(context),
             ),
-            '/focus': (context) => FocusScreen(
-              diligent: Provider.of<Diligent>(context),
-              clock: Provider.of<Clock>(context),
-            ),
+            '/focus': (context) {
+              final diligent = Provider.of<Diligent>(context);
+              final focusQueueManager = Provider.of<FocusQueueManager>(context);
+              return FocusScreen(
+                diligent: diligent,
+                clock: Provider.of<Clock>(context),
+                queueEventStream: focusQueueManager.updateEventStream,
+              );
+            },
             '/review': (context) => const ReviewScreen(title: 'Diligence'),
             '/settings': (context) {
               return SettingsScreen(

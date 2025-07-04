@@ -34,7 +34,7 @@ class JobTrack implements NextJobListener {
       jobQueue.registerNextJobListener(this);
       isIdle = false;
     }
-    _pulseTimer ??= Timer.periodic(const Duration(seconds: 1), (timer) {
+    _pulseTimer ??= clock.periodic(const Duration(seconds: 1), (timer) {
       final now = clock.now();
       final currentTimer = _queuedTimer;
       final nextJobIn = _nextJobIn;

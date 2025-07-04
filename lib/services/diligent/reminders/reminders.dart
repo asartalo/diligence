@@ -16,4 +16,4 @@
 
 export 'reminder.dart';
 export 'reminder_list.dart';
-export 'reminders_db_writer.dart';
+export 'reminders_db_reader.dart';
