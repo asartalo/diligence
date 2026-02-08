@@ -1,7 +1,7 @@
 # Diligence
 
 [![Coverage Status](https://coveralls.io/repos/github/asartalo/diligence/badge.svg?branch=main)](https://coveralls.io/github/asartalo/diligence?branch=main)
-[![LICENSE: GPLv3](https://img.shields.io/github/license/asartalo/diligence.svg?color=purple)](https://github.com/asartalo/diligence/blob/master/LICENSE)
+[![LICENSE: GPLv3](https://img.shields.io/github/license/asartalo/diligence.svg?color=purple)](https://codeberg.org/asartalo/diligence/src/branch/main/LICENSE)
 
 
 Diligence is a free and open-source, tree-based, task management system.
@@ -20,14 +20,14 @@ As of the moment, Diligence is available as an AppImage and as a snap on the Sna
 
 ### Linux
 
-- [AppImage](https://github.com/asartalo/diligence/releases/download/0.1.13/Diligence-x64.AppImage)
+- [AppImage](https://codeberg.org/asartalo/diligence/releases/download/0.1.13/Diligence-x64-0.1.13.AppImage)
 - [Snap Store](https://snapcraft.io/diligence)
 
-For the source code and other (future) binaries, head onto [Releases](https://github.com/asartalo/diligence/releases).
+For the source code and other (future) binaries, head onto [Releases](https://codeberg.org/asartalo/diligence/releases).
 
 ## Roadmap
 
-Visit the [Diligence Project Page](https://github.com/users/asartalo/projects/1/views/1) to get a sense of what’s on the pipeline.
+Visit the [Diligence Project Page](https://codeberg.org/asartalo/diligence/projects/16493) to get a sense of what’s on the pipeline.
 
 ## Development
 
